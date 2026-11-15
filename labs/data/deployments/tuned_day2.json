@@ -1,13 +1,13 @@
 {
-  "note": "After Day 2: chunked prefill, a cap of 16, stable-first layout, salt per tenant",
+  "note": "After Day 2: chunked prefill with a budget of 1,024 tokens, a cap of 8, stable-first layout, salt per tenant",
   "config": {
     "model": "qwen3-8b",
     "accelerator": "L4",
     "weight_dtype": "bf16",
     "kv_cache_dtype": "bf16",
     "gpu_memory_utilization": 0.9,
-    "max_num_seqs": 16,
-    "max_num_batched_tokens": 2048,
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 1024,
     "enable_chunked_prefill": true,
     "enable_prefix_caching": true,
     "cache_salt": "tenant",

@@ -50,11 +50,11 @@
   <h2>The objective is per request, and it has two clocks</h2>
   <div class="cols cols-3 gap-s">
     <div class="stat center"><div class="big">2.0 s</div><div class="lbl">time to first token, at most</div></div>
-    <div class="stat center"><div class="big">100 ms</div><div class="lbl">time per output token, at most</div></div>
+    <div class="stat center"><div class="big">150 ms</div><div class="lbl">time per output token, at most</div></div>
     <div class="stat center"><div class="big">90%</div><div class="lbl">of peak requests meet both</div></div>
   </div>
   <div class="callout note mt"><b>Today's question.</b> How far is the deployment from that, and can we say so before we measure?</div>
-  <aside class="notes"><p>The objectives live in labs/data/objectives.json. A visitor reads at roughly ten tokens a second or slower, which is why 100 ms per token is the decoding objective; the first token is what makes the assistant feel responsive.</p></aside>
+  <aside class="notes"><p>The objectives live in labs/data/objectives.json. 150 ms a token is about seven tokens a second, faster than a visitor reads, which is why it is the decoding objective; the first token is what makes the assistant feel responsive.</p></aside>
 </section>
 
 <section class="slide" id="setup-check" data-lo="LO1">
@@ -242,11 +242,11 @@ uv run jupyter lab</code></pre>
   <h2>Three context lengths, three limits, all within the 25% band</h2>
   <table class="t">
     <tr><th class="num">Tokens per conversation</th><th class="num">Predicted</th><th class="num">Engine held at most</th><th class="num">Preemptions</th></tr>
-    <tr><td class="num">2,000</td><td class="num">12.2</td><td class="num">13</td><td class="num">7</td></tr>
-    <tr><td class="num">4,000</td><td class="num">6.1</td><td class="num">6</td><td class="num">0</td></tr>
+    <tr><td class="num">2,000</td><td class="num">12.2</td><td class="num">14</td><td class="num">14</td></tr>
+    <tr><td class="num">4,000</td><td class="num">6.1</td><td class="num">7</td><td class="num">13</td></tr>
     <tr class="hl"><td class="num">8,000</td><td class="num">3.0</td><td class="num">3</td><td class="num">0</td></tr>
   </table>
-  <p class="small mt">The engine admits at the prompt's length and preempts as answers grow, so it settles on the arithmetic.</p>
+  <p class="small mt">The engine admits at the prompt's length, briefly holds one more, then preempts as answers grow.</p>
   <aside class="notes"><p>From Lab 1.2's saturation run: 40 users, fixed lengths, a sequence cap of 64 so the cache is the limit. The 8,000-token row is the long-document visitor: three at once on the whole card.</p></aside>
 </section>
 
@@ -313,7 +313,7 @@ uv run jupyter lab</code></pre>
 <section class="slide" id="goodput-defined" data-lo="LO2">
   <div class="kicker">The measure of this course</div>
   <h2>Goodput counts only the requests that met both objectives</h2>
-  <pre class="code" data-file="Lab 1.3 · task 4"><code class="language-python">met = (df.ttft_s &lt;= 2.0) &amp; (df.tpot_s &lt;= 0.100)
+  <pre class="code" data-file="Lab 1.3 · task 4"><code class="language-python">met = (df.ttft_s &lt;= 2.0) &amp; (df.tpot_s &lt;= 0.150)
 goodput = met.sum() / (df.end.max() - df.start.min())
 attainment = met.mean()</code></pre>
   <p class="small mt">Throughput counts every finished request. Goodput counts the visitors who were served well.</p>
@@ -350,7 +350,7 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
   <table class="t">
     <tr><th class="num">Users</th><th class="num">Throughput (req/s)</th><th class="num">Goodput (req/s)</th><th class="num">Attainment</th></tr>
     <tr><td class="num">2</td><td class="num">0.20</td><td class="num">0.20</td><td class="num">100%</td></tr>
-    <tr><td class="num">8</td><td class="num">0.28</td><td class="num">0.09</td><td class="num">31%</td></tr>
+    <tr><td class="num">8</td><td class="num">0.28</td><td class="num">0.14</td><td class="num">50%</td></tr>
     <tr class="hl"><td class="num">24</td><td class="num">0.51</td><td class="num">0.00</td><td class="num">0%</td></tr>
   </table>
   <p class="small mt">The baseline as deployed, through the HTTP stand-in, quick-mode run.</p>
@@ -379,7 +379,7 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
       <div class="opt" data-why="Reads a mean as the objective: the objective is per request">Yes: the mean TTFT is under 2 s</div>
       <div class="opt" data-why="Treats throughput as success: busy is not served well">Yes: it serves 0.44 requests per second</div>
       <div class="opt" data-ok>The share of requests that met both, which the p90 says is under 90%</div>
-      <div class="opt" data-why="Checks one clock only: a request must meet both">Yes: the TPOT p90 is under 100 ms</div>
+      <div class="opt" data-why="Checks one clock only: a request must meet both">Yes: the TPOT p90 is under 150 ms</div>
     </div>
     <div class="callout tip why"><b>Why.</b> If the 90th percentile of TTFT is 9 s, more than 10% of requests waited over 2 s, so attainment is under 90% whatever the mean.</div>
   </div>
@@ -407,9 +407,9 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
 
 <section class="slide" id="baseline-curve" data-lo="LO2">
   <div class="kicker">Lab 1.4 · task 4</div>
-  <h2>The baseline's goodput peaks at 4 users and collapses by 12</h2>
+  <h2>The baseline's goodput peaks at 8 users and collapses by 12</h2>
   <figure class="figure">
-    <img src="../assets/d1-baseline-curve.svg" alt="Throughput keeps rising from 1 to 16 users while goodput peaks at 0.23 requests per second at 4 users and falls to almost zero at 12 and 16 users">
+    <img src="../assets/d1-baseline-curve.svg" alt="Throughput keeps rising from 1 to 16 users while goodput peaks at 0.37 requests per second at 8 users and falls to 0.11 at 12 users and almost zero at 16">
     <figcaption>Mean of three runs per point, error bars one standard deviation. Synthetic: the course simulator.</figcaption>
   </figure>
   <aside class="notes"><p>Point at the gap between the two lines: that gap is the work the engine does for visitors who were not served well. Ask where you would run this engine if you had to: just left of the knee, with admission control keeping it there (Day 2).</p></aside>
@@ -422,13 +422,13 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
     <tr><th class="num">Users</th><th class="num">Goodput</th><th class="num">± sd</th><th class="num">Throughput</th><th class="num">TTFT p90 (s)</th><th class="num">TPOT p90 (ms)</th></tr>
     <tr><td class="num">1</td><td class="num">0.079</td><td class="num">0.003</td><td class="num">0.080</td><td class="num">1.41</td><td class="num">75</td></tr>
     <tr><td class="num">2</td><td class="num">0.145</td><td class="num">0.006</td><td class="num">0.146</td><td class="num">1.39</td><td class="num">84</td></tr>
-    <tr class="hl"><td class="num">4</td><td class="num">0.233</td><td class="num">0.014</td><td class="num">0.255</td><td class="num">1.42</td><td class="num">99</td></tr>
-    <tr><td class="num">6</td><td class="num">0.194</td><td class="num">0.023</td><td class="num">0.333</td><td class="num">1.51</td><td class="num">110</td></tr>
-    <tr><td class="num">8</td><td class="num">0.096</td><td class="num">0.006</td><td class="num">0.399</td><td class="num">1.96</td><td class="num">122</td></tr>
-    <tr><td class="num">12</td><td class="num">0.009</td><td class="num">0.008</td><td class="num">0.441</td><td class="num">11.42</td><td class="num">128</td></tr>
-    <tr><td class="num">16</td><td class="num">0.001</td><td class="num">0.001</td><td class="num">0.443</td><td class="num">20.81</td><td class="num">132</td></tr>
+    <tr><td class="num">4</td><td class="num">0.254</td><td class="num">0.011</td><td class="num">0.255</td><td class="num">1.42</td><td class="num">99</td></tr>
+    <tr><td class="num">6</td><td class="num">0.321</td><td class="num">0.024</td><td class="num">0.333</td><td class="num">1.51</td><td class="num">110</td></tr>
+    <tr class="hl"><td class="num">8</td><td class="num">0.368</td><td class="num">0.036</td><td class="num">0.399</td><td class="num">1.96</td><td class="num">122</td></tr>
+    <tr><td class="num">12</td><td class="num">0.113</td><td class="num">0.032</td><td class="num">0.441</td><td class="num">11.42</td><td class="num">128</td></tr>
+    <tr><td class="num">16</td><td class="num">0.018</td><td class="num">0.027</td><td class="num">0.443</td><td class="num">20.81</td><td class="num">132</td></tr>
   </table>
-  <aside class="notes"><p>The 6-user row is the participant's own point in the lab; the others are supplied. Note what breaks first: TPOT crosses 100 ms at 6 users, before TTFT crosses 2 s. On this deployment, decoding pace is the binding objective at moderate load.</p></aside>
+  <aside class="notes"><p>The 6-user row is the participant's own point in the lab; the others are supplied. Note what breaks first: TTFT. Between 8 and 12 users the p90 jumps from 2 s to 11 s, exactly where Lab 1.2 said the cache fills (about 12 conversations): new requests wait for room. TPOT stays under 150 ms throughout.</p></aside>
 </section>
 
 <section class="slide" id="benchmark-validity" data-lo="LO2">
@@ -459,14 +459,14 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
     <div class="card c-coral"><h4>Open loop, two minutes of the peak</h4><p class="small mb0">0.45 requests per second served while 2.13 arrive; p90 TTFT 372 s and growing.</p></div>
   </div>
   <div class="callout warn mt"><b>What goes wrong.</b> A closed-loop test at "high concurrency" can look survivable while real arrivals would grow the queue without bound.</div>
-  <aside class="notes"><p>Open-loop numbers from the stretch's quick run: 120 seconds of the busiest hour replayed. Arrivals at 2.13 per second against a best goodput of 0.23: the baseline is short by a factor of about nine. That number is the capstone's starting gap.</p></aside>
+  <aside class="notes"><p>Open-loop numbers from the stretch's quick run: 120 seconds of the busiest hour replayed. Arrivals at 2.13 per second against a best goodput of 0.37: the baseline is short by a factor of about six. That number is the capstone's starting gap.</p></aside>
 </section>
 
 <section class="slide" id="capacity-claim" data-lo="LO2">
   <div class="kicker">Lab 1.4 · task 5</div>
   <h2>A capacity claim names the point, its spread and the objectives</h2>
-  <div class="callout note"><b>Claim.</b> The baseline serves at most 0.23 ± 0.01 good requests per second (mean ± sd of 3 runs) at 4 concurrent users, under TTFT ≤ 2.0 s and TPOT ≤ 100 ms; beyond it goodput falls while throughput keeps rising.</div>
-  <p class="small mt">The evening peak brings 2.13 requests per second: nine times this.</p>
+  <div class="callout note"><b>Claim.</b> The baseline serves at most 0.37 ± 0.04 good requests per second (mean ± sd of 3 runs) at 8 concurrent users, under TTFT ≤ 2.0 s and TPOT ≤ 150 ms; beyond it goodput falls while throughput keeps rising.</div>
+  <p class="small mt">The evening peak brings 2.13 requests per second: six times this.</p>
   <aside class="notes"><p>Have two participants read their claims aloud and let the room check each against the validity checklist. The claim goes into the capstone report as the "before".</p></aside>
 </section>
 
@@ -496,9 +496,9 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
   <div class="cols cols-3 gap-s">
     <div class="card c-teal"><h4>Two phases</h4><p class="small mb0">Prefill waits on arithmetic, decode on memory. Two lines of arithmetic predict both.</p></div>
     <div class="card c-cyan"><h4>The cache decides</h4><p class="small mb0">3.6 GB of cache holds about 12 conversations of 2,000 tokens: that, not compute, limits the baseline.</p></div>
-    <div class="card c-coral"><h4>Curves with spread</h4><p class="small mb0">Goodput over concurrency, three runs a point, raw rows kept: 0.23 at the knee.</p></div>
+    <div class="card c-coral"><h4>Curves with spread</h4><p class="small mb0">Goodput over concurrency, three runs a point, raw rows kept: 0.37 at the knee.</p></div>
   </div>
-  <aside class="notes"><p>Ask each table for the one number from today they would put in front of Hanadi. Most will pick the factor of nine.</p></aside>
+  <aside class="notes"><p>Ask each table for the one number from today they would put in front of Hanadi. Most will pick the factor of six.</p></aside>
 </section>
 
 <section class="slide dark" id="tomorrow-inside-the-engine" data-lo="LO3 LO4">

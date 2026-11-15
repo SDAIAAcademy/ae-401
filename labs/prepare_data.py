@@ -283,14 +283,14 @@ def deployments():
             "enable_chunked_prefill": False, "enable_prefix_caching": True, "cache_salt": "none",
             "block_size": 16, "speculative_model": None, "num_speculative_tokens": 0, "role": "both",
             "layout": "deployed"}
-    good = dict(base, max_num_seqs=16, max_num_batched_tokens=2048, enable_chunked_prefill=True)
+    good = dict(base, max_num_seqs=8, max_num_batched_tokens=1024, enable_chunked_prefill=True)
     return {
         "baseline": {"note": "Musamir as deployed: the configuration the capstone starts from", "config": base},
         "capstone_start": {"note": "The provided under-performing deployment of the capstone", "config": base},
-        "fault_queueing": {"note": "Seeded fault 1 (Lab 2.1)", "config": dict(good, max_num_seqs=4)},
-        "fault_preemption": {"note": "Seeded fault 2 (Lab 2.1)", "config": dict(good, max_num_seqs=48, gpu_memory_utilization=0.86)},
+        "fault_queueing": {"note": "Seeded fault 1 (Lab 2.1)", "config": dict(good, max_num_seqs=2)},
+        "fault_preemption": {"note": "Seeded fault 2 (Lab 2.1)", "config": dict(good, max_num_seqs=48, gpu_memory_utilization=0.82)},
         "fault_interference": {"note": "Seeded fault 3 (Lab 2.2)", "config": dict(good, enable_chunked_prefill=False, max_num_batched_tokens=8192)},
-        "tuned_day2": {"note": "After Day 2: chunked prefill, a cap of 16, stable-first layout, salt per tenant", "config": dict(good, layout="stable_first", cache_salt="tenant")},
+        "tuned_day2": {"note": "After Day 2: chunked prefill with a budget of 1,024 tokens, a cap of 8, stable-first layout, salt per tenant", "config": dict(good, layout="stable_first", cache_salt="tenant")},
     }
 
 
@@ -299,8 +299,8 @@ def main():
     write_json("model_cards.json", MODEL_CARDS)
     write_json("accelerators.json", ACCELERATORS)
     write_json("objectives.json", {
-        "ttft_s": 2.0, "tpot_s": 0.10, "attainment_target": 0.90,
-        "note": "Per request: time to first token at most 2.0 s and time per output token at most 100 ms. The service objective: 90% of requests at the evening peak meet both."})
+        "ttft_s": 2.0, "tpot_s": 0.15, "attainment_target": 0.90,
+        "note": "Per request: time to first token at most 2.0 s and time per output token at most 150 ms (faster than a visitor reads). The service objective: 90% of requests at the evening peak meet both."})
     write_json("spec_acceptance.json", {"qwen3-0.6b": {"en": 0.66, "ar": 0.46,
                                                          "note": "synthetic per-token acceptance of the draft model, by language"}})
     write_json("tenants.json", {"header_tokens": 24, "base_tokens": 640, "tenants": TENANTS,

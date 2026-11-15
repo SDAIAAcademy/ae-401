@@ -146,6 +146,7 @@ CAL = {
     "int4_dequant": 1.15,     # extra compute of 4-bit weights unpacked to 16 bits
     "jitter": 0.03,           # run-to-run noise on step time (log-normal sigma)
     "link_gbs": 20.0,         # effective cache transfer between two accelerators of the node
+    "admission": "chunk",     # admit on the blocks of the next chunk, as continuous-batching engines do
 }
 
 
@@ -554,9 +555,10 @@ class Engine:
                     break
                 c = min(remaining, budget) if cfg.enable_chunked_prefill else remaining
                 need = math.ceil((r.prefilled + c) / bs) - r.held
-                # admit only when the whole prompt fits above a small watermark of free blocks
-                need_full = math.ceil(r.to_prefill / bs) - r.held
-                if (self.running and need_full + max(1, self.n_blocks // 100) > self.free_blocks()) or                         (need > 0 and not self._take(need)):
+                # admit when this step's blocks fit above a small watermark of free blocks (or, with
+                # CAL["admission"] == "prompt", only when the whole prompt fits)
+                need_adm = math.ceil(r.to_prefill / bs) - r.held if CAL["admission"] == "prompt" else need
+                if (self.running and need_adm + max(1, self.n_blocks // 100) > self.free_blocks()) or                         (need > 0 and not self._take(need)):
                     # not admitted: a waiting request holds no blocks
                     self._release(r)
                     r.prefilled = 0
