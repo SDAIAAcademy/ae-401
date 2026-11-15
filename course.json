@@ -1,0 +1,458 @@
+{
+  "$schema": "https://sdaiaacademy.github.io/engine/schemas/course.schema.json",
+  "engine": "1",
+  "id": "ae-401",
+  "code": "AE-401",
+  "version": "2027.1.0",
+  "lang": "en",
+  "title": {
+    "en": "Inference Performance and Cost Engineering",
+    "ar": "هندسة أداء الاستنتاج وتكلفته"
+  },
+  "tagline": "REPLACE: one line under the title: what participants can do after the course",
+  "description": "Participants take the bilingual visitor assistant of a fictional national events authority, too slow at evening peaks and too costly, and make it meet its service objective at the lowest cost they can defend. They build a first-principles cost model, measure goodput curves on replayed traffic, diagnose seeded bottlenecks, then apply batching, caching, quantisation, speculative decoding, distillation, routing, disaggregated serving and autoscaling, re-running an Arabic and English task evaluation after every change.",
+  "track": "ai-engineering",
+  "level": 400,
+  "badge": {
+    "name": "AI Engineering",
+    "level": "Expert"
+  },
+  "audience": "Specialists. Engineers who have completed the level 300 core or can show equivalent work: a production AI system they built, operated and can defend.",
+  "prerequisites": [
+    "AE-305 Operating Machine Learning and Language Model Systems",
+    "AE-307 Container Orchestration and Cloud Infrastructure for AI Workloads",
+    "Has served an open-weight model behind an HTTP endpoint and load-tested it",
+    "Computes percentiles and reads a latency histogram",
+    "Estimates memory from parameter count and numeric precision"
+  ],
+  "site": {
+    "url": "https://sdaiaacademy.github.io/ae-401/",
+    "repo": "SDAIAAcademy/ae-401"
+  },
+  "outcomes": [
+    {
+      "id": "LO1",
+      "text": "Compute prefill cost, decode cost and key-value cache memory, and predict the binding resource, given a model card, an accelerator specification sheet and a traffic profile",
+      "level": "Applied",
+      "evidence": "a sizing sheet whose predicted concurrency limit is within 25% of a measured run"
+    },
+    {
+      "id": "LO2",
+      "text": "Evaluate a serving configuration by measuring its goodput curve over concurrency against latency objectives, given an engine, a small open-weight model and a replayed synthetic trace",
+      "level": "Performance",
+      "evidence": "a repeatable curve of at least seven points with raw data and run-to-run variance"
+    },
+    {
+      "id": "LO3",
+      "text": "Diagnose why a deployment misses its service objective and confirm the fix, given three seeded faults: queueing, preemption under cache pressure and prefill interference",
+      "level": "Performance",
+      "evidence": "a diagnosis per fault with its evidence, and a rerun that meets the objective"
+    },
+    {
+      "id": "LO4",
+      "text": "Optimise batching, admission, prefix caching and cache precision while holding task quality, given a multi-tenant trace and Arabic and English evaluation sets",
+      "level": "Performance",
+      "evidence": "before-and-after goodput, cost per million tokens and quality with intervals, and a passed cross-tenant cache test"
+    },
+    {
+      "id": "LO5",
+      "text": "Evaluate quantised, distilled and speculative-decoding variants against the base model and decide which to serve, given a quality floor per language and a cost target",
+      "level": "Performance",
+      "evidence": "a quality and cost table by language and a one-page serving decision"
+    },
+    {
+      "id": "LO6",
+      "text": "Design and defend a serving topology covering disaggregation, routing, replica count and scaling policy, given a daily demand pattern, a service objective and a budget",
+      "level": "Performance",
+      "evidence": "a design document with predicted and measured goodput and cost per successful request"
+    }
+  ],
+  "case_study": {
+    "name": "REPLACE: the name of the fictional organisation every lab works on",
+    "summary": "REPLACE: two sentences on the case study and its synthetic data"
+  },
+  "format": "intensive",
+  "format_note": "Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task",
+  "hours": {
+    "instruction": 6,
+    "lab": 7,
+    "guided_self_study": 6,
+    "assessment": 1,
+    "capstone": 6
+  },
+  "unit": "day",
+  "days": [
+    {
+      "id": "day1",
+      "kind": "day",
+      "title": "Model the cost first",
+      "deck": "slides/day1.html",
+      "sessions": [
+        {
+          "title": "Prefill and decode are different problems",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.1",
+            "title": "Compute operations and bytes per token for two models and predict what bounds each phase",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_1_compute_operations_bytes.ipynb"
+          }
+        },
+        {
+          "title": "Key-value cache arithmetic",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO1"
+          ],
+          "lab": {
+            "id": "1.2",
+            "title": "Predict the concurrency limit at three context lengths and check it against the engine",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_2_predict_concurrency_limit.ipynb"
+          }
+        },
+        {
+          "title": "Goodput against an objective",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "1.3",
+            "title": "Load the baseline at three concurrency levels and compute goodput",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_3_load_baseline_three.ipynb"
+          }
+        },
+        {
+          "title": "Curves, not single numbers",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO2"
+          ],
+          "lab": {
+            "id": "1.4",
+            "title": "Build a seven-point goodput curve from supplied runs plus one of your own",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D1_4_build_seven_point.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day2",
+      "kind": "day",
+      "title": "Scheduling and caching in the engine",
+      "deck": "slides/day2.html",
+      "sessions": [
+        {
+          "title": "Continuous batching and admission",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3",
+            "LO4"
+          ],
+          "lab": {
+            "id": "2.1",
+            "title": "Vary the concurrency cap and plot tail latency against throughput",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_1_vary_concurrency_cap.ipynb"
+          }
+        },
+        {
+          "title": "Long prompts slow short ones",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO3"
+          ],
+          "lab": {
+            "id": "2.2",
+            "title": "Mix long-document and chat traffic with chunked prefill on and off",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_2_mix_long_document.ipynb"
+          }
+        },
+        {
+          "title": "Prefix caching starts with prompt layout",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO4"
+          ],
+          "lab": {
+            "id": "2.3",
+            "title": "Reorder a prompt for reuse, measure the hit rate, then block cross-tenant hits",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_3_reorder_prompt_reuse.ipynb"
+          }
+        },
+        {
+          "title": "Semantic caching and wrong answers",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO4"
+          ],
+          "lab": {
+            "id": "2.4",
+            "title": "Measure hit rate and wrong answers on paraphrase pairs at three thresholds",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D2_4_measure_hit_rate.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day3",
+      "kind": "day",
+      "title": "Cheaper tokens, same quality",
+      "deck": "slides/day3.html",
+      "sessions": [
+        {
+          "title": "Quantising weights",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO5"
+          ],
+          "lab": {
+            "id": "3.1",
+            "title": "Compare two weight precisions on memory, goodput and bilingual task scores",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_1_compare_two_weight.ipynb"
+          }
+        },
+        {
+          "title": "Cache precision buys concurrency",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO4"
+          ],
+          "lab": {
+            "id": "3.2",
+            "title": "Lower cache precision and measure concurrency gained and long-context accuracy lost",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_2_lower_cache_precision.ipynb"
+          }
+        },
+        {
+          "title": "Speculative decoding",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO5"
+          ],
+          "lab": {
+            "id": "3.3",
+            "title": "Measure acceptance rate and time per output token at low and high load",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_3_measure_acceptance_rate.ipynb"
+          }
+        },
+        {
+          "title": "Distilled models and routing to them",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO5"
+          ],
+          "lab": {
+            "id": "3.4",
+            "title": "Route by a supplied difficulty classifier between a distilled model and the base",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D3_4_route_supplied_difficulty.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "day4",
+      "kind": "day",
+      "title": "Across replicas and over the day",
+      "deck": "slides/day4.html",
+      "sessions": [
+        {
+          "title": "Disaggregated prefill and decode",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO6"
+          ],
+          "lab": {
+            "id": "4.1",
+            "title": "Predict when disaggregation pays on long prompts and check against a supplied run",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_1_predict_when_disaggregation.ipynb"
+          }
+        },
+        {
+          "title": "Routing across replicas",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO6"
+          ],
+          "lab": {
+            "id": "4.2",
+            "title": "Compare round-robin with prefix-aware routing on a multi-turn trace",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_2_compare_round_robin.ipynb"
+          }
+        },
+        {
+          "title": "Autoscaling and cold starts",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO6"
+          ],
+          "lab": {
+            "id": "4.3",
+            "title": "Replay the daily pattern in the simulator and choose the scaling signal and minimum replicas",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_3_replay_daily_pattern.ipynb"
+          }
+        },
+        {
+          "title": "Cost per successful request",
+          "outcomes": [
+            "REPLACE: what a participant can do after this session"
+          ],
+          "lo": [
+            "LO6"
+          ],
+          "lab": {
+            "id": "4.4",
+            "title": "Compare self-hosting with a hosted API at three volumes and plan the capstone",
+            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "minutes": 25,
+            "href": "D4_4_compare_self_hosting.ipynb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "capstone",
+      "kind": "capstone",
+      "title": "Capstone project presentations",
+      "deck": "slides/capstone.html",
+      "subtitle": "REPLACE: the catalog gives 20 minutes for each presentation and nothing about questions; decide whether the questions are inside those minutes, set capstone.talk_minutes and capstone.qa_minutes in course.json and the timers of the now-presenting slide, and remove this line"
+    }
+  ],
+  "capstone": {
+    "summary": "Tune a provided under-performing deployment of the case assistant to meet its latency objectives at minimum cost per successful request, submitted as a public repository with raw benchmark data, quality by language and a design document, and defended in 20 minutes. The follow-up task repeats the method on the participant's own deployment or a public trace",
+    "submission": "REPLACE: what participants submit and how: a public repository link, or a shared folder for a course without code",
+    "talk_minutes": 20,
+    "rubric": [
+      {
+        "criterion": "Cost model",
+        "weight": 15
+      },
+      {
+        "criterion": "Benchmark method",
+        "weight": 25
+      },
+      {
+        "criterion": "Optimisations with re-evaluation",
+        "weight": 25
+      },
+      {
+        "criterion": "Topology design",
+        "weight": 20
+      },
+      {
+        "criterion": "Reproducibility",
+        "weight": 15
+      }
+    ]
+  },
+  "labs": {
+    "kind": "notebooks",
+    "base": "labs/"
+  },
+  "tools": [
+    {
+      "slot": "Inference engine",
+      "examples": [
+        "vLLM",
+        "SGLang",
+        "llama.cpp server"
+      ]
+    },
+    {
+      "slot": "Load generator with trace replay",
+      "examples": [
+        "inference-perf",
+        "Locust"
+      ]
+    },
+    {
+      "slot": "Profiling and metrics",
+      "examples": [
+        "PyTorch profiler",
+        "Prometheus with Grafana"
+      ]
+    },
+    {
+      "slot": "Analytical performance model",
+      "examples": [
+        "MLSys·im",
+        "a spreadsheet roofline and queueing model"
+      ]
+    },
+    {
+      "slot": "Quality regression harness",
+      "examples": [
+        "lm-evaluation-harness",
+        "Inspect"
+      ]
+    },
+    {
+      "slot": "Autoscaling",
+      "examples": [
+        "a course-supplied scaling simulator",
+        "KEDA on the provided node"
+      ]
+    }
+  ]
+}
