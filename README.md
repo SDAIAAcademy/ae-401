@@ -1,7 +1,7 @@
 <!-- academy:title -->
 # Inference Performance and Cost Engineering
 
-هندسة أداء الاستنتاج وتكلفته
+هندسة أداء الاستدلال وتكلفته
 
 AI Engineering Track · SDAIA Academy · AE-401 · Level 400
 
@@ -76,6 +76,9 @@ The defence is 12 minutes of talk and 8 minutes of questions. The rubric: cost m
 
 ## Assessment
 
+- **How the course is assessed:** supervised entry and exit checks, AI off (memory and prefill arithmetic, reading a goodput curve, choosing a first optimisation), 20%; the capstone rubric, 60%; the live 20-minute defence, 20%. Passing is 70% overall and at least 60% on both the capstone rubric and the supervised check. The certificate is completion with assessed work.
+- **Authenticity:** the raw benchmark files, engine logs and commit history of the capstone repository; in the defence the assessor changes the traffic mix and the participant predicts the goodput effect before re-running one point.
+- **AI policy:** AI off for the supervised checks and the hand sizing of Labs 1.1 and 1.2; an AI tutor in the other labs, which explains engine options and profiles but does not choose settings; AI allowed throughout the capstone, which is defended live.
 - **Checkpoints:** every session ends with a scenario question in the deck, each wrong option naming the misconception behind it.
 - **Practice questions:** [`assessments/bank.json`](assessments/bank.json) holds 30 scenario questions, five per outcome, with explanations. Exam items are kept outside this repository.
 - **Labs:** each lab's checks and its carried-forward file are the evidence of the outcome it serves (see the Evidence column above).
@@ -122,6 +125,9 @@ Each line is a capability; the examples are interchangeable.
 - [vLLM: optimisation and tuning (preemption, chunked prefill)](https://docs.vllm.ai/en/latest/configuration/optimization/)
 - [vLLM: automatic prefix caching and cache salts](https://docs.vllm.ai/en/latest/design/prefix_caching.html)
 - [vLLM: metrics](https://docs.vllm.ai/en/latest/design/metrics/)
+- [vLLM: quantization](https://docs.vllm.ai/en/latest/features/quantization/)
+- [vLLM: speculative decoding](https://docs.vllm.ai/en/latest/features/speculative_decoding/)
+- [vLLM: quantized KV cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache.html)
 - [vLLM (GitHub)](https://github.com/vllm-project/vllm)
 - [SGLang (GitHub)](https://github.com/sgl-project/sglang)
 - [llama.cpp (GitHub)](https://github.com/ggml-org/llama.cpp)
@@ -134,6 +140,8 @@ Each line is a capability; the examples are interchangeable.
 - [Zhong et al., DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving (2024)](https://arxiv.org/abs/2401.09670)
 - [Patel et al., Splitwise: Efficient generative LLM inference using phase splitting (2023)](https://arxiv.org/abs/2311.18677)
 - [Leviathan et al., Fast Inference from Transformers via Speculative Decoding (2022)](https://arxiv.org/abs/2211.17192)
+- [Chen et al., Accelerating Large Language Model Decoding with Speculative Sampling (2023)](https://arxiv.org/abs/2302.01318)
+- [Hinton et al., Distilling the Knowledge in a Neural Network (2015)](https://arxiv.org/abs/1503.02531)
 - [Lin et al., AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration (2023)](https://arxiv.org/abs/2306.00978)
 - [Dettmers et al., LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale (2022)](https://arxiv.org/abs/2208.07339)
 

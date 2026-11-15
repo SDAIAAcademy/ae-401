@@ -199,7 +199,7 @@ uv run jupyter lab</code></pre>
 #            = 2 * 36     * 8        * 128      * 2
 #            = 147,456 bytes = 144 KiB per token</code></pre>
   <p class="small mt">A 2,000-token conversation holds 0.29 GB of cache while it is served.</p>
-  <aside class="notes"><p>The cache exists so that decode does not recompute the whole prompt for every token. It is the price of fast decoding, paid in memory, per conversation, for as long as the conversation runs.</p></aside>
+  <aside class="notes"><p>The cache exists so that decode does not recompute the whole prompt for every token. It is the price of fast decoding, paid in memory, per conversation, for as long as the conversation runs. Participants sized sequences per accelerator for a cluster in AE-307 (Day 4, capacity from first principles); keep the formula to a recap and spend the time on what is new here: the reserve, the block count the engine reports, and preemption when answers grow.</p></aside>
 </section>
 
 <section class="slide" id="grouped-query-attention" data-lo="LO1">
@@ -280,16 +280,16 @@ uv run jupyter lab</code></pre>
   <div class="kicker">Checkpoint</div>
   <h2>How many fit?</h2>
   <div class="quiz" data-type="single" data-lo="LO1">
-    <p class="lead">Another team serves a model with 32 layers, 8 key-value heads of size 128, in 16 bits, and has 4.2 GB left for the cache. About how many 4,000-token conversations fit at once?</p>
+    <p class="lead">Another team serves a model with 32 layers, 32 query heads and 8 key-value heads of size 128, with a 16-bit cache, and has 4.2 GB left for the cache. About how many 4,000-token conversations fit at once?</p>
     <div class="opts">
       <div class="opt" data-why="Uses one byte per value: the cache is in 16 bits, two bytes each">About 16</div>
-      <div class="opt" data-why="Sizes with the query heads as if every head were stored">About 2</div>
-      <div class="opt" data-why="Forgets that both a key and a value are stored">About 16, keys only</div>
+      <div class="opt" data-why="Sizes with the 32 query heads as if every head were stored">About 2</div>
+      <div class="opt" data-why="Counts four bytes per value, as in 32-bit training: the cache is in 16 bits">About 4</div>
       <div class="opt" data-ok>About 8</div>
     </div>
     <div class="callout tip why"><b>Why.</b> 2 × 32 × 8 × 128 × 2 = 131,072 bytes per token; 4,000 tokens is 0.52 GB; 4.2 GB holds about 8.</div>
   </div>
-  <aside class="notes"><p>Answer: D. Let the room compute it on paper, AI off. The two 16 answers come from dropping a factor of two in different places; ask who got which and why.</p></aside>
+  <aside class="notes"><p>Answer: D. Let the room compute it on paper, AI off. Each wrong answer is one factor off: 16 halves the bytes, 4 doubles them, 2 stores all 32 heads. Ask who got which and why.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-2" data-auto="lab" data-lab="1.2">

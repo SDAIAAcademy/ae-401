@@ -119,7 +119,8 @@
     <li>A prefix-aware router sends each turn where its prefix is cached.</li>
     <li>Affinity piles bursts on one replica unless the router also watches load.</li>
   </ul>
-  <aside class="notes"><p>Production routers that are prefix-aware exist in several open-source serving stacks; the design is always a cache score traded against a load score. The lab writes the simplest version: a hash of the conversation, and a load limit.</p></aside>
+  <p class="small mt">Recap from AE-307, Day 4: inference-aware gateways. Here the question is narrower: what affinity does to one tenant's night and to the tail of the objective.</p>
+  <aside class="notes"><p>Participants compared round robin with queue- and prefix-aware pickers at the gateway in AE-307; do not teach the gateway again. Production routers that are prefix-aware exist in several open-source serving stacks; the design is always a cache score traded against a load score. The lab writes the simplest version: a hash of the conversation, and a load limit, and adds what AE-307 did not: the hot spot of routing by tenant and the per-request objective as the judge.</p></aside>
 </section>
 
 <section class="slide" id="closing-night" data-lo="LO6">
@@ -190,7 +191,7 @@
     <img src="../assets/d4-closing-day.svg" alt="Requests per second over the 24 hours of the closing day: near 0.3 at night, rising through the morning, about 2 to 3 in the afternoon, and peaking near 11 per second in the evening, against one replica's 2.25 requests per second at 90% of capacity">
     <figcaption>Four times a usual day, minute by minute. Synthetic demand.</figcaption>
   </figure>
-  <aside class="notes"><p>One replica at 90% of its 2.5 good requests per second carries the night alone and needs help from mid-morning. Five replicas carry the peak. The question is what to run between.</p></aside>
+  <aside class="notes"><p>One replica at 90% of its 2.5 good requests per second carries the night alone and needs help from mid-morning. Five replicas carry the peak. The question is what to run between. AE-307 (Day 3) already showed why processor load is the wrong signal and what scale to zero costs; today's step is to choose between two serving signals, request rate and queue length, judged by the per-request objective and priced in SAR.</p></aside>
 </section>
 
 <section class="slide" id="two-signals" data-lo="LO6">
@@ -219,14 +220,14 @@
 </section>
 
 <section class="slide" id="scale-to-zero" data-lo="LO6">
-  <div class="kicker">Stretch</div>
+  <div class="kicker">Stretch · recap from AE-307, Day 3</div>
   <h2>Scaling to zero saves almost nothing and strands the first visitors of the morning</h2>
   <ul class="bullets">
     <li>With a minimum of zero, the closing day costs 0.1 replica-hours less.</li>
     <li>The first morning visitors wait a whole cold start: the worst hour falls to 77%.</li>
     <li>One replica at night is the price of never making a visitor wait minutes.</li>
   </ul>
-  <aside class="notes"><p>On a usual day the saving is larger in share but still small in SAR. The decision is Hanadi's; the table makes it easy.</p></aside>
+  <aside class="notes"><p>Participants measured cold starts and chose a minimum replica count in AE-307; this slide only checks that their rule holds on Liwan's closing day. On a usual day the saving is larger in share but still small in SAR. The decision is Hanadi's; the table makes it easy.</p></aside>
 </section>
 
 <section class="slide" id="checkpoint-3" data-lo="LO6">

@@ -44,7 +44,7 @@ sys.path.insert(0, os.getcwd())
 import pandas as pd
 import servelab as S
 
-OBJ, FLOORS = S.objectives(), S.floors()
+OBJ, FLOORS, PRICES = S.objectives(), S.floors(), S.load_json("prices.json")
 M = S.models()["qwen3-8b"]
 w8 = S.Config.load("tuned_day2").but(weight_dtype="fp8", max_num_seqs=32)
 start, _ = S.peak_window()
@@ -96,11 +96,19 @@ for kv in ("bf16", "fp8"):
         gain = S.reference("d3_2")["gain"]
         break
 gain = pd.DataFrame(gain).set_index("cache")
+# Cost per million output tokens of the requests that met the objective: the card and node share per hour over
+# the good output tokens per hour (good requests per second x the window's mean answer length).
+mean_out = sum(r.out_tokens for r in peak) / len(peak)
+hour_sar = PRICES["l4_hour"] + PRICES["node_overhead_hour"]
+gain["sar_per_million_good"] = [round(hour_sar / max(1e-9, g * mean_out * 3600) * 1e6, 2) for g in gain.goodput_rps]
 print(gain.to_string())
 S.check(gain.loc["fp8", "attainment"] >= OBJ["attainment_target"] > gain.loc["bf16", "attainment"],
         "with an 8-bit cache the peak meets the objective")
 
 # %% [markdown]
+# 🔍 **Look at** `sar_per_million_good`: the before-and-after cost per million output tokens of the requests that
+# met the objective, at the case prices. A cheaper token that misses the objective is not counted.
+#
 # 🔍 **Look at** `kv_cache_usage` with the 16-bit cache: a third of the blocks in use, yet requests wait. At this
 # load room was not the limit: each decode step reads every running sequence's cache, about as many bytes as the
 # weights. Halving those bytes shortens every step, and the queue drains. The doubled room matters for the
@@ -172,7 +180,8 @@ except NotImplementedError:
 print(decision)
 S.save_rows([{"variant": "weights fp8, cache fp8", "weights_gb": round(S.weight_bytes(M, "fp8") / 1e9, 1),
               "cache_blocks": int(blocks.loc["fp8", "blocks"]), "goodput_rps": gain.loc["fp8", "goodput_rps"],
-              "attainment": gain.loc["fp8", "attainment"], "ar": overall["ar"], "en": overall["en"],
+              "attainment": gain.loc["fp8", "attainment"], "sar_per_million_good": gain.loc["fp8", "sar_per_million_good"],
+              "ar": overall["ar"], "en": overall["en"],
               "passes_floors": overall["ar"] >= FLOORS["ar"] and overall["en"] >= FLOORS["en"],
               "long_ar_change": diffs["ar"][0], "long_ar_low": diffs["ar"][1][0], "long_ar_high": diffs["ar"][1][1]}],
             "D3_2", "serving_row")

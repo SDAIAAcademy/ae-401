@@ -7,7 +7,7 @@
   "lang": "en",
   "title": {
     "en": "Inference Performance and Cost Engineering",
-    "ar": "هندسة أداء الاستنتاج وتكلفته"
+    "ar": "هندسة أداء الاستدلال وتكلفته"
   },
   "tagline": "Make a language model service meet its latency objectives at the lowest cost you can defend, with quality held in Arabic and English",
   "description": "Participants take the bilingual visitor assistant of a fictional national events authority, too slow at evening peaks and too costly, and make it meet its service objective at the lowest cost they can defend. They build a first-principles cost model, measure goodput curves on replayed traffic, diagnose seeded bottlenecks, then apply batching, caching, quantisation, speculative decoding, distillation, routing, disaggregated serving and autoscaling, re-running an Arabic and English task evaluation after every change.",
@@ -212,7 +212,7 @@
             ],
             "stretch": "Point the same load generator at a real engine on a notebook GPU"
           },
-          "summary": "Requests per second that meet both latency objectives, measured from a stream."
+          "summary": "Requests per second that meet the whole latency objective, measured from a stream."
         },
         {
           "title": "Curves, not single numbers",
@@ -457,7 +457,7 @@
           "lab": {
             "id": "3.1",
             "title": "Two weight precisions",
-            "summary": "Compare 16-bit, 8-bit and 4-bit weights of the base model on memory, goodput at the peak and Arabic and English task scores with intervals.",
+            "summary": "Compare two weight precisions, 8-bit and 4-bit, against the 16-bit base model on memory, goodput at the peak and Arabic and English task scores with intervals.",
             "minutes": 25,
             "href": "D3_1_compare_two_weight.ipynb",
             "steps": [
@@ -924,6 +924,18 @@
           "url": "https://docs.vllm.ai/en/latest/design/metrics/"
         },
         {
+          "title": "vLLM: quantization",
+          "url": "https://docs.vllm.ai/en/latest/features/quantization/"
+        },
+        {
+          "title": "vLLM: speculative decoding",
+          "url": "https://docs.vllm.ai/en/latest/features/speculative_decoding/"
+        },
+        {
+          "title": "vLLM: quantized KV cache",
+          "url": "https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache.html"
+        },
+        {
           "title": "vLLM (GitHub)",
           "url": "https://github.com/vllm-project/vllm"
         },
@@ -963,6 +975,14 @@
         {
           "title": "Leviathan et al., Fast Inference from Transformers via Speculative Decoding (2022)",
           "url": "https://arxiv.org/abs/2211.17192"
+        },
+        {
+          "title": "Chen et al., Accelerating Large Language Model Decoding with Speculative Sampling (2023)",
+          "url": "https://arxiv.org/abs/2302.01318"
+        },
+        {
+          "title": "Hinton et al., Distilling the Knowledge in a Neural Network (2015)",
+          "url": "https://arxiv.org/abs/1503.02531"
         },
         {
           "title": "Lin et al., AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration (2023)",

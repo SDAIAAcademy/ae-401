@@ -155,8 +155,8 @@
     <tr><td>BF16</td><td class="num">23.8</td><td class="num">1.24</td><td class="num">36%</td><td class="num">82%</td><td class="num">3.7 s</td></tr>
     <tr class="hl"><td>FP8</td><td class="num">16.4</td><td class="num">0.00</td><td class="num">14%</td><td class="num">100%</td><td class="num">0.12 s</td></tr>
   </table>
-  <p class="small mt">The 16-bit cache was only a third full: the gain came from reading half the bytes every step.</p>
-  <aside class="notes"><p>This surprises most rooms. Each decode step reads the cache of every running sequence; at 20 sequences of a few thousand tokens that is about as many bytes as the 8-bit weights. Halve it and every step is shorter, so fewer sequences are running at any moment and the queue drains. The doubled room matters for bursts and long documents. Five minutes of the peak is not the whole evening: Day 4 replays the day.</p></aside>
+  <p class="small mt">Per million good output tokens: 4.69 SAR before, 3.77 after (case prices). The 16-bit cache was only a third full: the gain came from reading half the bytes every step.</p>
+  <aside class="notes"><p>This surprises most rooms. Each decode step reads the cache of every running sequence; at 20 sequences of a few thousand tokens that is about as many bytes as the 8-bit weights. Halve it and every step is shorter, so fewer sequences are running at any moment and the queue drains. The doubled room matters for bursts and long documents. Five minutes of the peak is not the whole evening: Day 4 replays the day. The cost line is the outcome's "cost per million tokens": the card and node share per hour over the output tokens of the requests that met the objective, at this load; it is the before-and-after figure for the serving table.</p></aside>
 </section>
 
 <section class="slide" id="long-context-loss" data-lo="LO5">
@@ -252,7 +252,7 @@ S.paired_diff(list(d.w_fp8), list(d.kv_fp8))   # (-0.0485, (-0.0971, -0.0097))</
     <tr class="hl"><td>64 users</td><td>On, k = 3</td><td class="num">74 ms</td><td class="num">6.0 s</td><td class="num">70%</td><td class="num">5,054</td></tr>
   </table>
   <p class="small mt">8-bit weights and cache. The draft's weights and cache take half the blocks. Synthetic.</p>
-  <aside class="notes"><p>Two effects at high load: the draft's own cache halves the room, so requests wait to be admitted (TTFT); and each verification does k + 1 tokens of work per sequence, so the decode gain shrinks as the batch grows. The visitor reads faster once served but waits longer to be served.</p></aside>
+  <aside class="notes"><p>Read the 64-user rows column by column: TPOT still falls (94 to 74 ms), so the loss is not in decoding here. It is in admission: the draft's own weights and cache halve the blocks, so requests wait longer to start (p90 TTFT 4.2 to 6.0 s) and fewer meet the objective. On a real engine a second effect adds to it as batches grow: each verification does k + 1 tokens of arithmetic per sequence, and a large batch is no longer waiting on memory, so the decode gain shrinks too. The visitor reads faster once served but waits longer to be served.</p></aside>
 </section>
 
 <section class="slide" id="identical-outputs" data-lo="LO5">
@@ -276,7 +276,7 @@ S.paired_diff(list(d.w_fp8), list(d.kv_fp8))   # (-0.0485, (-0.0971, -0.0097))</
       <div class="opt" data-ok>At night, where decode waits on memory and the cache has room</div>
       <div class="opt" data-why="Exactly backwards: the peak is when memory is scarce and batches already use the weight reads">Only at the peak, where speed matters most</div>
     </div>
-    <div class="callout tip why"><b>Why.</b> With few sequences, checking four tokens costs little more than one; with many, the draft's memory and the extra verification work cost more than they save.</div>
+    <div class="callout tip why"><b>Why.</b> With few sequences, checking four tokens costs little more than one and the cache has room; with many, the draft's memory takes blocks the queue needs, and requests wait longer to start than speculation saves.</div>
   </div>
   <aside class="notes"><p>Answer: C. Those who pick A have the right fact about quality and miss the cost in memory; return to the blocks column.</p></aside>
 </section>

@@ -54,6 +54,13 @@ A link to a **public GitHub repository**, before the defence, containing:
 AI assistants may be used throughout the capstone. Every number in the defence must come from a run in your
 repository.
 
+In the questions the assessor changes the traffic mix (for example the share of long documents or of Arabic
+requests): you predict the effect on goodput first, then rerun one point from your repository. Keep the
+command that reruns a point ready.
+
+The capstone rubric is 60% of the course mark, the live defence 20% and the supervised entry and exit checks
+20%. Passing is 70% overall and at least 60% on both the capstone rubric and the supervised check.
+
 ## The follow-up task
 
 Within a month, repeat the method on a deployment of your own or on a public trace: baseline curve, one
