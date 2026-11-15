@@ -9,7 +9,7 @@
     "en": "Inference Performance and Cost Engineering",
     "ar": "هندسة أداء الاستنتاج وتكلفته"
   },
-  "tagline": "REPLACE: one line under the title: what participants can do after the course",
+  "tagline": "Make a language model service meet its latency objectives at the lowest cost you can defend, with quality held in Arabic and English",
   "description": "Participants take the bilingual visitor assistant of a fictional national events authority, too slow at evening peaks and too costly, and make it meet its service objective at the lowest cost they can defend. They build a first-principles cost model, measure goodput curves on replayed traffic, diagnose seeded bottlenecks, then apply batching, caching, quantisation, speculative decoding, distillation, routing, disaggregated serving and autoscaling, re-running an Arabic and English task evaluation after every change.",
   "track": "ai-engineering",
   "level": 400,
@@ -68,8 +68,8 @@
     }
   ],
   "case_study": {
-    "name": "REPLACE: the name of the fictional organisation every lab works on",
-    "summary": "REPLACE: two sentences on the case study and its synthetic data"
+    "name": "Liwan National Events Authority",
+    "summary": "Musamir, the bilingual visitor assistant of a fictional national events authority, serves three event organisers from one leased accelerator and is too slow at evening peaks and too costly. Every lab works on the same synthetic data: 40,000 Arabic and English visitor requests over a day, model cards and spec sheets, recorded evaluation outcomes for six model variants and a course simulator of the serving engine, all generated with a fixed seed."
   },
   "format": "intensive",
   "format_note": "Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task",
@@ -91,68 +91,173 @@
         {
           "title": "Prefill and decode are different problems",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compute the operations and bytes of one token for a model card",
+            "Place prefill and decode on the roofline of an accelerator",
+            "Predict time to first token and time per output token from first principles"
           ],
           "lo": [
             "LO1"
           ],
           "lab": {
             "id": "1.1",
-            "title": "Compute operations and bytes per token for two models and predict what bounds each phase",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Operations and bytes per token",
+            "summary": "By hand, without AI: operations and bytes per token for two models on the L4, which resource bounds each phase, and a prediction checked against a single-request run.",
             "minutes": 25,
-            "href": "D1_1_compute_operations_bytes.ipynb"
-          }
+            "href": "D1_1_compute_operations_bytes.ipynb",
+            "steps": [
+              {
+                "text": "Read the model card and the spec sheet into numbers",
+                "minutes": 4
+              },
+              {
+                "text": "Operations and bytes per decoded token for two models",
+                "minutes": 6
+              },
+              {
+                "text": "Compute time and memory time of a 2,000-token prefill",
+                "minutes": 6
+              },
+              {
+                "text": "Arithmetic intensity against the ridge point",
+                "minutes": 5
+              },
+              {
+                "text": "Predict TTFT and TPOT and compare with a single-request run",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Repeat the sizing for the T4 of a free notebook GPU"
+          },
+          "summary": "Why a prompt is processed at the speed of arithmetic and an answer at the speed of memory."
         },
         {
           "title": "Key-value cache arithmetic",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compute key-value cache bytes per token from a model card",
+            "Predict the concurrency limit at a given context length",
+            "Explain the gap between a prediction and the engine's block count"
           ],
           "lo": [
             "LO1"
           ],
           "lab": {
             "id": "1.2",
-            "title": "Predict the concurrency limit at three context lengths and check it against the engine",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Concurrency limit at three context lengths",
+            "summary": "Predict how many sequences fit in the cache at 2,000, 4,000 and 8,000 tokens, then check against the engine's block count and a saturation run.",
             "minutes": 25,
-            "href": "D1_2_predict_concurrency_limit.ipynb"
-          }
+            "href": "D1_2_predict_concurrency_limit.ipynb",
+            "steps": [
+              {
+                "text": "Cache bytes per token for the base model",
+                "minutes": 4
+              },
+              {
+                "text": "Memory left for the cache after weights and reserve",
+                "minutes": 5
+              },
+              {
+                "text": "Predict the concurrency limit at three context lengths",
+                "minutes": 5
+              },
+              {
+                "text": "Read the engine's blocks and run it to saturation",
+                "minutes": 6
+              },
+              {
+                "text": "Compare, explain the gap, check the 25% band",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Predict the limit again with 8-bit weights"
+          },
+          "summary": "The cache, not the weights, decides how many visitors are served at once."
         },
         {
           "title": "Goodput against an objective",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Measure time to first token and time per output token from a streamed response",
+            "Compute goodput against two per-request objectives",
+            "Break a request's time into queue, prefill and decode"
           ],
           "lo": [
             "LO2"
           ],
           "lab": {
             "id": "1.3",
-            "title": "Load the baseline at three concurrency levels and compute goodput",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "The baseline at three concurrency levels",
+            "summary": "Load the as-deployed Musamir through a streaming HTTP endpoint at three concurrency levels and compute goodput against the objectives.",
             "minutes": 25,
-            "href": "D1_3_load_baseline_three.ipynb"
-          }
+            "href": "D1_3_load_baseline_three.ipynb",
+            "steps": [
+              {
+                "text": "Start the endpoint and stream one request",
+                "minutes": 4
+              },
+              {
+                "text": "Measure TTFT, TPOT and end-to-end time from the stream",
+                "minutes": 6
+              },
+              {
+                "text": "Load at 2, 8 and 24 concurrent users",
+                "minutes": 6
+              },
+              {
+                "text": "Goodput against the objectives",
+                "minutes": 5
+              },
+              {
+                "text": "Where the time went: queue, prefill, decode",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Point the same load generator at a real engine on a notebook GPU"
+          },
+          "summary": "Requests per second that meet both latency objectives, measured from a stream."
         },
         {
           "title": "Curves, not single numbers",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Build a goodput curve over concurrency with repeated runs",
+            "Read the knee of a curve and state a capacity with its variance",
+            "Judge whether a benchmark is valid"
           ],
           "lo": [
             "LO2"
           ],
           "lab": {
             "id": "1.4",
-            "title": "Build a seven-point goodput curve from supplied runs plus one of your own",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "A seven-point goodput curve",
+            "summary": "Combine supplied runs at six concurrency levels with three repeats of your own at a seventh, plot the curve with its spread and state the capacity.",
             "minutes": 25,
-            "href": "D1_4_build_seven_point.ipynb"
-          }
+            "href": "D1_4_build_seven_point.ipynb",
+            "steps": [
+              {
+                "text": "Load the supplied runs and their raw rows",
+                "minutes": 3
+              },
+              {
+                "text": "Aggregate each point with mean and spread",
+                "minutes": 6
+              },
+              {
+                "text": "Add your own point with three repeats",
+                "minutes": 6
+              },
+              {
+                "text": "Plot goodput and p90 latencies over concurrency",
+                "minutes": 5
+              },
+              {
+                "text": "Find the knee and write the capacity claim",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Compare closed-loop users with open-loop arrivals at the same rate"
+          },
+          "summary": "A capacity is a point on a curve with an error bar, not a number from one run."
         }
-      ]
+      ],
+      "subtitle": "Prefill, decode, cache and goodput: predict before you measure"
     },
     {
       "id": "day2",
@@ -163,7 +268,9 @@
         {
           "title": "Continuous batching and admission",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Explain iteration-level scheduling and the sequence cap",
+            "Tell queueing from preemption by their metrics",
+            "Choose a concurrency cap from a tail-latency and throughput plot"
           ],
           "lo": [
             "LO3",
@@ -171,61 +278,165 @@
           ],
           "lab": {
             "id": "2.1",
-            "title": "Vary the concurrency cap and plot tail latency against throughput",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "The concurrency cap",
+            "summary": "Diagnose two seeded deployments, one queueing and one preempting under cache pressure, by varying the sequence cap and plotting tail latency against throughput.",
             "minutes": 25,
-            "href": "D2_1_vary_concurrency_cap.ipynb"
-          }
+            "href": "D2_1_vary_concurrency_cap.ipynb",
+            "steps": [
+              {
+                "text": "Run the queueing deployment and read its metrics",
+                "minutes": 5
+              },
+              {
+                "text": "Vary the sequence cap over five values",
+                "minutes": 6
+              },
+              {
+                "text": "Plot p90 TTFT against throughput",
+                "minutes": 5
+              },
+              {
+                "text": "Push into cache pressure and count preemptions",
+                "minutes": 5
+              },
+              {
+                "text": "Choose the cap and write both diagnoses",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Admit by a token budget instead of a sequence count"
+          },
+          "summary": "How the scheduler admits sequences, and how queueing and preemption look in the metrics."
         },
         {
           "title": "Long prompts slow short ones",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Recognise prefill interference in time per output token",
+            "Tune chunked prefill with a token budget",
+            "Confirm a fix with a rerun against the objective"
           ],
           "lo": [
-            "LO3"
+            "LO3",
+            "LO4"
           ],
           "lab": {
             "id": "2.2",
-            "title": "Mix long-document and chat traffic with chunked prefill on and off",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Long documents and chat, chunked or not",
+            "summary": "Mix long-document and chat traffic, measure chat TPOT with chunked prefill off and with three token budgets, and confirm the fix.",
             "minutes": 25,
-            "href": "D2_2_mix_long_document.ipynb"
-          }
+            "href": "D2_2_mix_long_document.ipynb",
+            "steps": [
+              {
+                "text": "Load the mixed trace",
+                "minutes": 3
+              },
+              {
+                "text": "Chunked prefill off: chat TPOT and document TTFT",
+                "minutes": 6
+              },
+              {
+                "text": "Chunked prefill on at three token budgets",
+                "minutes": 7
+              },
+              {
+                "text": "Plot both latencies over the budget",
+                "minutes": 5
+              },
+              {
+                "text": "Write the diagnosis and rerun to the objective",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Give chat requests priority over documents"
+          },
+          "summary": "A long prefill stalls every decode in the batch unless it is cut into chunks."
         },
         {
           "title": "Prefix caching starts with prompt layout",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Lay out a prompt so that its stable part comes first",
+            "Measure the prefix-cache hit rate and its effect on time to first token",
+            "Prove that no cache block is shared between tenants"
           ],
           "lo": [
             "LO4"
           ],
           "lab": {
             "id": "2.3",
-            "title": "Reorder a prompt for reuse, measure the hit rate, then block cross-tenant hits",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Prompt layout and tenant isolation",
+            "summary": "Reorder Musamir's prompt for reuse, measure the hit rate and the gain, find the cross-tenant hits and remove them with a per-tenant salt.",
             "minutes": 25,
-            "href": "D2_3_reorder_prompt_reuse.ipynb"
-          }
+            "href": "D2_3_reorder_prompt_reuse.ipynb",
+            "steps": [
+              {
+                "text": "Hit rate of the prompt as deployed",
+                "minutes": 4
+              },
+              {
+                "text": "Reorder the prompt layout",
+                "minutes": 7
+              },
+              {
+                "text": "Hit rate and TTFT after the change",
+                "minutes": 5
+              },
+              {
+                "text": "Find the cross-tenant hits",
+                "minutes": 4
+              },
+              {
+                "text": "Salt by tenant and pass the isolation test",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Hit rate against cache size"
+          },
+          "summary": "Reuse needs identical leading blocks, and reuse across tenants must be blocked."
         },
         {
           "title": "Semantic caching and wrong answers",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Measure hit rate and wrong-answer rate of a semantic cache",
+            "Compare the rates by language",
+            "Keep personal data out of cached entries"
           ],
           "lo": [
             "LO4"
           ],
           "lab": {
             "id": "2.4",
-            "title": "Measure hit rate and wrong answers on paraphrase pairs at three thresholds",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Semantic cache thresholds",
+            "summary": "Score 240 Arabic and English paraphrase pairs at three similarity thresholds for hits and wrong answers, then keep personal data out of the cache.",
             "minutes": 25,
-            "href": "D2_4_measure_hit_rate.ipynb"
-          }
+            "href": "D2_4_measure_hit_rate.ipynb",
+            "steps": [
+              {
+                "text": "Embed the pairs with character n-grams",
+                "minutes": 5
+              },
+              {
+                "text": "Hit rate and wrong answers at three thresholds",
+                "minutes": 7
+              },
+              {
+                "text": "The same rates by language",
+                "minutes": 4
+              },
+              {
+                "text": "Mask, then refuse to cache personal data",
+                "minutes": 5
+              },
+              {
+                "text": "Choose a threshold, or no semantic cache",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Key the cache on the event and the date as well as the text"
+          },
+          "summary": "A similar question is not the same question: every semantic hit is a bet."
         }
-      ]
+      ],
+      "subtitle": "Three seeded faults, then the engine settings and caches that fix them"
     },
     {
       "id": "day3",
@@ -236,68 +447,174 @@
         {
           "title": "Quantising weights",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Choose a weight format the accelerator supports",
+            "Measure memory, goodput and quality of each precision",
+            "Report quality by language with intervals"
           ],
           "lo": [
             "LO5"
           ],
           "lab": {
             "id": "3.1",
-            "title": "Compare two weight precisions on memory, goodput and bilingual task scores",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Two weight precisions",
+            "summary": "Compare 16-bit, 8-bit and 4-bit weights of the base model on memory, goodput at the peak and Arabic and English task scores with intervals.",
             "minutes": 25,
-            "href": "D3_1_compare_two_weight.ipynb"
-          }
+            "href": "D3_1_compare_two_weight.ipynb",
+            "steps": [
+              {
+                "text": "Memory and cache left for each precision",
+                "minutes": 5
+              },
+              {
+                "text": "Goodput at the peak for each precision",
+                "minutes": 6
+              },
+              {
+                "text": "Arabic and English scores with intervals",
+                "minutes": 7
+              },
+              {
+                "text": "Check each against the floors",
+                "minutes": 4
+              },
+              {
+                "text": "Write the rows of the serving table",
+                "minutes": 3
+              }
+            ],
+            "stretch": "Which formats the T4 of a notebook can run"
+          },
+          "summary": "Fewer bytes per weight free memory for the cache and speed up decode, if quality holds."
         },
         {
           "title": "Cache precision buys concurrency",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compute the blocks gained by a lower cache precision",
+            "Measure the concurrency and goodput gained",
+            "Measure long-context accuracy lost, per language, as a paired difference"
           ],
           "lo": [
-            "LO4"
+            "LO4",
+            "LO5"
           ],
           "lab": {
             "id": "3.2",
-            "title": "Lower cache precision and measure concurrency gained and long-context accuracy lost",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Lower cache precision",
+            "summary": "Switch the cache to 8 bits, measure the concurrency and goodput gained and the long-context accuracy lost in each language.",
             "minutes": 25,
-            "href": "D3_2_lower_cache_precision.ipynb"
-          }
+            "href": "D3_2_lower_cache_precision.ipynb",
+            "steps": [
+              {
+                "text": "Blocks at 16-bit and 8-bit cache",
+                "minutes": 4
+              },
+              {
+                "text": "Concurrency and goodput gained",
+                "minutes": 6
+              },
+              {
+                "text": "Long-context accuracy by language",
+                "minutes": 7
+              },
+              {
+                "text": "Paired difference with an interval",
+                "minutes": 5
+              },
+              {
+                "text": "Decide, with the floor",
+                "minutes": 3
+              }
+            ],
+            "stretch": "Keep the 16-bit cache only for long-context requests"
+          },
+          "summary": "An 8-bit cache doubles the blocks; long contexts pay for it first."
         },
         {
           "title": "Speculative decoding",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compute the expected tokens per step from an acceptance rate",
+            "Measure acceptance and time per output token at low and high load",
+            "Decide when to switch speculation on"
           ],
           "lo": [
             "LO5"
           ],
           "lab": {
             "id": "3.3",
-            "title": "Measure acceptance rate and time per output token at low and high load",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Acceptance rate at two loads",
+            "summary": "Measure the draft model's acceptance rate by language and the time per output token with and without speculation at low and at high load.",
             "minutes": 25,
-            "href": "D3_3_measure_acceptance_rate.ipynb"
-          }
+            "href": "D3_3_measure_acceptance_rate.ipynb",
+            "steps": [
+              {
+                "text": "Expected tokens per step from acceptance",
+                "minutes": 5
+              },
+              {
+                "text": "Acceptance rate by language",
+                "minutes": 5
+              },
+              {
+                "text": "TPOT at low load, on and off",
+                "minutes": 5
+              },
+              {
+                "text": "TPOT at high load, on and off",
+                "minutes": 5
+              },
+              {
+                "text": "Check the outputs are identical and decide",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Find the best draft length at each load"
+          },
+          "summary": "A small model guesses, the large one checks: faster when memory-bound, slower when compute-bound."
         },
         {
           "title": "Distilled models and routing to them",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compare a distilled model with the base by language",
+            "Choose a routing threshold from a quality and cost sweep",
+            "Write a one-page serving decision"
           ],
           "lo": [
             "LO5"
           ],
           "lab": {
             "id": "3.4",
-            "title": "Route by a supplied difficulty classifier between a distilled model and the base",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Route by difficulty",
+            "summary": "Route requests by a supplied difficulty classifier between the distilled model and the base, sweep the threshold for quality and cost, and pick one that holds both floors.",
             "minutes": 25,
-            "href": "D3_4_route_supplied_difficulty.ipynb"
-          }
+            "href": "D3_4_route_supplied_difficulty.ipynb",
+            "steps": [
+              {
+                "text": "Quality of each model by language",
+                "minutes": 5
+              },
+              {
+                "text": "Sweep the threshold: quality against share routed",
+                "minutes": 7
+              },
+              {
+                "text": "Cost per million tokens of the mix",
+                "minutes": 5
+              },
+              {
+                "text": "Pick the threshold that holds both floors",
+                "minutes": 5
+              },
+              {
+                "text": "Draft the one-page serving decision",
+                "minutes": 3
+              }
+            ],
+            "stretch": "A cascade that escalates on low confidence"
+          },
+          "summary": "Send the easy requests to a small model and keep the base for the hard ones."
         }
-      ]
+      ],
+      "subtitle": "Smaller numbers, smaller models, guessed tokens: each re-evaluated in two languages"
     },
     {
       "id": "day4",
@@ -308,81 +625,186 @@
         {
           "title": "Disaggregated prefill and decode",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Predict the load on separate prefill and decode pools",
+            "Compute the cost of moving the cache between them",
+            "State when disaggregation pays for a traffic mix"
           ],
           "lo": [
             "LO6"
           ],
           "lab": {
             "id": "4.1",
-            "title": "Predict when disaggregation pays on long prompts and check against a supplied run",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "When disaggregation pays",
+            "summary": "Predict when splitting prefill and decode pays on long prompts, then check the prediction against a supplied run.",
             "minutes": 25,
-            "href": "D4_1_predict_when_disaggregation.ipynb"
-          }
+            "href": "D4_1_predict_when_disaggregation.ipynb",
+            "steps": [
+              {
+                "text": "Predict prefill and decode pool load",
+                "minutes": 6
+              },
+              {
+                "text": "Cache transfer time per request",
+                "minutes": 4
+              },
+              {
+                "text": "Predicted TTFT and TPOT, together and split",
+                "minutes": 5
+              },
+              {
+                "text": "Compare with the supplied run",
+                "minutes": 6
+              },
+              {
+                "text": "State the condition when it pays",
+                "minutes": 4
+              }
+            ],
+            "stretch": "Change the share of long prompts and predict again"
+          },
+          "summary": "Separate pools stop prefills from stalling decodes, at the price of moving the cache."
         },
         {
           "title": "Routing across replicas",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compare round-robin and prefix-aware routing on cache hits and latency",
+            "Write a prefix-aware router with a load limit",
+            "Detect a hot spot and correct it"
           ],
           "lo": [
             "LO6"
           ],
           "lab": {
             "id": "4.2",
-            "title": "Compare round-robin with prefix-aware routing on a multi-turn trace",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Round robin or prefix-aware",
+            "summary": "Replay a multi-turn trace on three replicas, round robin against a prefix-aware router you write, and compare hits, latency and balance.",
             "minutes": 25,
-            "href": "D4_2_compare_round_robin.ipynb"
-          }
+            "href": "D4_2_compare_round_robin.ipynb",
+            "steps": [
+              {
+                "text": "Replay round robin on three replicas",
+                "minutes": 5
+              },
+              {
+                "text": "Write a prefix-aware router",
+                "minutes": 7
+              },
+              {
+                "text": "Compare hit rate, TTFT and balance",
+                "minutes": 6
+              },
+              {
+                "text": "Find the hot spot of one tenant",
+                "minutes": 4
+              },
+              {
+                "text": "Choose, with a fallback rule",
+                "minutes": 3
+              }
+            ],
+            "stretch": "Session affinity with a load cap"
+          },
+          "summary": "Where a request lands decides whether its prefix is already cached."
         },
         {
           "title": "Autoscaling and cold starts",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Derive a replica's capacity at the objective from its curve",
+            "Compare scaling signals on the same day",
+            "Choose a minimum replica count from cold start and cost"
           ],
           "lo": [
             "LO6"
           ],
           "lab": {
             "id": "4.3",
-            "title": "Replay the daily pattern in the simulator and choose the scaling signal and minimum replicas",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Scaling over the day",
+            "summary": "Replay the daily demand pattern in the course scaling simulator and choose the scaling signal and the minimum number of replicas.",
             "minutes": 25,
-            "href": "D4_3_replay_daily_pattern.ipynb"
-          }
+            "href": "D4_3_replay_daily_pattern.ipynb",
+            "steps": [
+              {
+                "text": "Load the daily pattern and a replica's capacity",
+                "minutes": 4
+              },
+              {
+                "text": "Scale on request rate",
+                "minutes": 5
+              },
+              {
+                "text": "Scale on queue length",
+                "minutes": 5
+              },
+              {
+                "text": "Cold start and minimum replicas",
+                "minutes": 6
+              },
+              {
+                "text": "Choose signal and minimum by cost and attainment",
+                "minutes": 5
+              }
+            ],
+            "stretch": "Scale to zero overnight and measure the first morning visitors"
+          },
+          "summary": "Scale on the signal users feel, and keep enough warm replicas for the cold start."
         },
         {
           "title": "Cost per successful request",
           "outcomes": [
-            "REPLACE: what a participant can do after this session"
+            "Compute cost and energy per successful request",
+            "Compare self-hosting with a hosted API at three volumes",
+            "Plan the capstone from the course's measurements"
           ],
           "lo": [
             "LO6"
           ],
           "lab": {
             "id": "4.4",
-            "title": "Compare self-hosting with a hosted API at three volumes and plan the capstone",
-            "summary": "REPLACE: one line on what participants build and take away; then list the steps of the lab in course.json, their minutes adding up to 25",
+            "title": "Self-hosting or a hosted API",
+            "summary": "Compare the cost per successful request of the node with a hosted API quote at three volumes, add energy per thousand requests and plan the capstone.",
             "minutes": 25,
-            "href": "D4_4_compare_self_hosting.ipynb"
-          }
+            "href": "D4_4_compare_self_hosting.ipynb",
+            "steps": [
+              {
+                "text": "Cost per successful request on the node",
+                "minutes": 6
+              },
+              {
+                "text": "The hosted API at three volumes",
+                "minutes": 5
+              },
+              {
+                "text": "The break-even volume",
+                "minutes": 4
+              },
+              {
+                "text": "Energy per thousand requests",
+                "minutes": 4
+              },
+              {
+                "text": "Plan the capstone",
+                "minutes": 6
+              }
+            ],
+            "stretch": "How sensitive the break-even is to the lease price"
+          },
+          "summary": "The number that decides: cost divided by the requests that met the objective."
         }
-      ]
+      ],
+      "subtitle": "Topology, routing, scaling and the cost of a successful request"
     },
     {
       "id": "capstone",
       "kind": "capstone",
       "title": "Capstone project presentations",
       "deck": "slides/capstone.html",
-      "subtitle": "REPLACE: the catalog gives 20 minutes for each presentation and nothing about questions; decide whether the questions are inside those minutes, set capstone.talk_minutes and capstone.qa_minutes in course.json and the timers of the now-presenting slide, and remove this line"
+      "subtitle": "Twelve minutes of evidence and eight of questions, with one traffic change predicted and rerun"
     }
   ],
   "capstone": {
     "summary": "Tune a provided under-performing deployment of the case assistant to meet its latency objectives at minimum cost per successful request, submitted as a public repository with raw benchmark data, quality by language and a design document, and defended in 20 minutes. The follow-up task repeats the method on the participant's own deployment or a public trace",
-    "submission": "REPLACE: what participants submit and how: a public repository link, or a shared folder for a course without code",
-    "talk_minutes": 20,
+    "submission": "A public GitHub repository link: raw benchmark files, engine logs, quality by language, the design document and a commit history; submitted before the defence",
+    "talk_minutes": 12,
     "rubric": [
       {
         "criterion": "Cost model",
@@ -404,7 +826,8 @@
         "criterion": "Reproducibility",
         "weight": 15
       }
-    ]
+    ],
+    "qa_minutes": 8
   },
   "labs": {
     "kind": "notebooks",
@@ -452,6 +875,161 @@
       "examples": [
         "a course-supplied scaling simulator",
         "KEDA on the provided node"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "group": "Models and accelerators",
+      "items": [
+        {
+          "title": "Qwen3-8B model card and configuration (Hugging Face)",
+          "url": "https://huggingface.co/Qwen/Qwen3-8B"
+        },
+        {
+          "title": "Qwen3-1.7B model card (Hugging Face)",
+          "url": "https://huggingface.co/Qwen/Qwen3-1.7B"
+        },
+        {
+          "title": "Qwen3-0.6B model card (Hugging Face)",
+          "url": "https://huggingface.co/Qwen/Qwen3-0.6B"
+        },
+        {
+          "title": "NVIDIA L4 Tensor Core GPU specifications",
+          "url": "https://www.nvidia.com/en-us/data-center/l4/"
+        },
+        {
+          "title": "NVIDIA T4 Tensor Core GPU specifications",
+          "url": "https://www.nvidia.com/en-us/data-center/tesla-t4/"
+        }
+      ]
+    },
+    {
+      "group": "Serving engines and their documentation",
+      "items": [
+        {
+          "title": "vLLM: engine arguments",
+          "url": "https://docs.vllm.ai/en/latest/configuration/engine_args.html"
+        },
+        {
+          "title": "vLLM: optimisation and tuning (preemption, chunked prefill)",
+          "url": "https://docs.vllm.ai/en/latest/configuration/optimization/"
+        },
+        {
+          "title": "vLLM: automatic prefix caching and cache salts",
+          "url": "https://docs.vllm.ai/en/latest/design/prefix_caching.html"
+        },
+        {
+          "title": "vLLM: metrics",
+          "url": "https://docs.vllm.ai/en/latest/design/metrics/"
+        },
+        {
+          "title": "vLLM (GitHub)",
+          "url": "https://github.com/vllm-project/vllm"
+        },
+        {
+          "title": "SGLang (GitHub)",
+          "url": "https://github.com/sgl-project/sglang"
+        },
+        {
+          "title": "llama.cpp (GitHub)",
+          "url": "https://github.com/ggml-org/llama.cpp"
+        }
+      ]
+    },
+    {
+      "group": "Research",
+      "items": [
+        {
+          "title": "Kwon et al., Efficient Memory Management for Large Language Model Serving with PagedAttention (2023)",
+          "url": "https://arxiv.org/abs/2309.06180"
+        },
+        {
+          "title": "Yu et al., Orca: A Distributed Serving System for Transformer-Based Generative Models (OSDI 2022)",
+          "url": "https://www.usenix.org/conference/osdi22/presentation/yu"
+        },
+        {
+          "title": "Agrawal et al., Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve (2024)",
+          "url": "https://arxiv.org/abs/2403.02310"
+        },
+        {
+          "title": "Zhong et al., DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving (2024)",
+          "url": "https://arxiv.org/abs/2401.09670"
+        },
+        {
+          "title": "Patel et al., Splitwise: Efficient generative LLM inference using phase splitting (2023)",
+          "url": "https://arxiv.org/abs/2311.18677"
+        },
+        {
+          "title": "Leviathan et al., Fast Inference from Transformers via Speculative Decoding (2022)",
+          "url": "https://arxiv.org/abs/2211.17192"
+        },
+        {
+          "title": "Lin et al., AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration (2023)",
+          "url": "https://arxiv.org/abs/2306.00978"
+        },
+        {
+          "title": "Dettmers et al., LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale (2022)",
+          "url": "https://arxiv.org/abs/2208.07339"
+        }
+      ]
+    },
+    {
+      "group": "Tools",
+      "items": [
+        {
+          "title": "inference-perf (Kubernetes SIGs)",
+          "url": "https://github.com/kubernetes-sigs/inference-perf"
+        },
+        {
+          "title": "Locust",
+          "url": "https://locust.io/"
+        },
+        {
+          "title": "Prometheus",
+          "url": "https://prometheus.io/"
+        },
+        {
+          "title": "MLSYSIM whitepaper (Harvard)",
+          "url": "https://harvard-edge.github.io/cs249r_book_dev/mlsysim/whitepaper.html"
+        },
+        {
+          "title": "lm-evaluation-harness (EleutherAI)",
+          "url": "https://github.com/EleutherAI/lm-evaluation-harness"
+        },
+        {
+          "title": "Inspect",
+          "url": "https://inspect.aisi.org.uk/"
+        },
+        {
+          "title": "KEDA",
+          "url": "https://keda.sh/"
+        }
+      ]
+    },
+    {
+      "group": "National references",
+      "items": [
+        {
+          "title": "Personal Data Protection Law (SDAIA)",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf"
+        },
+        {
+          "title": "Implementing Regulation of the Personal Data Protection Law (SDAIA)",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulationPersonalDataProtectionLaw.pdf"
+        },
+        {
+          "title": "Regulation on Personal Data Transfer outside the Kingdom (SDAIA)",
+          "url": "https://sdaia.gov.sa/Documents/RegulationonPersonalDataEN.pdf"
+        },
+        {
+          "title": "Data Classification Policy (NDMO, SDAIA)",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf"
+        },
+        {
+          "title": "Generative AI Guidelines for Government (SDAIA)",
+          "url": "https://sdaia.gov.sa/en/SDAIA/about/Files/GenAIGuidelinesForGovernmentENCompressed.pdf"
+        }
       ]
     }
   ]
