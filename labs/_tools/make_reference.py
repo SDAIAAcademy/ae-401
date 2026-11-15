@@ -125,6 +125,53 @@ def d2_3():
     put("d2_3", {"order": ["base", "tenant", "document", "history", "header", "question"]})
 
 
+def _peak(seconds=300):
+    start, _ = S.peak_window()
+    return S.read_trace(start=start, end=start + seconds)
+
+
+@maker
+def d3_1():
+    base, peak, runs = S.Config.load("tuned_day2").but(max_num_seqs=32), _peak(), []
+    for wd in ("bf16", "fp8", "int4"):
+        s = S.run_open(base.but(weight_dtype=wd), peak, seed=1).summary()
+        runs.append({"weights": wd, **{k: s[k] for k in ("throughput_rps", "goodput_rps", "attainment", "ttft_p90", "tpot_p90")}})
+    put("d3_1", {"runs": runs, "synthetic": True})
+
+
+@maker
+def d3_2():
+    w8, peak, gain = S.Config.load("tuned_day2").but(weight_dtype="fp8", max_num_seqs=32), _peak(), []
+    for kv in ("bf16", "fp8"):
+        run = S.run_open(w8.but(kv_cache_dtype=kv), peak, seed=1)
+        s, g = run.summary(), S.engine_signature(run)
+        gain.append({"cache": kv, "running": g["running"], "waiting": g["waiting"], "kv_cache_usage": g["kv_cache_usage"],
+                     "goodput_rps": s["goodput_rps"], "attainment": s["attainment"], "ttft_p90": s["ttft_p90"]})
+    put("d3_2", {"gain": gain, "synthetic": True})
+
+
+@maker
+def d3_3():
+    k = 3
+    off = S.Config.load("tuned_day2").but(weight_dtype="fp8", kv_cache_dtype="fp8")
+    pool = S.peak_requests(seed=0)
+    run = S.simulate(off.but(max_num_seqs=8, speculative_model="qwen3-0.6b", num_speculative_tokens=k),
+                     users=4, pool=pool, n_requests=120, seed=1)
+    measured = {}
+    for lang in ("ar", "en"):
+        rs = [r for r in run.all if r.lang == lang]
+        measured[lang] = round(1 + sum(r.spec_accepted for r in rs) / (sum(r.spec_proposed for r in rs) / k), 2)
+    rows = []
+    for users in (4, 64):
+        for name, cfg in (("off", off), ("on", off.but(speculative_model="qwen3-0.6b", num_speculative_tokens=k))):
+            cfg = cfg.but(max_num_seqs=max(8, users))
+            s = S.simulate(cfg, users=users, pool=pool, n_requests=max(120, users * 5), seed=1).summary()
+            rows.append({"users": users, "speculation": name, "tpot_p50": s["tpot_p50"], "tpot_p90": s["tpot_p90"],
+                         "ttft_p90": s["ttft_p90"], "goodput_rps": s["goodput_rps"], "attainment": s["attainment"],
+                         "cache_blocks": S.cache_blocks(cfg)})
+    put("d3_3", {"measured": measured, "rows": rows, "synthetic": True})
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(MAKERS)
     for n in names:

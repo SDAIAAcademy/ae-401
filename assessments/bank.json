@@ -581,6 +581,151 @@
       "level": "apply",
       "pool": "practice",
       "weight": 1
+    },
+    {
+      "id": "q-lo5-memory",
+      "type": "single",
+      "prompt": "An 8B-parameter model moves from 16-bit to 8-bit weights on a 24 GB card. Roughly where does the freed memory go, and what does it buy?",
+      "options": [
+        "Nowhere: the engine keeps the reservation",
+        "About 8 GB more cache, so several times more conversations fit",
+        "Faster arithmetic only; memory is unchanged",
+        "A larger reserve for activations"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The weights shrink by about 8 GB; the engine gives what is left after weights and reserve to the cache, which more than triples here.",
+      "misconceptions": [
+        "The engine sizes the cache from what remains at start",
+        "",
+        "FP8 also speeds arithmetic on cards that support it, but the memory saving is real",
+        "The reserve is fixed; the cache takes the rest"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo5-per-language",
+      "type": "single",
+      "prompt": "A 4-bit variant scores 0.833 in English (floor 0.81) and 0.693 in Arabic (floor 0.73), and has the best goodput. What is the decision?",
+      "options": [
+        "Ship it: its average over both languages is 0.76",
+        "Reject it: it fails the Arabic floor; serve a variant that passes both",
+        "Ship it to English visitors only and keep 16 bits for Arabic, at no extra cost",
+        "Ship it: goodput matters more at the peak"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The floors are per language; a variant that misses one does not pass, however fast it is.",
+      "misconceptions": [
+        "An average hides the language that fails",
+        "",
+        "Two models mean two pools of cards: a cost, not free",
+        "Capacity does not buy back quality under the floor"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 1,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo5-paired",
+      "type": "single",
+      "prompt": "Two cache formats were scored on the same 103 long Arabic items. Their separate 95% intervals overlap. What should you compute before concluding there is no loss?",
+      "options": [
+        "The mean of the two scores",
+        "A paired difference over the same items, with its interval",
+        "Separate intervals at 99% instead",
+        "The English score on the same items"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Pairing removes the variation the two variants share; its interval can lie below zero when separate intervals overlap.",
+      "misconceptions": [
+        "A mean of two scores says nothing about their difference",
+        "",
+        "Wider separate intervals overlap more, not less",
+        "Another language does not test this one"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 2,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo5-spec",
+      "type": "single",
+      "prompt": "A draft model is accepted with probability 0.5 per token and proposes 3 tokens. About how many tokens does the base model emit per verification step?",
+      "options": [
+        "1.5",
+        "1.875",
+        "3",
+        "4"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "(1 - 0.5^4) / (1 - 0.5) = 0.9375 / 0.5 = 1.875 tokens per step, before counting the draft's own time.",
+      "misconceptions": [
+        "Counts only the accepted share of drafted tokens, without the base model's own token",
+        "",
+        "Assumes every drafted token is accepted",
+        "Adds the base model's token to a draft that is always accepted"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo5-route",
+      "type": "single",
+      "prompt": "Routing easy requests to a distilled model holds both floors at threshold 0.4 (Arabic 0.737, floor 0.73) and at 0.5 (Arabic 0.733). The set has 300 items per language. Which threshold do you serve?",
+      "options": [
+        "0.5: it holds both floors and costs less",
+        "0.4: it holds both floors with a margin the set can still detect",
+        "0.6: the cost falls further",
+        "No routing: any loss is unacceptable"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "0.3 points over the floor is far inside the noise of 300 items; 0.4 keeps more margin at a small extra cost.",
+      "misconceptions": [
+        "Defensible on the rule alone but leaves no margin for drift on new traffic",
+        "",
+        "At 0.6 Arabic falls under its floor",
+        "The floors already define the acceptable loss"
+      ],
+      "lo": [
+        "LO5"
+      ],
+      "day": "day3",
+      "session": 4,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
     }
   ]
 }

@@ -1,5 +1,44 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Day 3 trades quality for capacity, and measures the trade. Every change today has two numbers: what it buys in goodput, and what it costs on the Arabic and English evaluation set. Ask who brought a question they would not trust a smaller model to answer in Arabic; keep two of them on the board for Session 4.</p></aside>
+</section>
+
+<section class="slide" id="where-day-2-left-us" data-lo="LO3 LO4">
+  <div class="kicker">Where Day 2 left us</div>
+  <h2>A tuned engine still drowns at the peak in 16-bit weights</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">0.49</div><div class="lbl">good requests per second at 8 users, tuned on Day 2</div></div>
+    <div class="stat center"><div class="big">2.1</div><div class="lbl">requests per second arriving in the first minutes of the peak</div></div>
+    <div class="stat center"><div class="big">0%</div><div class="lbl">of those requests meet the objective in 16 bits</div></div>
+  </div>
+  <p class="small mt">Day 2 tripled the baseline's goodput. The memory is still full of weights.</p>
+  <aside class="notes"><p>The tuned engine of yesterday (cap, chunked prefill, stable-first prompt, salt) serves 0.49 good requests per second at 8 closed-loop users, three times the Day 1 knee. Played open loop against the first five minutes of the peak, every request misses: the queue grows without end. Today's levers change the number format and the model, not the scheduler.</p></aside>
+</section>
+
+<section class="slide" id="review-checkpoint" data-lo="LO4">
+  <div class="kicker">Review</div>
+  <h2>Yesterday's caches, read again</h2>
+  <div class="quiz" data-type="single" data-lo="LO4">
+    <p class="lead">A colleague proposes to put the visitor's booking reference at the start of Musamir's prompt "so the cache can find the visitor's earlier turns faster". What happens to the prefix cache?</p>
+    <div class="opts">
+      <div class="opt" data-why="The salt separates tenants; it does nothing about a part that differs per visitor">It keeps working, because the salt isolates visitors</div>
+      <div class="opt" data-why="The history is reused only when everything before it matches; a per-visitor start breaks reuse of the shared parts for everyone">Reuse rises, because each visitor's history is found at once</div>
+      <div class="opt" data-why="Masking is a rule for the semantic cache; the prefix cache works on tokens and never returns stored answers">Nothing, as long as the reference is masked</div>
+      <div class="opt" data-ok>The shared instructions are no longer reused across visitors</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Each block's hash covers everything before it: a different first block makes every later block, including the 640 shared tokens, a miss.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. The visitor's own history would still be reused turn to turn, but only behind the reference; the base and tenant parts would be computed again for every visitor.</p></aside>
+</section>
+
+<section class="slide" id="two-numbers-per-change" data-lo="LO5">
+  <div class="kicker">The rule for today</div>
+  <h2>Every change is judged on goodput and on quality in both languages</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Quality floors</h4><p class="small mb0">Arabic 0.73 and English 0.81: the base model's scores less three points. A variant passes when it is at or above both.</p></div>
+    <div class="card c-cyan"><h4>The evaluation set</h4><p class="small mb0">600 items, 300 per language, a third with long event-terms documents. Recorded outcomes, synthetic.</p></div>
+  </div>
+  <p class="small mt">Scores are reported with 95% intervals; comparisons on the same items are paired.</p>
+  <aside class="notes"><p>Hanadi set the floors with Asrar, who insisted they be per language. Explain that the outcomes are recorded, not generated live: no model runs in the labs. On a notebook GPU the same scoring code reads outcomes produced by a real engine.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
@@ -8,151 +47,348 @@
 
 <section class="slide section" id="s1" data-auto="section" data-session="1"></section>
 
-<section class="slide" id="s1-idea" data-lo="LO5">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="formats" data-lo="LO5">
+  <div class="kicker">Number formats</div>
+  <h2>Weights in 8 or 4 bits halve or quarter the bytes each step reads</h2>
+  <table class="t">
+    <tr><th>Format</th><th class="num">Bytes per weight</th><th>Runs on the L4</th><th>How</th></tr>
+    <tr><td>BF16</td><td class="num">2</td><td>Yes</td><td>As trained</td></tr>
+    <tr><td>FP8</td><td class="num">1</td><td>Yes, FP8 tensor cores</td><td>Per-channel scales, often without calibration data</td></tr>
+    <tr><td>INT4 (weight-only)</td><td class="num">0.53</td><td>Yes, unpacked to 16 bits</td><td>Group scales, calibration: AWQ, GPTQ</td></tr>
+  </table>
+  <p class="small mt">4-bit counts 0.53 bytes: the scales take the rest. The L4 sheet's FP8 rate is twice its BF16 rate.</p>
+  <aside class="notes"><p>Two families: weight-only formats (INT4) save memory and bandwidth but compute in 16 bits after unpacking; formats with native tensor cores (FP8 on Ada and later) also speed up the arithmetic. The T4 of a free notebook has neither FP8 nor BF16 tensor cores. Sources: vLLM quantization page; AWQ (Lin et al., 2023, arXiv 2306.00978); LLM.int8() (Dettmers et al., 2022, arXiv 2208.07339).</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO5">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="memory-freed" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · task 1</div>
+  <h2>8-bit weights free 8.2 GB, and the cache more than triples</h2>
+  <div class="bars">
+    <div class="row"><span>BF16: 16.4 GB of weights</span><div class="bar c-coral" style="--w:23%"></div><span class="val">1,525 blocks</span></div>
+    <div class="row"><span>FP8: 8.2 GB</span><div class="bar c-teal" style="--w:75%"></div><span class="val">5,001 blocks</span></div>
+    <div class="row"><span>INT4: 4.3 GB</span><div class="bar c-cyan" style="--w:100%"></div><span class="val">6,635 blocks</span></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">In conversations of 2,000 tokens: 12, 40 and 53.</p>
+  <aside class="notes"><p>The weights are fixed and the card is fixed, so every byte saved on weights goes to the cache. That is why a format change matters more for capacity than for the speed of one step. The step from 8 to 4 bits frees only 3.9 GB more.</p></aside>
+</section>
+
+<section class="slide" id="peak-by-format" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · task 2</div>
+  <h2>At the peak, 16-bit weights serve no one and 8-bit weights serve most</h2>
+  <table class="t">
+    <tr><th>Weights</th><th class="num">Goodput (req/s)</th><th class="num">Attainment</th><th class="num">p90 TTFT</th></tr>
+    <tr><td>BF16</td><td class="num">0.00</td><td class="num">0%</td><td class="num">312 s</td></tr>
+    <tr class="hl"><td>FP8</td><td class="num">1.59</td><td class="num">82%</td><td class="num">3.7 s</td></tr>
+    <tr><td>INT4</td><td class="num">1.89</td><td class="num">96%</td><td class="num">1.4 s</td></tr>
+  </table>
+  <p class="small mt">Open loop, first five minutes of the evening peak (2.1 requests per second), one L4, cap 32. Synthetic: the course simulator.</p>
+  <aside class="notes"><p>Open loop matters here: arrivals do not slow down when the engine does, so 16-bit weights build a queue that never drains. 4-bit looks best. Ask the room whether to ship it before showing the next slide.</p></aside>
+</section>
+
+<section class="slide" id="quality-by-language" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · tasks 3 and 4</div>
+  <h2>4-bit weights lose seven points in Arabic and almost none in English</h2>
+  <table class="t">
+    <tr><th>Weights</th><th class="num">Arabic (95% interval)</th><th class="num">English (95% interval)</th><th>Both floors</th></tr>
+    <tr><td>BF16</td><td class="num">0.763 (0.712 to 0.808)</td><td class="num">0.843 (0.798 to 0.880)</td><td>Pass</td></tr>
+    <tr class="hl"><td>FP8</td><td class="num">0.757 (0.705 to 0.802)</td><td class="num">0.837 (0.791 to 0.874)</td><td>Pass</td></tr>
+    <tr><td>INT4</td><td class="num">0.693 (0.639 to 0.743)</td><td class="num">0.833 (0.787 to 0.871)</td><td>Fails Arabic</td></tr>
+  </table>
+  <p class="small mt">Floors: Arabic 0.73, English 0.81. 300 items per language, recorded outcomes, synthetic.</p>
+  <aside class="notes"><p>The planted lesson: an English-only evaluation would have shipped 4-bit weights. Low-resource languages and morphologically rich scripts often lose more under aggressive quantisation; whether a real Arabic model does is exactly what the per-language evaluation is for. Note that the intervals are wide: 300 items cannot separate one point.</p></aside>
+</section>
+
+<section class="slide" id="serving-table" data-lo="LO5">
+  <div class="kicker">Lab 3.1 · task 5</div>
+  <h2>One serving table collects every variant you try this week</h2>
+  <table class="t">
+    <tr><th>Variant</th><th class="num">Weights</th><th class="num">Blocks</th><th class="num">Attainment</th><th class="num">Arabic</th><th class="num">English</th></tr>
+    <tr><td>BF16 weights, BF16 cache</td><td class="num">16.4 GB</td><td class="num">1,525</td><td class="num">0%</td><td class="num">0.763</td><td class="num">0.843</td></tr>
+    <tr class="hl"><td>FP8 weights, BF16 cache</td><td class="num">8.2 GB</td><td class="num">5,001</td><td class="num">82%</td><td class="num">0.757</td><td class="num">0.837</td></tr>
+    <tr><td>INT4 weights, BF16 cache</td><td class="num">4.3 GB</td><td class="num">6,635</td><td class="num">96%</td><td class="num">0.693</td><td class="num">0.833</td></tr>
+  </table>
+  <p class="small mt">Labs 3.2 to 3.4 add rows. The capstone's design document starts from this table.</p>
+  <aside class="notes"><p>Insist that every row has both kinds of numbers. A row without quality is a benchmark, not a decision.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO5">
+  <div class="kicker">Checkpoint</div>
+  <h2>Ship the fastest variant?</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">Yamen wants 4-bit weights: 96% attainment at the peak, and "English quality is unchanged". The Arabic score is 0.693 against a floor of 0.73. What do you recommend?</p>
+    <div class="opts">
+      <div class="opt" data-why="The interval reaches 0.743 but the point estimate is under the floor; the rule uses the score, and the interval says only that more items are needed">Ship it: the Arabic interval reaches above the floor</div>
+      <div class="opt" data-why="An average over both languages hides the language that fails; the floors are per language">Ship it: the average of both languages is 0.76</div>
+      <div class="opt" data-why="A larger card is a cost decision for Day 4, and nothing says 16 bits are needed: 8 bits pass both floors">Keep 16-bit weights and buy a larger card</div>
+      <div class="opt" data-ok>Serve 8-bit weights, which pass both floors, and close the gap to the objective with the cache</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> 4-bit fails the Arabic floor by almost four points; 8-bit passes both and already serves 82% at the peak.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. The next session closes the remaining gap with an 8-bit cache, at a cost the participants will measure.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-1" data-auto="lab" data-lab="3.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for number formats. The open-loop runs take about ten seconds each on a laptop. Watch for participants who compare the quality of the variants by eye; the floor check must be written as code. The stretch on the T4 is worth showing to the room: Musamir's base in 16 bits does not fit a 16 GB card at all.</p></aside>
 </section>
 
 <!-- Session 2 -->
 
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO4">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="cache-bytes" data-lo="LO4 LO5">
+  <div class="kicker">Lab 3.2 · task 1</div>
+  <h2>An 8-bit cache stores each key and value in one byte: twice the blocks</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">147,456</div><div class="lbl">bytes per token, 16-bit cache</div></div>
+    <div class="stat center"><div class="big">73,728</div><div class="lbl">bytes per token, 8-bit cache</div></div>
+    <div class="stat center"><div class="big">10,002</div><div class="lbl">blocks with 8-bit weights and cache</div></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">2 × 36 layers × 8 key-value heads × 128 × bytes per value.</p>
+  <aside class="notes"><p>In vLLM the option is --kv-cache-dtype fp8; the scales can be calibrated or default to one. The cache format applies to every model the engine runs, including a draft model (Session 3). Source: vLLM quantized KV cache page.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO4">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="cache-gain" data-lo="LO4 LO5">
+  <div class="kicker">Lab 3.2 · task 2</div>
+  <h2>With an 8-bit cache, one card meets the objective in the first minutes of the peak</h2>
+  <table class="t">
+    <tr><th>Cache</th><th class="num">Mean running</th><th class="num">Mean waiting</th><th class="num">Cache in use</th><th class="num">Attainment</th><th class="num">p90 TTFT</th></tr>
+    <tr><td>BF16</td><td class="num">23.8</td><td class="num">1.24</td><td class="num">36%</td><td class="num">82%</td><td class="num">3.7 s</td></tr>
+    <tr class="hl"><td>FP8</td><td class="num">16.4</td><td class="num">0.00</td><td class="num">14%</td><td class="num">100%</td><td class="num">0.12 s</td></tr>
+  </table>
+  <p class="small mt">The 16-bit cache was only a third full: the gain came from reading half the bytes every step.</p>
+  <aside class="notes"><p>This surprises most rooms. Each decode step reads the cache of every running sequence; at 20 sequences of a few thousand tokens that is about as many bytes as the 8-bit weights. Halve it and every step is shorter, so fewer sequences are running at any moment and the queue drains. The doubled room matters for bursts and long documents. Five minutes of the peak is not the whole evening: Day 4 replays the day.</p></aside>
+</section>
+
+<section class="slide" id="long-context-loss" data-lo="LO5">
+  <div class="kicker">Lab 3.2 · task 3</div>
+  <h2>The loss is all in long contexts, and mostly in Arabic</h2>
+  <table class="t">
+    <tr><th>Items</th><th class="num">16-bit cache</th><th class="num">8-bit cache</th><th class="num">Change</th></tr>
+    <tr><td>Arabic, short</td><td class="num">0.777</td><td class="num">0.777</td><td class="num">0.0</td></tr>
+    <tr class="hl"><td>Arabic, long (103 items)</td><td class="num">0.718</td><td class="num">0.670</td><td class="num">−4.8 points</td></tr>
+    <tr><td>English, short</td><td class="num">0.848</td><td class="num">0.848</td><td class="num">0.0</td></tr>
+    <tr><td>English, long (109 items)</td><td class="num">0.817</td><td class="num">0.807</td><td class="num">−0.9 points</td></tr>
+  </table>
+  <p class="small mt">Both with 8-bit weights. Long items carry an event-terms document of 6,000 to 10,000 tokens.</p>
+  <aside class="notes"><p>The cache holds every earlier token; a coarser cache blurs what the model reads back from far away, so the loss grows with the context. Short answers do not move at all here. The language gap is the planted part of the case; on a real model it must be measured, not assumed.</p></aside>
+</section>
+
+<section class="slide" id="paired-difference" data-lo="LO5">
+  <div class="kicker">Lab 3.2 · task 4</div>
+  <h2>Paired on the same items, the Arabic loss is real; separate intervals hide it</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-coral"><h4>Paired difference, Arabic long</h4><p class="small mb0">−4.8 points, 95% bootstrap interval −9.7 to −1.0: the whole interval below zero.</p></div>
+    <div class="card c-navy"><h4>Two separate intervals</h4><p class="small mb0">0.625 to 0.796 and 0.574 to 0.753: they overlap, and a reader would call it noise.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <pre><code class="language-python">d = items[(items.lang == "ar") &amp; (items.context == "long")]
+S.paired_diff(list(d.w_fp8), list(d.kv_fp8))   # (-0.0485, (-0.0971, -0.0097))</code></pre>
+  <aside class="notes"><p>Most items are answered the same way by both caches; pairing removes that shared variation. This is the statistical habit of the whole day: when two variants answered the same items, compare item by item.</p></aside>
+</section>
+
+<section class="slide" id="cache-decision" data-lo="LO4 LO5">
+  <div class="kicker">Lab 3.2 · task 5</div>
+  <h2>The 8-bit cache passes the floors; the long-document loss is the Director's call</h2>
+  <div class="callout tip"><b>Decision.</b> Arabic 0.740 and English 0.833 overall, both above the floors, and one card meets the objective at the peak. Long Arabic documents lose about five points: Hanadi accepts that loss, or long-document requests keep a 16-bit cache in a pool of their own.</div>
+  <p class="small mt">Stretch: a second pool for long contexts keeps Arabic at 0.757, and costs a card.</p>
+  <aside class="notes"><p>The engineer's job is to make the trade visible with its interval, not to hide it behind a passing average. A decision that names what the Director accepts is what the capstone panel looks for.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO5">
+  <div class="kicker">Checkpoint</div>
+  <h2>Is the loss real?</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">On 103 long Arabic items, the 16-bit cache scores 0.718 (interval 0.625 to 0.796) and the 8-bit cache 0.670 (0.574 to 0.753). Kenan says the intervals overlap, so there is no loss. What is the right test?</p>
+    <div class="opts">
+      <div class="opt" data-ok>A paired difference on the same items, which here lies wholly below zero</div>
+      <div class="opt" data-why="More runs of the engine do not change recorded answers; the uncertainty is in the items">Run each cache three times and average</div>
+      <div class="opt" data-why="Adding short items, where nothing changed, dilutes the effect being measured">Pool the long and short items to get more data</div>
+      <div class="opt" data-why="Overlapping separate intervals do not show that two paired results are equal">Accept Kenan's reading: overlap means no difference</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Both caches answered the same items; the difference per item has far less variation than either score, so its interval is narrower.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. If time allows, ask what the interval would look like with only 30 long items: wide enough to include zero, which is why the evaluation set has a third long items.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-2" data-auto="lab" data-lab="3.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for the bootstrap. Task 1 is a hand count first: insist on it before reading the engine's number. In task 5, look for decisions that name what Hanadi must accept; a decision that says only "passes" misses the point of the lab.</p></aside>
 </section>
 
 <!-- Session 3 -->
 
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO5">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="draft-and-verify" data-lo="LO5">
+  <div class="kicker">Speculative decoding</div>
+  <h2>A small model drafts a few tokens; the base model checks them in one step</h2>
+  <div class="flow">
+    <div class="step"><b>Draft</b><span>Qwen3-0.6B proposes k tokens</span></div>
+    <div class="step"><b>Verify</b><span>the base scores all k at once</span></div>
+    <div class="step"><b>Keep</b><span>the correct run, plus one token of its own</span></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">With greedy decoding the answer is exactly what the base model alone would have written.</p>
+  <aside class="notes"><p>Verification reuses one read of the weights for k + 1 positions, which is free while decode waits on memory (Day 1). The sampling version keeps the base model's distribution exactly. Sources: Leviathan et al., 2023 (arXiv 2211.17192); Chen et al., 2023 (arXiv 2302.01318); vLLM speculative decoding page.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO5">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="tokens-per-step" data-lo="LO5">
+  <div class="kicker">Lab 3.3 · tasks 1 and 2</div>
+  <h2>The draft is accepted less in Arabic: 1.8 tokens a step against 2.4</h2>
+  <table class="t">
+    <tr><th>Language</th><th class="num">Per-token acceptance</th><th class="num">Predicted tokens per step (k = 3)</th><th class="num">Measured</th></tr>
+    <tr><td>Arabic</td><td class="num">0.46</td><td class="num">1.77</td><td class="num">1.75</td></tr>
+    <tr><td>English</td><td class="num">0.66</td><td class="num">2.38</td><td class="num">2.39</td></tr>
+  </table>
+  <p class="small mt">Expected tokens per step: (1 − a<sup>k+1</sup>) / (1 − a). Acceptance figures are synthetic.</p>
+  <aside class="notes"><p>A small draft model has seen less Arabic and predicts it worse; the effect is plausible but the figures here are invented for the case. On a notebook GPU, vLLM reports the acceptance counters and the participants can measure their own. Point out that even English gives 2.4 tokens a step, not the "two to three times faster" of the vendor's slide, before counting the draft's own time.</p></aside>
+</section>
+
+<section class="slide" id="two-loads" data-lo="LO5">
+  <div class="kicker">Lab 3.3 · tasks 3 and 4</div>
+  <h2>Speculation cuts TPOT by a fifth when quiet and costs a fifth of attainment at the peak</h2>
+  <table class="t">
+    <tr><th>Load</th><th>Speculation</th><th class="num">TPOT p50</th><th class="num">p90 TTFT</th><th class="num">Attainment</th><th class="num">Blocks</th></tr>
+    <tr><td>4 users</td><td>Off</td><td class="num">42 ms</td><td class="num">0.56 s</td><td class="num">100%</td><td class="num">10,002</td></tr>
+    <tr class="hl"><td>4 users</td><td>On, k = 3</td><td class="num">35 ms</td><td class="num">0.64 s</td><td class="num">100%</td><td class="num">5,054</td></tr>
+    <tr><td>64 users</td><td>Off</td><td class="num">94 ms</td><td class="num">4.2 s</td><td class="num">89%</td><td class="num">10,002</td></tr>
+    <tr class="hl"><td>64 users</td><td>On, k = 3</td><td class="num">74 ms</td><td class="num">6.0 s</td><td class="num">70%</td><td class="num">5,054</td></tr>
+  </table>
+  <p class="small mt">8-bit weights and cache. The draft's weights and cache take half the blocks. Synthetic.</p>
+  <aside class="notes"><p>Two effects at high load: the draft's own cache halves the room, so requests wait to be admitted (TTFT); and each verification does k + 1 tokens of work per sequence, so the decode gain shrinks as the batch grows. The visitor reads faster once served but waits longer to be served.</p></aside>
+</section>
+
+<section class="slide" id="identical-outputs" data-lo="LO5">
+  <div class="kicker">Lab 3.3 · task 5</div>
+  <h2>Not one recorded answer changed; the rule is about load</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="stat center"><div class="big">0 of 600</div><div class="lbl">items answered differently with speculation</div></div>
+    <div class="card c-teal"><h4>Rule</h4><p class="small mb0">On in the quiet hours, off at the evening peak. Day 4's scaling policy can switch it by hour.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Exactness is a property of the algorithm, but checking it on the evaluation set checks the deployment: a wrong sampling setting or a bug in the engine would show here. Speculation is the only change today with no quality cost; its cost is memory.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO5">
+  <div class="kicker">Checkpoint</div>
+  <h2>When does speculation pay?</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">In the quietest hour of the night Musamir serves three visitors at a time; at the evening peak about sixty. The draft is accepted at 0.46 per token in Arabic. Where should speculation be on?</p>
+    <div class="opts">
+      <div class="opt" data-why="The peak is where its memory cost bites: half the blocks go to the draft and requests wait">Always: answers are identical, so it can only help</div>
+      <div class="opt" data-why="Arabic still gains 1.75 tokens a step; acceptance under 0.5 does not make it useless">Never for Arabic: acceptance under 0.5 makes it slower</div>
+      <div class="opt" data-ok>At night, where decode waits on memory and the cache has room</div>
+      <div class="opt" data-why="Exactly backwards: the peak is when memory is scarce and batches already use the weight reads">Only at the peak, where speed matters most</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> With few sequences, checking four tokens costs little more than one; with many, the draft's memory and the extra verification work cost more than they save.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. Those who pick A have the right fact about quality and miss the cost in memory; return to the blocks column.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-3" data-auto="lab" data-lab="3.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for the algorithm. The 64-user runs take about ten seconds each. The stretch finds that k = 1 or 2 beats k = 3 on this draft: a useful surprise for those who finish early.</p></aside>
 </section>
 
 <!-- Session 4 -->
 
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO5">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="musamir-mini" data-lo="LO5">
+  <div class="kicker">Distillation</div>
+  <h2>Musamir-mini is a 1.7B model trained on the base model's answers</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Cheaper</h4><p class="small mb0">1,171 output tokens a second on one L4 while meeting the objective, against 441 for the base.</p></div>
+    <div class="card c-coral"><h4>Worse alone</h4><p class="small mb0">Arabic 0.583, English 0.703: under both floors by far.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">Musamir-mini is part of the case: Qwen3-1.7B distilled on the authority's traffic. Its outcomes are synthetic.</p>
+  <aside class="notes"><p>Distillation trains a small student on a large teacher's outputs (Hinton et al., 2015, arXiv 1503.02531). The student matches the teacher on what it saw a lot of and falls behind on the rest. The data team's traffic is mostly English, which is why Arabic falls further: 16 points against 13.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO5">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="easy-requests" data-lo="LO5">
+  <div class="kicker">Lab 3.4 · task 1</div>
+  <h2>On easy requests the mini model is as good as the base</h2>
+  <table class="t">
+    <tr><th>Difficulty score</th><th class="num">Mini</th><th class="num">Base (8-bit)</th></tr>
+    <tr><td>0.0 to 0.2</td><td class="num">0.96</td><td class="num">0.96</td></tr>
+    <tr><td>0.2 to 0.4</td><td class="num">0.93</td><td class="num">0.94</td></tr>
+    <tr><td>0.4 to 0.6</td><td class="num">0.73</td><td class="num">0.85</td></tr>
+    <tr><td>0.6 to 0.8</td><td class="num">0.40</td><td class="num">0.68</td></tr>
+    <tr><td>0.8 to 1.0</td><td class="num">0.19</td><td class="num">0.50</td></tr>
+  </table>
+  <p class="small mt">Share correct by the supplied classifier's score, both languages. Synthetic.</p>
+  <aside class="notes"><p>Gate directions and opening hours are easy; refunds, access rights and long event terms are hard. The classifier is supplied: building one is outside this course. Its quality is the router's quality, which is why task 2 sweeps it on the evaluation set.</p></aside>
+</section>
+
+<section class="slide" id="route-sweep" data-lo="LO5">
+  <div class="kicker">Lab 3.4 · tasks 2 and 3</div>
+  <h2>Up to half the requests can go to the mini model before Arabic breaks the floor</h2>
+  <table class="t">
+    <tr><th class="num">Threshold</th><th class="num">Sent to mini</th><th class="num">Arabic</th><th class="num">English</th><th class="num">SAR per million tokens</th></tr>
+    <tr><td class="num">0.2</td><td class="num">15%</td><td class="num">0.740</td><td class="num">0.833</td><td class="num">2.34</td></tr>
+    <tr class="hl"><td class="num">0.4</td><td class="num">36%</td><td class="num">0.737</td><td class="num">0.833</td><td class="num">2.00</td></tr>
+    <tr><td class="num">0.5</td><td class="num">50%</td><td class="num">0.733</td><td class="num">0.830</td><td class="num">1.78</td></tr>
+    <tr><td class="num">0.6</td><td class="num">62%</td><td class="num">0.690</td><td class="num">0.820</td><td class="num">1.58</td></tr>
+  </table>
+  <p class="small mt">Base alone: 2.58 SAR per million output tokens; mini alone: 0.97. Case prices, synthetic capacities.</p>
+  <aside class="notes"><p>Cost per million output tokens = card and node share per hour divided by the tokens produced per hour while meeting the objective. It assumes each card runs at that load all the time; Day 4 replaces it with the cost of a successful request over the whole day.</p></aside>
+</section>
+
+<section class="slide" id="choose-with-margin" data-lo="LO5">
+  <div class="kicker">Lab 3.4 · task 4</div>
+  <h2>0.5 holds the floor by 0.3 points; 0.4 keeps a margin worth having</h2>
+  <ul class="bullets">
+    <li>At 0.5, Arabic is 0.733 against 0.73: inside the noise of 300 items.</li>
+    <li>At 0.4, Arabic is 0.737, 36% of requests go to mini, the cost falls by 22%.</li>
+    <li>The classifier was tuned on this set: on new traffic, expect the margin to shrink.</li>
+  </ul>
+  <aside class="notes"><p>The lab accepts any threshold that holds both floors; the solution chooses 0.4 and says why. If a table chooses 0.5, ask them what they would monitor in production to know when the router has drifted under the floor.</p></aside>
+</section>
+
+<section class="slide" id="decision-page" data-lo="LO5">
+  <div class="kicker">Lab 3.4 · task 5</div>
+  <h2>The one-page decision: what to serve, the evidence, what the Director accepts</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Decision</h4><p class="small mb0">8-bit weights and cache; route under 0.4 to mini; speculation off at the peak.</p></div>
+    <div class="card c-cyan"><h4>Evidence</h4><p class="small mb0">The serving table: memory, goodput, scores with intervals, cost per million tokens.</p></div>
+    <div class="card c-coral"><h4>To accept</h4><p class="small mb0">Long Arabic documents lose five points; the Arabic margin is under one point.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>The page is written by the lab from the participant's own numbers. It is the first draft of the capstone's decision page; Day 4 adds the topology, the day's replay and the cost per successful request.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO5">
+  <div class="kicker">Checkpoint</div>
+  <h2>What breaks first?</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">Finance asks for a threshold of 0.6 to cut cost further: 62% of requests to the mini model, English 0.820, Arabic 0.690. What do you answer?</p>
+    <div class="opts">
+      <div class="opt" data-why="English passing does not cover Arabic; the floors are per language">Accept: English still passes its floor</div>
+      <div class="opt" data-ok>Refuse: Arabic falls under its floor; 0.4 is the largest saving that holds both with a margin</div>
+      <div class="opt" data-why="The mini model alone is far under both floors; routing exists because it cannot serve everything">Go further and send everything to the mini model</div>
+      <div class="opt" data-why="Quantising the mini model changes its cost, not the base's quality on the hard requests now routed away">Accept, and recover quality by quantising the mini model</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Between 0.5 and 0.6 the router starts sending Arabic requests the mini model gets wrong; the Arabic score falls 4.3 points while English falls 1.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. This is the conversation the capstone panel will have with them: a cost request answered with the evidence and the floor.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-3-4" data-auto="lab" data-lab="3.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for the plot and the wording of the page, not the threshold. Task 3 runs two capacity measurements of about thirty seconds each. Read three decision pages aloud at the end of the lab if time allows.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
-  <div class="kicker">Day 3 · wrap-up</div>
-  <h2>Three things to keep</h2>
-  <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+<section class="slide" id="day-3-recap" data-lo="LO4 LO5">
+  <div class="kicker">Day 3 · three things to keep</div>
+  <h2>Measure quality per language, pair the comparison, name what is accepted</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Per language</h4><p class="small mb0">4-bit weights pass in English and fail in Arabic. An average would have shipped them.</p></div>
+    <div class="card c-cyan"><h4>Paired</h4><p class="small mb0">The cache's long-context loss is real on the same items and invisible in two separate intervals.</p></div>
+    <div class="card c-coral"><h4>Memory is the currency</h4><p class="small mb0">Weights, cache precision and the draft model all trade in the same 24 GB.</p></div>
   </div>
+  <aside class="notes"><p>Ask each table for the row of the serving table they would defend to Hanadi, and the one thing she must accept with it.</p></aside>
 </section>
 
-<section class="slide dark" id="next" data-label="Next">
+<section class="slide dark" id="tomorrow-topology" data-lo="LO6">
   <div class="kicker">Next</div>
-  <h2>Day 4: Across replicas and over the day</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <h2>Tomorrow: the whole day, several cards, and the cost of a successful request</h2>
+  <ul class="bullets">
+    <li>Bring your serving table and your decision page: the capstone starts from them.</li>
+    <li>Read the abstract of DistServe or Splitwise (in the sources).</li>
+    <li>Look at the daily demand file: when is the quietest hour, and how quiet?</li>
+  </ul>
+  <aside class="notes"><p>Day 4 asks how many cards, arranged how, scaled when, and at what cost against the hosted quote. The last bullet prepares the scaling lab.</p></aside>
 </section>

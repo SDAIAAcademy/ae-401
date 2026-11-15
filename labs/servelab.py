@@ -171,7 +171,7 @@ def cache_blocks(cfg: Config):
     free = budget - used
     per_block = kv_bytes_per_token(m, cfg.kv_cache_dtype) * cfg.block_size
     if cfg.speculative_model:
-        per_block += kv_bytes_per_token(models()[cfg.speculative_model], "bf16") * cfg.block_size
+        per_block += kv_bytes_per_token(models()[cfg.speculative_model], cfg.kv_cache_dtype) * cfg.block_size  # the cache format is engine-wide
     return max(0, int(free // per_block))
 
 

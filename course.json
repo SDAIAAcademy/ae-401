@@ -569,7 +569,7 @@
             ],
             "stretch": "Find the best draft length at each load"
           },
-          "summary": "A small model guesses, the large one checks: faster when memory-bound, slower when compute-bound."
+          "summary": "A small model guesses, the large one checks: faster when the engine is quiet, a cost when it is full."
         },
         {
           "title": "Distilled models and routing to them",
