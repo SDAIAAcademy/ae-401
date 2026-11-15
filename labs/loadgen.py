@@ -6,9 +6,9 @@
     uv run loadgen.py --url http://127.0.0.1:8401 --users 8 --requests 40
 
 Each of `users` threads sends a request, reads the stream to the end and sends the next one. For each
-request it records the time to the first token, the time per output token after it and the end-to-end
-time, measured by the client. Prompts are filler words, one word per token on the stand-in
-(roughly so on a real tokenizer); `ignore_eos` asks a real engine to produce exactly `max_tokens`.
+request it records the time to the first token, the time per output token after it, the longest pause
+between two tokens and the end-to-end time, measured by the client. Prompts are filler words, one word
+per token on the stand-in (roughly so on a real tokenizer); `ignore_eos` asks a real engine to produce exactly `max_tokens`.
 Standard library only.
 """
 from __future__ import annotations
@@ -34,7 +34,7 @@ def one_request(url, prompt_tokens, max_tokens, model="musamir", timeout=600):
     req = urllib.request.Request(url.rstrip("/") + "/v1/completions", data=body,
                                  headers={"Content-Type": "application/json"})
     t0 = time.perf_counter()
-    t_first, n_tok, t_last = None, 0, None
+    t_first, n_tok, t_last, gap = None, 0, None, 0.0
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         for raw in resp:
             line = raw.decode().strip()
@@ -50,12 +50,14 @@ def one_request(url, prompt_tokens, max_tokens, model="musamir", timeout=600):
                 now = time.perf_counter()
                 if t_first is None:
                     t_first = now
+                elif t_last is not None:
+                    gap = max(gap, now - t_last)
                 n_tok += k
                 t_last = now
     t1 = time.perf_counter()
     ttft = (t_first - t0) if t_first else float("inf")
     tpot = ((t_last - t_first) / max(1, n_tok - 1)) if t_first and n_tok > 1 else 0.0
-    return {"ttft_s": ttft, "tpot_s": tpot, "e2e_s": t1 - t0, "out_tokens": n_tok, "start": t0, "end": t1}
+    return {"ttft_s": ttft, "tpot_s": tpot, "stall_s": gap, "e2e_s": t1 - t0, "out_tokens": n_tok, "start": t0, "end": t1}
 
 
 def run_users(url, users, requests, prompt_tokens=1500, max_tokens=120, jobs=None):

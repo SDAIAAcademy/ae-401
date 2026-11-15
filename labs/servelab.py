@@ -126,7 +126,8 @@ class Config:
     speculative_model: str | None = None
     num_speculative_tokens: int = 0
     role: str = "both"                # "both", "prefill" or "decode"
-    layout: str = "stable_first"      # prompt layout: "deployed" or "stable_first"
+    layout: str = "stable_first"      # prompt layout: "deployed", "stable_first" or a name in LAYOUTS
+    scheduling_policy: str = "fcfs"   # "fcfs" or "chat_first" (chat requests go ahead of documents)
 
     @staticmethod
     def load(name):
@@ -256,8 +257,28 @@ class Req:
     spec_proposed: int = 0
 
 
+LAYOUTS = {}
+
+
+def prompt_parts(r: Req):
+    """The named parts of a request's prompt: {name: [(segment id, tokens), ...]}."""
+    t = tenants()
+    parts = {"header": [(f"hdr:{r.id}", t["header_tokens"])], "base": [("base:common", t["base_tokens"])],
+             "tenant": [(f"tenant:{r.tenant}", t["tenants"][r.tenant]["tokens"])], "document": [], "history": [],
+             "question": [(f"q:{r.id}", r.q_tokens)]}
+    if r.doc_id:
+        parts["document"] = [(f"doc:{r.doc_id}", r.doc_tokens)]
+    if r.hist_parts:
+        parts["history"] = [(f"turn:{r.session}:{k}", int(n)) for k, n in enumerate(r.hist_parts.split("|"), start=1)]
+    return parts
+
+
 def segments(r: Req, layout: str):
     """The prompt as a list of (segment id, tokens). The deployed layout starts with a per-request header."""
+    if layout in LAYOUTS:
+        order = LAYOUTS[layout](r) if callable(LAYOUTS[layout]) else LAYOUTS[layout]
+        parts = prompt_parts(r)
+        return [seg for name in order for seg in parts[name]]
     t = tenants()
     header = (f"hdr:{r.id}", t["header_tokens"])
     base = ("base:common", t["base_tokens"])
@@ -450,6 +471,11 @@ class Engine:
         r.to_prefill = r.prompt_tokens + r.generated
         r.prefilled = 0
         r.replica = int(self.name[1:]) if self.name[1:].isdigit() else -1
+        if self.cfg.scheduling_policy == "chat_first" and r.kind != "doc":
+            for i, w in enumerate(self.waiting):
+                if w.kind == "doc" and w.prefilled == 0:
+                    self.waiting.insert(i, r)
+                    return
         self.waiting.append(r)
 
     def has_work(self):
@@ -740,7 +766,7 @@ class Result:
         self.engines = engines
         self.users = users
         obj = objectives()
-        self.ttft_slo, self.tpot_slo = obj["ttft_s"], obj["tpot_s"]
+        self.ttft_slo, self.tpot_slo, self.stall_slo = obj["ttft_s"], obj["tpot_s"], obj["stall_s"]
         done = sorted(done, key=lambda r: r.t_done)
         cut = int(len(done) * warmup)
         self.all = done
@@ -759,9 +785,9 @@ class Result:
             out.append({"id": r.id, "tenant": r.tenant, "lang": r.lang, "kind": r.kind, "arrival": round(r.t, 3),
                         "prompt_tokens": r.prompt_tokens, "out_tokens": r.out_tokens, "hit_tokens": r.hit_tokens,
                         "cross_tenant_blocks": r.cross_hits, "queue_s": round((r.t_sched or r.t) - r.t, 4),
-                        "ttft_s": round(ttft, 4), "tpot_s": round(tpot, 5), "e2e_s": round(r.t_done - r.t, 4),
-                        "preemptions": r.preemptions, "replica": r.replica,
-                        "met": bool(ttft <= self.ttft_slo and tpot <= self.tpot_slo)})
+                        "ttft_s": round(ttft, 4), "tpot_s": round(tpot, 5), "stall_s": round(r.max_gap, 4),
+                        "e2e_s": round(r.t_done - r.t, 4), "preemptions": r.preemptions, "replica": r.replica,
+                        "met": bool(ttft <= self.ttft_slo and tpot <= self.tpot_slo and r.max_gap <= self.stall_slo)})
         return out
 
     def summary(self):
@@ -779,6 +805,7 @@ class Result:
             "attainment": round(met / max(1, len(tab)), 4), "output_tok_s": round(toks / dur, 1),
             "ttft_p50": round(pct(ttft, .5), 3), "ttft_p90": round(pct(ttft, .9), 3), "ttft_p99": round(pct(ttft, .99), 3),
             "tpot_p50": round(pct(tpot, .5), 4), "tpot_p90": round(pct(tpot, .9), 4), "tpot_p99": round(pct(tpot, .99), 4),
+            "stall_p90": round(pct([x["stall_s"] for x in tab], .9), 3),
             "preemptions": sum(x.preemptions for x in e),
             "hit_rate": round(sum(x.hits for x in e) / lookups, 4) if lookups else 0.0,
             "cache_blocks": e[0].n_blocks, "busy_s": round(sum(x.busy_time for x in e), 2),
@@ -932,3 +959,24 @@ def prompt_tokens(r, layout="deployed"):
 def peak_jobs(n, seed=0, layout="deployed"):
     """(prompt tokens, answer tokens) of n requests from the evening peak, for the load generator."""
     return [(prompt_tokens(r, layout), r.out_tokens) for r in peak_requests(n=n, seed=seed)]
+
+
+def engine_signature(run, i=0):
+    """Mean running, waiting and cache usage over the engine log, and preemptions per 100 requests."""
+    log = run.engine_log(i)
+    n = max(1, len(log))
+    return {"running": round(sum(x["running"] for x in log) / n, 2),
+            "waiting": round(sum(x["waiting"] for x in log) / n, 2),
+            "kv_cache_usage": round(sum(x["kv_cache_usage"] for x in log) / n, 3),
+            "preemptions_per_100": round(100 * run.engines[i].preemptions / max(1, len(run.all)), 1),
+            "cap": run.cfg.max_num_seqs}
+
+
+def mixed_pool(share_docs=0.35, n=400, seed=1):
+    """Peak requests with a chosen share of long-document requests (Lab 2.2)."""
+    pk = peak_requests()
+    docs = [r for r in pk if r.kind == "doc"]
+    chat = [r for r in pk if r.kind == "chat"]
+    rng = random.Random(seed)
+    k = int(n * share_docs)
+    return rng.sample(docs, k) + rng.sample(chat, n - k)

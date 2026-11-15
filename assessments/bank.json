@@ -150,7 +150,7 @@
     {
       "id": "q-lo2-goodput",
       "type": "single",
-      "prompt": "In 100 seconds an engine finishes 60 requests; 45 met both TTFT and TPOT objectives, 10 met only TTFT, 5 met only TPOT. What is the goodput?",
+      "prompt": "In 100 seconds an engine finishes 60 requests; 45 met the whole objective (TTFT, TPOT and stall), 10 missed only the TPOT limit, 5 missed only the TTFT limit. What is the goodput?",
       "options": [
         "0.60 requests per second",
         "0.55 requests per second",
@@ -160,11 +160,11 @@
       "correct": [
         3
       ],
-      "explanation": "Only requests meeting both objectives count: 45 in 100 s is 0.45 per second.",
+      "explanation": "Only requests meeting the whole objective count: 45 in 100 s is 0.45 per second.",
       "misconceptions": [
         "Counts throughput, every finished request",
-        "Counts requests that met TTFT",
-        "Counts requests that met TPOT and both",
+        "Counts the requests that met TTFT",
+        "Counts the requests that met TPOT",
         ""
       ],
       "lo": [
@@ -289,6 +289,296 @@
       "day": "day1",
       "session": 4,
       "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo3-queueing",
+      "type": "single",
+      "prompt": "At 8 visitors an engine shows 4 sequences running (its cap is 4), 4 waiting, and 22% of the cache in use. The TTFT p90 is 9 s. What is the diagnosis?",
+      "options": [
+        "Queueing at the sequence cap: raise the cap",
+        "Preemption under cache pressure: lower the cap",
+        "Prefill interference: switch on chunked prefill",
+        "The card is too slow: add a second card"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "The engine runs at its cap with a queue while most of the cache is free: the cap refuses work the card has room for.",
+      "misconceptions": [
+        "",
+        "Preemption needs a nearly full cache; here it is four-fifths empty",
+        "Interference shows as stalls in running answers, not as a queue",
+        "Buys hardware for a limit set by one setting"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day2",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo3-preemption",
+      "type": "single",
+      "prompt": "A deployment with a cap of 48 shows the cache 96% in use and the preemption counter rising by about 10 per 100 requests. Which change should come first?",
+      "options": [
+        "Raise the cap to 64 so waiting requests are admitted",
+        "Lower the cap or give the cache more memory",
+        "Raise the token budget per step",
+        "Switch off prefix caching"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Answers outgrow the blocks the engine admitted them with; fewer sequences or more blocks stop the evictions and the recomputation.",
+      "misconceptions": [
+        "More admissions mean more evictions when the cache is the limit",
+        "",
+        "The budget limits work per step, not the blocks answers hold",
+        "Shared blocks save memory; removing them adds pressure"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day2",
+      "session": 1,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo3-stall",
+      "type": "single",
+      "prompt": "Chat answers freeze for about two seconds whenever a long document arrives, yet the chat TPOT p90 is 110 ms. Why does TPOT miss the problem?",
+      "options": [
+        "TPOT is measured on the server, the freeze on the client",
+        "A two-second gap spread over 150 tokens moves the mean pace by only about 13 ms",
+        "TPOT ignores the first token, where the freeze happens",
+        "The freeze is in the network, which TPOT does not include"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "TPOT is a mean over the answer; one long gap barely moves it, which is why the objective also limits the longest stall.",
+      "misconceptions": [
+        "Both can be measured from the client's stream",
+        "",
+        "The freezes happen mid-answer, after the first token",
+        "The gap comes from one long engine step, not transport"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day2",
+      "session": 2,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo3-budget",
+      "type": "single",
+      "prompt": "With chunked prefill, budgets of 512, 1,024 and 2,048 tokens give chat stall p90 of 0.18, 0.35 and 0.68 s and document TTFT p90 of 2.47, 2.20 and 2.09 s. Under Musamir's objective, which budget do you choose?",
+      "options": [
+        "512, because chat stalls are smallest",
+        "1,024: both clocks meet the objective with margin on the stall",
+        "2,048, because documents start fastest",
+        "8,192, to finish documents in one step"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "512 pushes document TTFT over 2.0 s; 2,048 meets both but with less margin under the 1 s stall; 1,024 balances the two.",
+      "misconceptions": [
+        "Optimises one clock and breaks the other",
+        "",
+        "Defensible on these numbers but trades away the stall margin for 0.1 s",
+        "Brings back the stalls chunking was switched on to remove"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day2",
+      "session": 2,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo3-closed-cap",
+      "type": "single",
+      "prompt": "In a closed-loop test with 6 users, caps of 6, 8 and 12 give identical results. What explains it?",
+      "options": [
+        "The simulator ignores the cap above 6",
+        "Six users never put more than six requests in the engine at once",
+        "The cache limits the engine to six sequences",
+        "The token budget caps the batch at six"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Each closed-loop user waits for an answer before sending again, so the engine never holds more requests than users.",
+      "misconceptions": [
+        "The cap works; there is simply nothing more to admit",
+        "",
+        "The cache holds far more than six sequences at this load",
+        "The budget limits tokens per step, not sequences"
+      ],
+      "lo": [
+        "LO3"
+      ],
+      "day": "day2",
+      "session": 1,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo4-layout",
+      "type": "single",
+      "prompt": "A prompt is built as: request id, system instructions, tenant rules, conversation history, question. Prefix caching hits almost nothing. What change fixes it?",
+      "options": [
+        "Raise the cache's memory",
+        "Move the request id after the history, next to the question",
+        "Shorten the system instructions",
+        "Switch to a block size of 32 tokens"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A block is reused only if every token before it is identical; a changing first token makes every block a miss.",
+      "misconceptions": [
+        "The blocks miss because their hashes differ, not because they were evicted",
+        "",
+        "A shorter shared part is still never reused behind a changing id",
+        "Larger blocks make reuse harder, not easier"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day2",
+      "session": 3,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo4-salt",
+      "type": "single",
+      "prompt": "Why does a per-tenant cache salt barely lower the hit rate in Lab 2.3?",
+      "options": [
+        "The salt is ignored by the engine for short prompts",
+        "Most reuse is within a tenant: its own rules, documents and conversation history",
+        "The salt is applied only to the last block",
+        "Salting doubles the cache size"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Only the shared base text was reused across tenants; tenants mostly reuse their own blocks, which the salt keeps.",
+      "misconceptions": [
+        "The salt changes every block's hash, whatever the length",
+        "",
+        "It is mixed into the first block, so it changes every hash after it",
+        "The salt changes hashes, not memory"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day2",
+      "session": 3,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo4-isolation",
+      "type": "single",
+      "prompt": "The base instructions are public text. Rawya still forbids reusing cache blocks across tenants. Which reason holds?",
+      "options": [
+        "Reused blocks give wrong answers to the other tenant",
+        "Reuse is visible in timing, and the rule must not depend on judging which text is sensitive",
+        "Cross-tenant reuse slows the engine down",
+        "Prefix caching is not allowed with Arabic text"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A faster first token reveals that another tenant's prompt started the same way; a salt per tenant closes that channel at little cost.",
+      "misconceptions": [
+        "Prefix reuse never changes an answer; the model still writes it",
+        "",
+        "Reuse makes requests faster, not slower",
+        "Reuse works on tokens in any language"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day2",
+      "session": 3,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo4-semantic",
+      "type": "single",
+      "prompt": "A semantic cache at threshold 0.90 hits 3.8% of questions, and every hit in the sample was a wrong answer. Hanadi's limit is one wrong answer in 1,000. What do you recommend?",
+      "options": [
+        "Raise the threshold to 0.95",
+        "No semantic cache on text alone; keep the prefix cache",
+        "Lower the threshold to get more right hits",
+        "Use it for Arabic only"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The wrong pairs differ in one slot and are the most similar; no threshold removes them before the useful hits.",
+      "misconceptions": [
+        "Leaves the near-identical wrong pairs, the last to fall",
+        "",
+        "Adds hits, and wrong answers with them",
+        "Arabic was the worse language at 0.90"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day2",
+      "session": 4,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo4-pii",
+      "type": "single",
+      "prompt": "A question reads: \"Can I move booking LW-482913 to Friday? Call me on 0551234567.\" What should a semantic cache do with it?",
+      "options": [
+        "Store it with the numbers masked",
+        "Mask it for the lookup and never store its answer",
+        "Store it as written, since it is the visitor's own data",
+        "Skip masking, since the lookup is internal"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "Masking keeps numbers out of the index and logs; an answer written for one booking must never be served to another visitor.",
+      "misconceptions": [
+        "The answer itself was written for that booking and would be served to others",
+        "",
+        "A cached answer is served to other visitors",
+        "The index and logs are where personal data leak"
+      ],
+      "lo": [
+        "LO4"
+      ],
+      "day": "day2",
+      "session": 4,
+      "level": "apply",
       "pool": "practice",
       "weight": 1
     }

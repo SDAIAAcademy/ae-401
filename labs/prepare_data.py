@@ -299,8 +299,8 @@ def main():
     write_json("model_cards.json", MODEL_CARDS)
     write_json("accelerators.json", ACCELERATORS)
     write_json("objectives.json", {
-        "ttft_s": 2.0, "tpot_s": 0.15, "attainment_target": 0.90,
-        "note": "Per request: time to first token at most 2.0 s and time per output token at most 150 ms (faster than a visitor reads). The service objective: 90% of requests at the evening peak meet both."})
+        "ttft_s": 2.0, "tpot_s": 0.15, "stall_s": 1.0, "attainment_target": 0.90,
+        "note": "Per request: time to first token at most 2.0 s, time per output token at most 150 ms (faster than a visitor reads) and no pause between two tokens longer than 1.0 s. The service objective: 90% of requests at the evening peak meet all three."})
     write_json("spec_acceptance.json", {"qwen3-0.6b": {"en": 0.66, "ar": 0.46,
                                                          "note": "synthetic per-token acceptance of the draft model, by language"}})
     write_json("tenants.json", {"header_tokens": 24, "base_tokens": 640, "tenants": TENANTS,

@@ -60,7 +60,7 @@ print(supplied.head(3).to_string(index=False))
 # %% [markdown]
 # ## 2 · Aggregate each point with mean and spread (6 min)
 #
-# For each run (a level and a repeat): goodput = requests that met both objectives / (last end - first send),
+# For each run (a level and a repeat): goodput = requests that met the objective / (last end - first send),
 # and the p90 of TTFT and TPOT. Then for each level the mean and the standard deviation over its repeats.
 #
 # ✏️ **Exercise** · `per_run(df)` returns one row per (users, repeat) with `goodput_rps`, `throughput_rps`,
@@ -166,7 +166,7 @@ g, sd = levels.loc[knee, ("goodput_rps", "mean")], levels.loc[knee, ("goodput_rp
 try:
     # BEGIN SOLUTION
     claim = (f"The baseline serves at most {g:.2f} ± {sd:.2f} good requests per second (mean ± sd of 3 runs) "
-             f"at {knee} concurrent users, under TTFT ≤ {OBJ['ttft_s']} s and TPOT ≤ {OBJ['tpot_s'] * 1000:.0f} ms; "
+             f"at {knee} concurrent users, under TTFT ≤ {OBJ['ttft_s']} s, TPOT ≤ {OBJ['tpot_s'] * 1000:.0f} ms and no stall over {OBJ['stall_s']} s; "
              f"beyond it goodput falls while throughput keeps rising.")
     # END SOLUTION
 except NotImplementedError:

@@ -1,5 +1,46 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Welcome back. Yesterday ended with a factor of fourteen between the baseline's best goodput and the evening peak. Today does not close that gap with hardware: it fixes three broken deployments and the prompt, inside the same engine on the same card. Ask who read the vLLM page on chunked prefill; those people will recognise the third fault.</p></aside>
+</section>
+
+<section class="slide" id="yesterday-in-one-slide" data-lo="LO1 LO2">
+  <div class="kicker">Where Day 1 left us</div>
+  <h2>The baseline serves 0.15 good requests per second; the peak brings 2.13</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">0.15</div><div class="lbl">good requests per second at the knee, 4 users</div></div>
+    <div class="stat center"><div class="big">~12</div><div class="lbl">conversations of 2,000 tokens the cache holds</div></div>
+    <div class="stat center"><div class="big">18%</div><div class="lbl">of requests freeze over 1 s already at 2 users</div></div>
+  </div>
+  <p class="small mt">Today: the scheduler and the cache, setting by setting, each change judged by a rerun against the objective.</p>
+  <aside class="notes"><p>Three numbers from yesterday's labs. The third one is the clue for Session 2: the baseline processes each prompt whole, so a long prompt freezes every answer in the batch. Do not explain it yet; ask the room to guess where the freezes come from.</p></aside>
+</section>
+
+<section class="slide" id="review-checkpoint" data-lo="LO2">
+  <div class="kicker">Review</div>
+  <h2>Yesterday's claim, read again</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">Kenan reads the Day 1 curve and says: "throughput keeps rising to 16 users, so the engine has headroom; let us admit more visitors." What is wrong with the argument?</p>
+    <div class="opts">
+      <div class="opt" data-why="Blames the measurement: the three runs per point agree, the spread is small next to the drop">The curve has too few runs to say anything</div>
+      <div class="opt" data-why="True of a closed loop in general, but it does not answer the claim: the drop is in the requests that met the objective">A closed loop cannot measure throughput</div>
+      <div class="opt" data-ok>Throughput counts requests finished, met or not; past 4 users goodput falls</div>
+      <div class="opt" data-why="Confuses the objective with the peak: the objective is per request, whatever the arrival rate">Throughput only counts at the evening peak</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> At 12 users throughput is 0.44 requests per second and goodput 0.02: the engine is busy and almost no visitor is served within the objective.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. Two minutes, no more. If many pick A, show the spread column of the Day 1 table: 0.02 to 0.03 against a drop from 0.15 to 0.02.</p></aside>
+</section>
+
+<section class="slide" id="three-faults" data-lo="LO3 LO4">
+  <div class="kicker">The day's case</div>
+  <h2>Yamen hands over three deployments, each broken in one setting</h2>
+  <table class="t">
+    <tr><th>Deployment</th><th>What the visitors see</th><th>Lab</th></tr>
+    <tr><td>Fault 1</td><td>Long waits before the first word, even at 6 visitors</td><td>2.1</td></tr>
+    <tr><td>Fault 2</td><td>Waits and answers that restart, the card's memory full</td><td>2.1</td></tr>
+    <tr><td>Fault 3</td><td>Answers that freeze mid-sentence on document evenings</td><td>2.2</td></tr>
+  </table>
+  <p class="small mt">The outcome asks for three diagnoses, each with its evidence and a rerun that meets the objective.</p>
+  <aside class="notes"><p>Each fault is seeded in one setting of data/deployments: the participants do not know which. Insist on the form of a diagnosis: the symptom, the metric that names the cause, the change, the rerun. A guess that happens to fix it is not a diagnosis.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
@@ -8,151 +49,406 @@
 
 <section class="slide section" id="s1" data-auto="section" data-session="1"></section>
 
-<section class="slide" id="s1-idea" data-lo="LO3 LO4">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="iteration-level-scheduling" data-lo="LO3">
+  <div class="kicker">Continuous batching</div>
+  <h2>The engine rebuilds the batch at every step, not every request</h2>
+  <div class="flow">
+    <div class="step"><b>Step</b><span>one forward pass</span></div>
+    <div class="step"><b>Finished?</b><span>leave the batch at once</span></div>
+    <div class="step"><b>Room?</b><span>waiting requests join</span></div>
+    <div class="step"><b>Next step</b><span>a new batch</span></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <ul class="bullets mt">
+    <li>A short answer does not wait for the longest answer in its batch to finish.</li>
+    <li>Two limits decide who joins: the <b>sequence cap</b> (<code>max_num_seqs</code>) and the <b>token budget</b> per step (<code>max_num_batched_tokens</code>).</li>
+    <li>A third limit is not a setting: free cache blocks.</li>
+  </ul>
+  <aside class="notes"><p>Orca (Yu et al., OSDI 2022) introduced iteration-level scheduling; every current engine does it. Before it, a batch of requests ran until its longest member ended. Sources: Orca paper; vLLM engine arguments page.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO3 LO4">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="engine-gauges" data-lo="LO3">
+  <div class="kicker">Reading an engine</div>
+  <h2>Four gauges tell you what the scheduler is doing</h2>
+  <table class="t">
+    <tr><th>Gauge</th><th>vLLM metric</th><th>Reads as</th></tr>
+    <tr><td>Running</td><td><code>vllm:num_requests_running</code></td><td>Sequences in the batch now</td></tr>
+    <tr><td>Waiting</td><td><code>vllm:num_requests_waiting</code></td><td>Requests not yet admitted</td></tr>
+    <tr><td>Cache usage</td><td><code>vllm:kv_cache_usage_perc</code></td><td>Share of blocks in use</td></tr>
+    <tr><td>Preemptions</td><td><code>vllm:num_preemptions_total</code></td><td>Sequences evicted and recomputed so far</td></tr>
+  </table>
+  <aside class="notes"><p>The simulator keeps the same four in run.engine_log(). On a real engine, scrape /metrics every few seconds during a load test and keep the series with the run's raw rows. Source: vLLM metrics documentation.</p></aside>
+</section>
+
+<section class="slide" id="queueing-signature" data-lo="LO3">
+  <div class="kicker">Lab 2.1 · task 1</div>
+  <h2>Fault 1 runs at its cap with a queue and an empty cache</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">1.93</div><div class="lbl">running, mean (cap 2)</div></div>
+    <div class="stat center"><div class="big">3.83</div><div class="lbl">waiting, mean</div></div>
+    <div class="stat center"><div class="big">19%</div><div class="lbl">cache in use</div></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <div class="callout tip mt"><b>Queueing.</b> The engine refuses work it has room for: the cap is the limit, not the card.</div>
+  <aside class="notes"><p>Six users, a sequence cap of 2. The cache is four-fifths empty while four requests wait. This is the cheapest fault to fix and the most common one in configurations copied from a smaller test.</p></aside>
+</section>
+
+<section class="slide" id="cap-sweep" data-lo="LO3 LO4">
+  <div class="kicker">Lab 2.1 · tasks 2 and 3</div>
+  <h2>Raising the cap from 2 to 6 takes the TTFT tail from 35 s to 1.5 s</h2>
+  <table class="t">
+    <tr><th class="num">Cap</th><th class="num">Throughput (req/s)</th><th class="num">p90 TTFT (s)</th><th class="num">Attainment</th></tr>
+    <tr><td class="num">2</td><td class="num">0.15</td><td class="num">35.2</td><td class="num">0%</td></tr>
+    <tr><td class="num">4</td><td class="num">0.26</td><td class="num">11.7</td><td class="num">0%</td></tr>
+    <tr class="hl"><td class="num">6</td><td class="num">0.35</td><td class="num">1.5</td><td class="num">96%</td></tr>
+    <tr><td class="num">8</td><td class="num">0.35</td><td class="num">1.5</td><td class="num">96%</td></tr>
+    <tr><td class="num">12</td><td class="num">0.35</td><td class="num">1.5</td><td class="num">96%</td></tr>
+  </table>
+  <p class="small mt">Past the number of users, a closed loop never fills a larger cap. Synthetic: the course simulator.</p>
+  <aside class="notes"><p>Ask why caps 6, 8 and 12 give identical rows: a closed loop of 6 users never has more than 6 requests in the engine. A real open-arrival peak would. The participants' plot has throughput on x and p90 TTFT on a log scale on y: the point moves down and right, then stops.</p></aside>
+</section>
+
+<section class="slide" id="preemption-signature" data-lo="LO3">
+  <div class="kicker">Lab 2.1 · task 4</div>
+  <h2>Fault 2 admits everyone, fills the cache and throws work away</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">712</div><div class="lbl">cache blocks at 82% utilisation</div></div>
+    <div class="stat center"><div class="big">87%</div><div class="lbl">cache in use, mean</div></div>
+    <div class="stat center"><div class="big">10.7</div><div class="lbl">preemptions per 100 requests</div></div>
+  </div>
+  <p class="small mt">A preempted sequence loses its cache and is recomputed from the start when room returns.</p>
+  <aside class="notes"><p>Cap 48, and the engine given 82% of the card instead of 90%: less than half the blocks of the baseline. Answers grow, blocks run out, the newest sequence is evicted. vLLM's default since V1 is recompute rather than swap. Source: vLLM optimization page, preemption section.</p></aside>
+</section>
+
+<section class="slide" id="two-faults-opposite-fixes" data-lo="LO3 LO4">
+  <div class="kicker">Lab 2.1 · task 5</div>
+  <h2>Same symptom, opposite fixes: read the cache before you touch the cap</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Queueing</h4><p class="small mb0">Running at the cap, a queue, cache with room. <b>Raise the cap.</b></p></div>
+    <div class="card c-coral"><h4>Preemption</h4><p class="small mb0">Cache nearly full, preemptions rising. <b>Lower the cap or give the cache more memory.</b></p></div>
+  </div>
+  <div class="callout tip mt"><b>The rerun.</b> Cap 8 and 90% utilisation: 96% of requests meet the objective at 6 users.</div>
+  <aside class="notes"><p>Both faults show a long TTFT tail. A participant who raises the cap on Fault 2 makes it worse. Ask the room for the evidence line of each diagnosis: it is the three gauges, not the latency.</p></aside>
+</section>
+
+<section class="slide" id="admission-by-tokens" data-lo="LO3">
+  <div class="kicker">Admission</div>
+  <h2>The engine admits a request when its next chunk fits, not its whole answer</h2>
+  <ul class="bullets">
+    <li>Admission checks the blocks for the prompt, or the next chunk of it, plus a small reserve.</li>
+    <li>The answer's growth is not reserved: that is why the cache can run out mid-answer.</li>
+    <li>A cap sized from Lab 1.2's arithmetic keeps answers from outgrowing the cache.</li>
+  </ul>
+  <aside class="notes"><p>This is why the cap matters even with paged memory: the engine is optimistic at admission. The stretch of Lab 2.1 keeps the cap at 48 and limits each step to 512 tokens with 90% utilisation: at 6 users it meets the objective too (96%, no preemptions), because 6 conversations fit. Ask what happens at 20 users: nothing then stops admissions before the cache fills.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which fault is it?</h2>
+  <div class="quiz" data-type="single" data-lo="LO3">
+    <p class="lead">A deployment misses the objective at 10 visitors. Its gauges: 10 running, 6 waiting, cache 97% in use, preemptions climbing. Yamen wants to double the sequence cap. What do you tell him?</p>
+    <div class="opts">
+      <div class="opt" data-ok>Do not raise the cap: the cache is the limit; lower the cap or free memory for the cache</div>
+      <div class="opt" data-why="Reads only the queue: a queue with a full cache and preemptions is not the cap refusing work">Raise it: six requests are waiting</div>
+      <div class="opt" data-why="Treats the token budget as the cure for cache pressure: it limits work per step, not the blocks held by answers">Keep the cap and halve the token budget</div>
+      <div class="opt" data-why="Blames the load generator: the gauges come from the engine, not the client">Rerun with a different load generator first</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A full cache with rising preemptions means admitted answers outgrow the blocks; more admissions mean more evictions and recomputation.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. Those who pick B read the waiting gauge alone; send them back to the opposite-fixes slide.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-1" data-auto="lab" data-lab="2.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for engine options. Walk the room for two mistakes: diagnosing Fault 2 by the TTFT alone, and a fix that raises the cap with the utilisation still at 0.82. The rerun check fails loudly for both. The diagnoses file carries forward to the capstone report.</p></aside>
 </section>
 
 <!-- Session 2 -->
 
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO3">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="one-step-many-requests" data-lo="LO3">
+  <div class="kicker">Interference</div>
+  <h2>A long prompt processed whole stops every answer in the batch</h2>
+  <ul class="bullets">
+    <li>Prefill and decode share each step. A 5,000-token prefill makes one step last over a second.</li>
+    <li>Every running answer waits for that step before its next token: a <b>stall</b>.</li>
+    <li>Averaged over 150 tokens, a one-second stall barely moves TPOT. The visitor sees the whole second.</li>
+  </ul>
+  <aside class="notes"><p>This is why Musamir's objective has a third clock. DistServe and Sarathi-Serve both describe prefill-decode interference; Sarathi-Serve's answer is the chunked prefill of this session. Sources: arXiv 2401.09670; arXiv 2403.02310.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO3">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
+<section class="slide" id="chunked-prefill" data-lo="LO3 LO4">
+  <div class="kicker">Chunked prefill</div>
+  <h2>Decode first, then fill the step's token budget with pieces of prompts</h2>
   <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+    <div class="step"><b>Decodes</b><span>one token per running answer</span></div>
+    <div class="step"><b>Budget left?</b><span>max_num_batched_tokens</span></div>
+    <div class="step"><b>Prompt chunk</b><span>the next piece that fits</span></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Every step stays short, so no answer stalls. The price: a long prompt needs several steps to its first token.</p>
+  <aside class="notes"><p>vLLM's guidance: a smaller budget favours inter-token latency, a larger one favours time to first token and throughput. In vLLM V1 chunked prefill is on by default when the model supports it; Fault 3 switched it off. Source: vLLM optimization page.</p></aside>
+</section>
+
+<section class="slide" id="interference-measured" data-lo="LO3">
+  <div class="kicker">Lab 2.2 · task 2</div>
+  <h2>With chunking off, a quarter of requests meet the objective</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">27%</div><div class="lbl">attainment, 5 users, 35% documents</div></div>
+    <div class="stat center"><div class="big">2.2 s</div><div class="lbl">p90 of the chat answers' longest stall</div></div>
+    <div class="stat center"><div class="big">114 ms</div><div class="lbl">p90 chat TPOT: within its objective</div></div>
+  </div>
+  <p class="small mt">TPOT alone says nothing is wrong. The stall says every chat answer froze.</p>
+  <aside class="notes"><p>This is the slide that justifies the stall clock. Ask who would have caught the fault from TPOT alone. The document visitors' own TTFT p90 is 2.1 s: they are slow too, but they are not the ones complaining.</p></aside>
+</section>
+
+<section class="slide" id="budget-trade-off" data-lo="LO3 LO4">
+  <div class="kicker">Lab 2.2 · tasks 3 and 4</div>
+  <h2>A smaller budget protects chat and makes documents wait</h2>
+  <table class="t">
+    <tr><th>Token budget</th><th class="num">Attainment</th><th class="num">Chat stall p90 (s)</th><th class="num">Document TTFT p90 (s)</th></tr>
+    <tr><td>Off, 8,192</td><td class="num">27%</td><td class="num">2.21</td><td class="num">2.12</td></tr>
+    <tr><td>512</td><td class="num">93%</td><td class="num">0.18</td><td class="num">2.47</td></tr>
+    <tr class="hl"><td>1,024</td><td class="num">96%</td><td class="num">0.35</td><td class="num">2.20</td></tr>
+    <tr><td>2,048</td><td class="num">96%</td><td class="num">0.68</td><td class="num">2.09</td></tr>
+  </table>
+  <p class="small mt">Synthetic: the course simulator, one run per budget. The rerun at 1,024 meets the objective.</p>
+  <aside class="notes"><p>The two columns move in opposite directions: that is the trade-off. 1,024 and 2,048 both meet the objective; 1,024 keeps the stall with more margin under 1 s. A real engine would need three runs per budget before choosing between 96.0% and 96.3%.</p></aside>
+</section>
+
+<section class="slide" id="third-diagnosis" data-lo="LO3">
+  <div class="kicker">Lab 2.2 · task 5</div>
+  <h2>A diagnosis is a symptom, a metric, a change and a rerun</h2>
+  <div class="callout tip"><b>Fault 3.</b> Chat answers froze for 2.2 s at p90 while documents were prefilled whole (chunked prefill off). With chunked prefill and a budget of 1,024 tokens, the stall p90 is 0.35 s and 96% of requests meet the objective.</div>
+  <p class="small mt">The same four parts for Faults 1 and 2 make the three diagnoses of the outcome.</p>
+  <aside class="notes"><p>Read the sentence aloud and point to each of its four parts. Ask a participant to read theirs; correct the form, not the wording.</p></aside>
+</section>
+
+<section class="slide" id="chat-first" data-lo="LO3 LO4">
+  <div class="kicker">Stretch</div>
+  <h2>A priority for chat moves the wait, it does not remove it</h2>
+  <ul class="bullets">
+    <li>A chat-first policy lets waiting chat requests go ahead of waiting documents.</li>
+    <li>Chat TTFT falls; document TTFT rises. The sum of the work is the same.</li>
+    <li>vLLM exposes a priority policy (<code>--scheduling-policy priority</code>) with a priority per request.</li>
+  </ul>
+  <aside class="notes"><p>Use this if the room is ahead. The design question for the capstone: is a document visitor's 2.5 s first token acceptable? Hanadi's objective says 2.0 s for everyone; a separate objective per kind of request is a choice she must make, not the engineer. Source: vLLM engine arguments.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where did the freeze come from?</h2>
+  <div class="quiz" data-type="single" data-lo="LO3">
+    <p class="lead">Asrar reports that English chat answers freeze for about a second, several times an evening, while TPOT p90 stays at 110 ms. Chunked prefill is on with a budget of 8,192 tokens. What is the most likely cause?</p>
+    <div class="opts">
+      <div class="opt" data-why="TPOT is within the objective; the freezes are single long gaps, not a slow pace">Decoding is too slow for English</div>
+      <div class="opt" data-why="Preemption shows as restarts and a full cache; nothing here points to the cache">The cache is full and answers are preempted</div>
+      <div class="opt" data-why="The cap limits admissions, it does not lengthen one step">The sequence cap is too low</div>
+      <div class="opt" data-ok>The budget is so large that a whole long prompt still fits in one step</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Chunking only cuts prompts longer than the budget; at 8,192 tokens a 5,000-token document is still prefilled in one step and every answer waits for it.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. The trap is that chunking is "on". Ask what the budget would have to be for the stall to stay under a second: the Lab 2.2 table says 2,048 or less.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-2" data-auto="lab" data-lab="2.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for engine options. Most participants finish tasks 1 to 3 quickly; spend the time on task 4's two panels, which show the trade-off. The rerun check fails for budgets of 4,096 and above. Keep the diagnosis file: the capstone report opens with the three diagnoses.</p></aside>
 </section>
 
 <!-- Session 3 -->
 
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO4">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="prefix-hashing" data-lo="LO4">
+  <div class="kicker">Prefix caching</div>
+  <h2>A block is reused only if every token before it is identical</h2>
+  <ul class="bullets">
+    <li>Each full block of 16 tokens is hashed together with the hash of the block before it.</li>
+    <li>A new request looks up its blocks in order and stops at the first miss.</li>
+    <li>Reused blocks skip prefill: a shorter time to first token and less work per request.</li>
+  </ul>
+  <div class="callout tip mt"><b>So:</b> one changing token at the start of a prompt makes every block after it a miss.</div>
+  <aside class="notes"><p>vLLM's automatic prefix caching hashes the parent hash, the block's tokens and extra keys such as a cache salt. Ask the room what Musamir's prompt starts with (yesterday's homework): a header with the request number. Source: vLLM design page on prefix caching.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO4">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
+<section class="slide" id="musamir-prompt" data-lo="LO4">
+  <div class="kicker">The prompt as deployed</div>
+  <h2>Musamir's prompt starts with the one part that changes every time</h2>
   <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+    <div class="step"><b>header</b><span>request number, name, second</span></div>
+    <div class="step"><b>base</b><span>640 tokens, all tenants</span></div>
+    <div class="step"><b>tenant</b><span>organiser's rules</span></div>
+    <div class="step"><b>document</b><span>when asked</span></div>
+    <div class="step"><b>history</b><span>earlier turns</span></div>
+    <div class="step"><b>question</b><span>this turn</span></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Hit rate as deployed: 0%. The engine recomputes 2,092 prompt tokens per request on average.</p>
+  <aside class="notes"><p>The header is 24 tokens. It was put first by a developer who wanted the request number at the top of the logs. Ask the room to propose an order before the lab; most get it right, a few put the question before the history.</p></aside>
+</section>
+
+<section class="slide" id="stable-first" data-lo="LO4">
+  <div class="kicker">Lab 2.3 · tasks 2 and 3</div>
+  <h2>Stable parts first: the median first token falls from 432 ms to 90 ms</h2>
+  <table class="t">
+    <tr><th>Layout</th><th class="num">Hit rate</th><th class="num">Prompt tokens computed</th><th class="num">TTFT p50</th></tr>
+    <tr><td>As deployed</td><td class="num">0%</td><td class="num">2,092</td><td class="num">0.432 s</td></tr>
+    <tr class="hl"><td>base, tenant, document, history, header, question</td><td class="num">55%</td><td class="num">894</td><td class="num">0.090 s</td></tr>
+  </table>
+  <p class="small mt">Six users, the tuned engine of this morning. Synthetic: the course simulator.</p>
+  <aside class="notes"><p>The history is the largest gain: turn 3 reuses everything turn 2 computed. Point out that nothing was removed from the prompt; the model sees the same text in another order. Whether the answers are as good in the new order is a quality question to check on the evaluation set, which Day 3 introduces.</p></aside>
+</section>
+
+<section class="slide" id="cross-tenant" data-lo="LO4">
+  <div class="kicker">Lab 2.3 · task 4</div>
+  <h2>The shared base text lets one tenant reuse another tenant's blocks</h2>
+  <ul class="bullets">
+    <li>Unsalted, <b>6,000 blocks</b> were reused across tenants in one run.</li>
+    <li>A reused block answers faster, so timing can tell an attacker whether another tenant's prompt starts with a given text.</li>
+    <li>Rawya's rule: no cache block crosses tenants.</li>
+  </ul>
+  <aside class="notes"><p>The base text is public, so nothing secret leaks here. The rule exists because the tenant parts differ and the next prompt change could put something sensitive early. vLLM's documentation describes this timing attack and the cache_salt defence. Source: vLLM prefix caching design page.</p></aside>
+</section>
+
+<section class="slide" id="cache-salt" data-lo="LO4">
+  <div class="kicker">Lab 2.3 · task 5</div>
+  <h2>A salt per tenant costs almost no reuse and passes the isolation test</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">55.3%</div><div class="lbl">hit rate, salted by tenant</div></div>
+    <div class="stat center"><div class="big">0</div><div class="lbl">blocks reused across tenants</div></div>
+    <div class="stat center"><div class="big">pass</div><div class="lbl">isolation test, every request</div></div>
+  </div>
+  <pre><code class="language-json">{"prompt": "...", "cache_salt": "tenant-sawt"}</code></pre>
+  <aside class="notes"><p>The salt is mixed into the first block's hash, so tenants never produce the same hashes. Tenants mostly reuse their own blocks anyway, which is why the hit rate barely moves. The isolation test goes into the capstone repository and runs on every benchmark.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO4">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where does the name go?</h2>
+  <div class="quiz" data-type="single" data-lo="LO4">
+    <p class="lead">Product wants Musamir to greet each visitor by first name, so the name must be in the prompt. Prefix caching and a salt per tenant are on. Where should the name go?</p>
+    <div class="opts">
+      <div class="opt" data-why="The salt separates tenants, not visitors: a name at the start still defeats every block after it">At the start: the salt keeps it private</div>
+      <div class="opt" data-ok>After everything shared, next to the question</div>
+      <div class="opt" data-why="The tenant part is shared by every visitor of the tenant; a name there breaks reuse for all of them">Inside the tenant's rules, so each tenant handles it</div>
+      <div class="opt" data-why="Moving it out of the prompt does not meet the requirement: the model must see it to use it">Nowhere: names cannot be used with a prefix cache</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Anything that differs per request must come after the parts others can reuse; next to the question it costs one block at most.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. A good follow-up: does the name then sit in a block anyone else could reuse? No: the blocks after it are unique to that request.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-3" data-auto="lab" data-lab="2.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for how hashes work. The common mistake is putting the header last, after the question: it still works for reuse but it moves the question away from the end of the prompt, which some models answer worse. Ask them to justify their order, not only measure it.</p></aside>
 </section>
 
 <!-- Session 4 -->
 
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO4">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="semantic-cache-offer" data-lo="LO4">
+  <div class="kicker">The vendor's offer</div>
+  <h2>A semantic cache returns a stored answer when a question looks similar enough</h2>
+  <ul class="bullets">
+    <li>Each question is embedded; the nearest stored question above a <b>threshold</b> returns its stored answer.</li>
+    <li>A hit skips the model entirely: no prefill, no decode.</li>
+    <li>Unlike the prefix cache, a hit can be a <b>wrong answer</b>: the model never sees the new question.</li>
+  </ul>
+  <aside class="notes"><p>Contrast with Session 3: the prefix cache reuses computed state for identical tokens, and the model still writes every answer. A semantic cache reuses answers. That is a product decision, not an engine setting, and Hanadi owns it.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO4">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="similar-not-same" data-lo="LO4">
+  <div class="kicker">Lab 2.4 · task 1</div>
+  <h2>Questions that differ in one day look more alike than true paraphrases</h2>
+  <table class="t">
+    <tr><th>Kind of pair</th><th class="num">Mean similarity</th><th class="num">Highest</th></tr>
+    <tr><td>Paraphrase, same answer</td><td class="num">0.61</td><td class="num">0.83</td></tr>
+    <tr class="hl"><td>One slot changed (day, venue, ticket)</td><td class="num">0.63</td><td class="num">0.93</td></tr>
+    <tr><td>Other intent</td><td class="num">0.38</td><td class="num">0.56</td></tr>
+  </table>
+  <p class="small mt">240 Arabic and English pairs, character trigram cosine. Synthetic pairs.</p>
+  <aside class="notes"><p>"Can I move my VIP ticket to Saturday?" and "... to Thursday?" share every character but one word. A neural embedding narrows the gap but does not close it; that is the general finding of the semantic-cache literature. Trigrams are used here so no model is downloaded.</p></aside>
+</section>
+
+<section class="slide" id="threshold-table" data-lo="LO4">
+  <div class="kicker">Lab 2.4 · task 2</div>
+  <h2>At every threshold, most hits are wrong answers</h2>
+  <table class="t">
+    <tr><th class="num">Threshold</th><th class="num">Hit rate</th><th class="num">Wrong among hits</th><th class="num">Wrong per 1,000</th></tr>
+    <tr><td class="num">0.70</td><td class="num">22.9%</td><td class="num">58%</td><td class="num">133</td></tr>
+    <tr><td class="num">0.80</td><td class="num">9.6%</td><td class="num">74%</td><td class="num">71</td></tr>
+    <tr class="hl"><td class="num">0.90</td><td class="num">3.8%</td><td class="num">100%</td><td class="num">38</td></tr>
+  </table>
+  <p class="small mt">Raising the threshold removes the paraphrases first: what is left is the near-identical wrong pairs.</p>
+  <aside class="notes"><p>The counter-intuitive row is 0.90: every hit is wrong. The pairs were drawn as near neighbours, so these are the rates of questions that reach the similarity check, not of all traffic; the comparison is what counts.</p></aside>
+</section>
+
+<section class="slide" id="by-language" data-lo="LO4">
+  <div class="kicker">Lab 2.4 · task 3</div>
+  <h2>Neither language meets one wrong answer in a thousand</h2>
+  <table class="t">
+    <tr><th class="num">Threshold</th><th class="num">Arabic, wrong per 1,000</th><th class="num">English, wrong per 1,000</th></tr>
+    <tr><td class="num">0.70</td><td class="num">125</td><td class="num">142</td></tr>
+    <tr><td class="num">0.80</td><td class="num">67</td><td class="num">75</td></tr>
+    <tr><td class="num">0.90</td><td class="num">50</td><td class="num">25</td></tr>
+  </table>
+  <p class="small mt">At 0.90 Arabic is twice as wrong as English: one threshold does not fit both languages.</p>
+  <aside class="notes"><p>Asrar's point: a wrong answer in Arabic is no more acceptable than one in English. Report by language whenever a system serves both; an average hides the worse one.</p></aside>
+</section>
+
+<section class="slide" id="personal-data" data-lo="LO4">
+  <div class="kicker">Lab 2.4 · task 4</div>
+  <h2>Mask before the lookup, refuse to store what carries personal data</h2>
+  <ul class="bullets">
+    <li>Phones (<code>05</code> and 8 digits) and bookings (<code>LW-</code> and 6 digits) are masked before the similarity is computed.</li>
+    <li>An entry whose question carried any is never stored: 42 of 240 refused.</li>
+    <li>A cached answer is served to other visitors; one written for a booking must not be.</li>
+  </ul>
+  <aside class="notes"><p>Two rules, not one: masking keeps numbers out of the index and logs; refusing keeps answers written for one person away from another. Regexes catch formats, not names; a production system would add a named-entity check. Rawya signs off on this list.</p></aside>
+</section>
+
+<section class="slide" id="no-semantic-cache" data-lo="LO4">
+  <div class="kicker">Lab 2.4 · task 5</div>
+  <h2>The decision: no semantic cache on text alone</h2>
+  <div class="callout tip"><b>Decision.</b> No threshold keeps wrong answers under 1 in 1,000 in both languages. Keep the prefix cache, which never returns a wrong answer.</div>
+  <p class="small mt">Stretch: keyed on the event, day, venue and ticket as well as the text, the cache hits 9.6% at 0.70 with no wrong answer in the sample.</p>
+  <aside class="notes"><p>"No" is a valid engineering answer and the lab checks for it. The stretch shows the condition under which a semantic cache becomes defensible: an extraction step that keys on the slots. That step can itself be wrong, which would need its own evaluation; a good capstone point.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO4">
+  <div class="kicker">Checkpoint</div>
+  <h2>Will a higher threshold fix it?</h2>
+  <div class="quiz" data-type="single" data-lo="LO4">
+    <p class="lead">The vendor answers Hanadi: "If wrong answers worry you, raise the threshold to 0.95." What does Lab 2.4's data say about that?</p>
+    <div class="opts">
+      <div class="opt" data-why="A higher threshold does remove hits, but the wrong ones are the most similar pairs and go last">It works: wrong answers fall to zero long before the hits do</div>
+      <div class="opt" data-ok>At 0.90 the remaining hits were all wrong; a higher threshold leaves few hits, mostly wrong</div>
+      <div class="opt" data-why="The language gap is real but not the reason: both languages miss the limit at every threshold">It works for English only</div>
+      <div class="opt" data-why="Masking keeps personal data out; it does not change whether the stored answer fits the new question">It works once personal data are masked</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Pairs that differ in one slot share almost every character, so they are the last to fall below any threshold.</div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Answer: B. Ask what would change the answer: keying on the slots (the stretch), not the threshold.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-2-4" data-auto="lab" data-lab="2.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for similarity measures. The lab runs on a laptop in seconds. Watch for participants who choose 0.90 because "the wrong rate per 1,000 is lowest": point them to the hit column and the wrong-among-hits column together.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
-  <div class="kicker">Day 2 · wrap-up</div>
-  <h2>Three things to keep</h2>
-  <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+<section class="slide" id="day-2-recap" data-lo="LO3 LO4">
+  <div class="kicker">Day 2 · three things to keep</div>
+  <h2>Read the gauges, keep steps short, put what is stable first</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Gauges before settings</h4><p class="small mb0">Queueing and preemption look alike in latency and need opposite fixes.</p></div>
+    <div class="card c-cyan"><h4>Short steps</h4><p class="small mb0">Chunked prefill at 1,024 tokens: from 27% to 96% of requests meeting the objective.</p></div>
+    <div class="card c-coral"><h4>Stable first, salted</h4><p class="small mb0">TTFT p50 from 432 ms to 90 ms, no block across tenants, no semantic cache.</p></div>
   </div>
+  <aside class="notes"><p>Ask each table which of today's four changes they would ship first. The prompt layout is the cheapest and the largest; the semantic cache is the one to refuse.</p></aside>
 </section>
 
-<section class="slide dark" id="next" data-label="Next">
+<section class="slide dark" id="tomorrow-precision-and-models" data-lo="LO5">
   <div class="kicker">Next</div>
-  <h2>Day 3: Cheaper tokens, same quality</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <h2>Tomorrow: fewer bits, a draft model and a smaller model, each against a quality floor</h2>
+  <ul class="bullets">
+    <li>Keep the three diagnoses and the isolation test: the capstone report starts from them.</li>
+    <li>Read the abstract of AWQ or LLM.int8() (in the sources).</li>
+    <li>Think of one question you would not trust a smaller model to answer in Arabic.</li>
+  </ul>
+  <aside class="notes"><p>Day 3 trades quality for capacity and measures it with intervals. The last bullet prepares the routing lab: questions about refunds and access are the ones a smaller model gets wrong.</p></aside>
 </section>

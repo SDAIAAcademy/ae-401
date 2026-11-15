@@ -8,9 +8,9 @@
 # Day 1 · Session 3 (Goodput against an objective) · 25 min.
 #
 # You load Musamir as deployed through a streaming HTTP endpoint, measure each request from the client's side
-# and compute **goodput**: the requests per second that met both objectives (time to first token at most
-# 2.0 s, time per output token at most 100 ms). The endpoint is the course's stand-in engine
-# (`standin_server.py`): it streams tokens at the pace of the simulator, faster by a time scale that you
+# and compute **goodput**: the requests per second that met the objective (time to first token at most 2.0 s,
+# time per output token at most 150 ms, no pause between tokens over 1.0 s). The endpoint is the course's
+# stand-in engine (`standin_server.py`): it streams tokens at the pace of the simulator, faster by a time scale that you
 # divide out. With a notebook GPU and a real engine, set `SERVE_ENGINE_URL` and the same code loads it.
 #
 # **AI tutor allowed**: it may explain the stream format and the metrics; it does not choose settings.
@@ -83,16 +83,18 @@ print(len(times), "token events")
 # ## 2 · Measure TTFT, TPOT and end-to-end time from the stream (6 min)
 #
 # **TTFT** is from sending to the first token. **TPOT** is the time per output token after the first one:
-# `(last token - first token) / (tokens - 1)`. Divide every duration by `SCALE` to get engine time.
+# `(last token - first token) / (tokens - 1)`. The **stall** is the longest gap between two tokens. Divide every
+# duration by `SCALE` to get engine time.
 #
-# ✏️ **Exercise** · `from_stream(t0, times, t_end, scale)` returns `{"ttft_s", "tpot_s", "e2e_s"}`.
+# ✏️ **Exercise** · `from_stream(t0, times, t_end, scale)` returns `{"ttft_s", "tpot_s", "stall_s", "e2e_s"}`.
 
 # %%
 def from_stream(t0, times, t_end, scale=SCALE):
     # BEGIN SOLUTION
     ttft = (times[0] - t0) / scale
     tpot = (times[-1] - times[0]) / max(1, len(times) - 1) / scale
-    return {"ttft_s": ttft, "tpot_s": tpot, "e2e_s": (t_end - t0) / scale}
+    stall = max((b - a for a, b in zip(times, times[1:])), default=0.0) / scale
+    return {"ttft_s": ttft, "tpot_s": tpot, "stall_s": stall, "e2e_s": (t_end - t0) / scale}
     # END SOLUTION
 
 # %%
@@ -100,7 +102,7 @@ try:
     one = from_stream(t0, times, t_end)
 except NotImplementedError:
     one = {"ttft_s": (times[0] - t0) / SCALE, "tpot_s": (times[-1] - times[0]) / (len(times) - 1) / SCALE,
-           "e2e_s": (t_end - t0) / SCALE}
+           "stall_s": max(b - a for a, b in zip(times, times[1:])) / SCALE, "e2e_s": (t_end - t0) / SCALE}
 print({k: round(v, 3) for k, v in one.items()})
 if not ENGINE_URL:
     S.check(0.3 < one["ttft_s"] < 0.9 and 0.06 < one["tpot_s"] < 0.09, "one request alone: TTFT and TPOT as Lab 1.1 predicted")
@@ -120,26 +122,27 @@ for users in LEVELS:
     t_start = time.perf_counter()
     rows = LG.run_users(URL, users, n, jobs=jobs)
     for r in rows:
-        r.update({"users": users, "ttft_s": r["ttft_s"] / SCALE, "tpot_s": r["tpot_s"] / SCALE,
+        r.update({"users": users, "ttft_s": r["ttft_s"] / SCALE, "tpot_s": r["tpot_s"] / SCALE, "stall_s": r["stall_s"] / SCALE,
                   "e2e_s": r["e2e_s"] / SCALE, "start": (r["start"] - t_start) / SCALE, "end": (r["end"] - t_start) / SCALE})
     raw_rows += rows
     print(f"{users:2d} users: {len(rows)} requests in {time.perf_counter() - t_start:.1f} s of wall time")
 raw = pd.DataFrame(raw_rows)
 S.save_rows(raw_rows, "D1_3", "baseline_three_levels")
-print(raw.groupby("users")[["ttft_s", "tpot_s", "e2e_s"]].quantile(0.9).round(3))
+print(raw.groupby("users")[["ttft_s", "tpot_s", "stall_s", "e2e_s"]].quantile(0.9).round(3))
 
 # %% [markdown]
 # ## 4 · Goodput against the objectives (5 min)
 #
-# A request **meets** the objective when its TTFT is at most 2.0 s **and** its TPOT at most 100 ms. Goodput is
-# the number that met it divided by the time the level ran (first start to last end). Attainment is the share.
+# A request **meets** the objective when its TTFT is at most 2.0 s, its TPOT at most 150 ms **and** its longest
+# stall at most 1.0 s. Goodput is the number that met it divided by the time the level ran (first start to last
+# end). Attainment is the share.
 #
 # ✏️ **Exercise** · `goodput(df)` returns `(throughput_rps, goodput_rps, attainment)` for one level.
 
 # %%
 def goodput(df):
     # BEGIN SOLUTION
-    met = (df.ttft_s <= OBJ["ttft_s"]) & (df.tpot_s <= OBJ["tpot_s"])
+    met = (df.ttft_s <= OBJ["ttft_s"]) & (df.tpot_s <= OBJ["tpot_s"]) & (df.stall_s <= OBJ["stall_s"])
     dur = df.end.max() - df.start.min()
     return len(df) / dur, met.sum() / dur, met.mean()
     # END SOLUTION
@@ -150,7 +153,7 @@ for users, df in raw.groupby("users"):
     try:
         thr, gp, att = goodput(df)
     except NotImplementedError:
-        met = (df.ttft_s <= OBJ["ttft_s"]) & (df.tpot_s <= OBJ["tpot_s"])
+        met = (df.ttft_s <= OBJ["ttft_s"]) & (df.tpot_s <= OBJ["tpot_s"]) & (df.stall_s <= OBJ["stall_s"])
         dur = df.end.max() - df.start.min()
         thr, gp, att = len(df) / dur, met.sum() / dur, met.mean()
     summary.append({"users": users, "throughput_rps": round(thr, 3), "goodput_rps": round(gp, 3), "attainment": round(att, 2)})
@@ -203,7 +206,7 @@ S.check(parts.queue_s.iloc[-1] > parts.queue_s.iloc[0], "queueing grows with the
 # 1. Why measure TPOT after the first token rather than over the whole request?
 #    <details><summary>Answer</summary>The first token includes the queue and the prefill; TPOT isolates the decoding pace the visitor reads at.</details>
 # 2. Throughput rose from 8 to 24 users while goodput fell. How?
-#    <details><summary>Answer</summary>More requests finished per second, but more of them waited past the TTFT objective or decoded slower than 100 ms a token.</details>
+#    <details><summary>Answer</summary>More requests finished per second, but more of them waited past the TTFT objective, decoded slower than 150 ms a token or froze while another prompt was processed.</details>
 # 3. Why is an average latency not the objective?
 #    <details><summary>Answer</summary>The objective is per request: a mean can sit under 2 s while a third of visitors wait longer.</details>
 #

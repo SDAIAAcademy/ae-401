@@ -93,6 +93,38 @@ def d1_4():
     put("d1_4", {"own_rows": rows, "synthetic": True})
 
 
+@maker
+def d2_1():
+    q_cfg = S.Config.load("fault_queueing")
+    rows = []
+    for cap in (2, 4, 6, 8, 12):
+        s = S.run_closed(q_cfg.but(max_num_seqs=cap), 6, n_requests=140, seed=1).summary()
+        rows.append({"cap": cap, **{k: s[k] for k in ("throughput_rps", "goodput_rps", "attainment", "ttft_p90", "tpot_p90", "preemptions")}})
+    put("d2_1", {"caps": rows, "synthetic": True})
+
+
+@maker
+def d2_2():
+    import pandas as pd
+    cfg = S.Config.load("fault_interference")
+    pool = S.mixed_pool(share_docs=0.35, n=400, seed=1)
+    rows = []
+    for b in ("off", 512, 1024, 2048):
+        c = cfg if b == "off" else cfg.but(enable_chunked_prefill=True, max_num_batched_tokens=b)
+        run = S.run_closed(c, 5, pool=pool, n_requests=180, seed=1)
+        t = pd.DataFrame(run.table())
+        t["stall_s"] = [r.max_gap for r in run.rows]
+        ch, d = t[t.kind == "chat"], t[t.kind == "doc"]
+        rows.append({"budget": b, "attainment": run.summary()["attainment"], "chat_tpot_p90": round(ch.tpot_s.quantile(.9), 3),
+                     "chat_stall_p90": round(ch.stall_s.quantile(.9), 3), "doc_ttft_p90": round(d.ttft_s.quantile(.9), 3)})
+    put("d2_2", {"rows": rows, "synthetic": True})
+
+
+@maker
+def d2_3():
+    put("d2_3", {"order": ["base", "tenant", "document", "history", "header", "question"]})
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(MAKERS)
     for n in names:
