@@ -36,20 +36,20 @@
       "type": "single",
       "prompt": "A visitor pastes a 6,000-token event terms document. Which resource mostly sets the time to its first token on Musamir's L4?",
       "options": [
-        "Memory bandwidth, because the weights are read for every token",
-        "The size of the cache",
         "The accelerator's arithmetic rate",
-        "The network between the visitor and the node"
+        "The network between the visitor and the node",
+        "Memory bandwidth, because the weights are read for every token",
+        "The size of the cache"
       ],
       "correct": [
-        2
+        0
       ],
       "explanation": "A prefill processes all 6,000 tokens in one pass that shares one read of the weights, so it is bound by arithmetic.",
       "misconceptions": [
-        "Assumes the prompt is read token by token as in decode",
-        "Confuses whether it fits with how fast it runs",
         "",
-        "Blames transport for compute time: the tokens are small"
+        "Blames transport for compute time: the tokens are small",
+        "Assumes the prompt is read token by token as in decode",
+        "Confuses whether it fits with how fast it runs"
       ],
       "lo": [
         "LO1"
@@ -65,20 +65,20 @@
       "type": "single",
       "prompt": "A model has 40 layers, 40 query heads and 8 key-value heads of size 128, with a 16-bit cache. How many bytes of cache does one token take?",
       "options": [
-        "163,840 bytes",
         "819,200 bytes",
         "81,920 bytes",
-        "40,960 bytes"
+        "40,960 bytes",
+        "163,840 bytes"
       ],
       "correct": [
-        0
+        3
       ],
       "explanation": "2 × 40 layers × 8 KV heads × 128 × 2 bytes = 163,840 bytes; only the key-value heads are stored.",
       "misconceptions": [
-        "",
         "Sizes with the 40 query heads as if every head were stored",
         "Stores only keys, or only values",
-        "Counts one byte per value and keys only"
+        "Counts one byte per value and keys only",
+        ""
       ],
       "lo": [
         "LO1"
@@ -94,20 +94,20 @@
       "type": "single",
       "prompt": "Your prediction says 18 conversations of 2,000 tokens fit; the engine holds 12 and preempts. The model and length are right. What did the prediction most likely leave out?",
       "options": [
+        "The speed of the accelerator",
         "The query heads",
         "The engine's reserve for activations and the memory-utilisation limit",
-        "The tokenizer's vocabulary",
-        "The speed of the accelerator"
+        "The tokenizer's vocabulary"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "The cache gets only what is left after the utilisation limit, the weights and the reserve; leaving those out overstates the cache.",
       "misconceptions": [
+        "Speed does not change how many conversations fit",
         "Would make the prediction four times too low, not too high",
         "",
-        "The vocabulary affects weights, already counted",
-        "Speed does not change how many conversations fit"
+        "The vocabulary affects weights, already counted"
       ],
       "lo": [
         "LO1"
@@ -123,20 +123,20 @@
       "type": "single",
       "prompt": "Musamir in 16 bits holds about 12 conversations of 2,000 tokens, and decoding reaches the ridge point only at about 246 sequences. What binds the baseline's concurrency?",
       "options": [
-        "Arithmetic: the card is too slow",
         "The sequence cap of the engine",
         "Cache memory: the batch never grows enough to use the arithmetic",
-        "The network bandwidth"
+        "The network bandwidth",
+        "Arithmetic: the card is too slow"
       ],
       "correct": [
-        2
+        1
       ],
       "explanation": "The cache fills at about 12 sequences, far below the 246 at which decode would use the arithmetic: memory capacity binds.",
       "misconceptions": [
-        "Reads a memory-bound step as a slow processor",
         "Blames a setting that could be raised without more room",
         "",
-        "Moves the problem outside the node"
+        "Moves the problem outside the node",
+        "Reads a memory-bound step as a slow processor"
       ],
       "lo": [
         "LO1"
@@ -152,20 +152,20 @@
       "type": "single",
       "prompt": "In 100 seconds an engine finishes 60 requests; 45 met the whole objective (TTFT, TPOT and stall), 10 missed only the TPOT limit, 5 missed only the TTFT limit. What is the goodput?",
       "options": [
+        "0.45 requests per second",
         "0.60 requests per second",
         "0.55 requests per second",
-        "0.50 requests per second",
-        "0.45 requests per second"
+        "0.50 requests per second"
       ],
       "correct": [
-        3
+        0
       ],
       "explanation": "Only requests meeting the whole objective count: 45 in 100 s is 0.45 per second.",
       "misconceptions": [
+        "",
         "Counts throughput, every finished request",
         "Counts the requests that met TTFT",
-        "Counts the requests that met TPOT",
-        ""
+        "Counts the requests that met TPOT"
       ],
       "lo": [
         "LO2"
@@ -181,20 +181,20 @@
       "type": "single",
       "prompt": "Two configurations have the same mean TTFT of 1.4 s. A has a p90 of 1.9 s, B a p90 of 4.2 s. Against Musamir's objective, which serves visitors better?",
       "options": [
+        "Neither can be judged without throughput",
         "They are equal: the means are the same",
         "B, because its spread shows it handles bursts",
-        "A: more of its requests meet the 2.0 s objective",
-        "Neither can be judged without throughput"
+        "A: more of its requests meet the 2.0 s objective"
       ],
       "correct": [
-        2
+        3
       ],
       "explanation": "The objective is per request; A's 90th percentile is under 2.0 s, B's is not.",
       "misconceptions": [
+        "Throughput does not tell who was served well",
         "Treats the mean as the objective",
         "Reads a long tail as a strength",
-        "",
-        "Throughput does not tell who was served well"
+        ""
       ],
       "lo": [
         "LO2"
@@ -210,20 +210,20 @@
       "type": "single",
       "prompt": "A curve shows throughput rising from 0.25 to 0.44 requests per second between 4 and 16 users, while goodput falls from 0.23 to 0.00. Where should the engine be run?",
       "options": [
+        "Anywhere: the objective is met on average",
         "At 16 users, where throughput is highest",
         "Near 4 users, with admission control holding it there",
-        "At 1 user, where every request meets the objective",
-        "Anywhere: the objective is met on average"
+        "At 1 user, where every request meets the objective"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "The knee of goodput is the operating point; beyond it extra load is served late.",
       "misconceptions": [
+        "Averages away a per-request objective",
         "Optimises the busy measure, not the served one",
         "",
-        "Wastes the batching that is free until the knee",
-        "Averages away a per-request objective"
+        "Wastes the batching that is free until the knee"
       ],
       "lo": [
         "LO2"
@@ -297,20 +297,20 @@
       "type": "single",
       "prompt": "At 8 visitors an engine shows 4 sequences running (its cap is 4), 4 waiting, and 22% of the cache in use. The TTFT p90 is 9 s. What is the diagnosis?",
       "options": [
-        "Queueing at the sequence cap: raise the cap",
         "Preemption under cache pressure: lower the cap",
         "Prefill interference: switch on chunked prefill",
-        "The card is too slow: add a second card"
+        "The card is too slow: add a second card",
+        "Queueing at the sequence cap: raise the cap"
       ],
       "correct": [
-        0
+        3
       ],
       "explanation": "The engine runs at its cap with a queue while most of the cache is free: the cap refuses work the card has room for.",
       "misconceptions": [
-        "",
         "Preemption needs a nearly full cache; here it is four-fifths empty",
         "Interference shows as stalls in running answers, not as a queue",
-        "Buys hardware for a limit set by one setting"
+        "Buys hardware for a limit set by one setting",
+        ""
       ],
       "lo": [
         "LO3"
@@ -326,20 +326,20 @@
       "type": "single",
       "prompt": "A deployment with a cap of 48 shows the cache 96% in use and the preemption counter rising by about 10 per 100 requests. Which change should come first?",
       "options": [
+        "Switch off prefix caching",
         "Raise the cap to 64 so waiting requests are admitted",
         "Lower the cap or give the cache more memory",
-        "Raise the token budget per step",
-        "Switch off prefix caching"
+        "Raise the token budget per step"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "Answers outgrow the blocks the engine admitted them with; fewer sequences or more blocks stop the evictions and the recomputation.",
       "misconceptions": [
+        "Shared blocks save memory; removing them adds pressure",
         "More admissions mean more evictions when the cache is the limit",
         "",
-        "The budget limits work per step, not the blocks answers hold",
-        "Shared blocks save memory; removing them adds pressure"
+        "The budget limits work per step, not the blocks answers hold"
       ],
       "lo": [
         "LO3"
@@ -384,20 +384,20 @@
       "type": "single",
       "prompt": "With chunked prefill, budgets of 512, 1,024 and 2,048 tokens give chat stall p90 of 0.18, 0.35 and 0.68 s and document TTFT p90 of 2.47, 2.20 and 2.09 s. Under Musamir's objective, which budget do you choose?",
       "options": [
-        "512, because chat stalls are smallest",
         "1,024: both clocks meet the objective with margin on the stall",
         "2,048, because documents start fastest",
-        "8,192, to finish documents in one step"
+        "8,192, to finish documents in one step",
+        "512, because chat stalls are smallest"
       ],
       "correct": [
-        1
+        0
       ],
       "explanation": "512 pushes document TTFT over 2.0 s; 2,048 meets both but with less margin under the 1 s stall; 1,024 balances the two.",
       "misconceptions": [
-        "Optimises one clock and breaks the other",
         "",
         "Defensible on these numbers but trades away the stall margin for 0.1 s",
-        "Brings back the stalls chunking was switched on to remove"
+        "Brings back the stalls chunking was switched on to remove",
+        "Optimises one clock and breaks the other"
       ],
       "lo": [
         "LO3"
@@ -413,20 +413,20 @@
       "type": "single",
       "prompt": "In a closed-loop test with 6 users, caps of 6, 8 and 12 give identical results. What explains it?",
       "options": [
-        "The simulator ignores the cap above 6",
-        "Six users never put more than six requests in the engine at once",
         "The cache limits the engine to six sequences",
-        "The token budget caps the batch at six"
+        "The token budget caps the batch at six",
+        "The simulator ignores the cap above 6",
+        "Six users never put more than six requests in the engine at once"
       ],
       "correct": [
-        1
+        3
       ],
       "explanation": "Each closed-loop user waits for an answer before sending again, so the engine never holds more requests than users.",
       "misconceptions": [
-        "The cap works; there is simply nothing more to admit",
-        "",
         "The cache holds far more than six sequences at this load",
-        "The budget limits tokens per step, not sequences"
+        "The budget limits tokens per step, not sequences",
+        "The cap works; there is simply nothing more to admit",
+        ""
       ],
       "lo": [
         "LO3"
@@ -442,20 +442,20 @@
       "type": "single",
       "prompt": "A prompt is built as: request id, system instructions, tenant rules, conversation history, question. Prefix caching hits almost nothing. What change fixes it?",
       "options": [
+        "Switch to a block size of 32 tokens",
         "Raise the cache's memory",
         "Move the request id after the history, next to the question",
-        "Shorten the system instructions",
-        "Switch to a block size of 32 tokens"
+        "Shorten the system instructions"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "A block is reused only if every token before it is identical; a changing first token makes every block a miss.",
       "misconceptions": [
+        "Larger blocks make reuse harder, not easier",
         "The blocks miss because their hashes differ, not because they were evicted",
         "",
-        "A shorter shared part is still never reused behind a changing id",
-        "Larger blocks make reuse harder, not easier"
+        "A shorter shared part is still never reused behind a changing id"
       ],
       "lo": [
         "LO4"
@@ -500,20 +500,20 @@
       "type": "single",
       "prompt": "The base instructions are public text. Rawya still forbids reusing cache blocks across tenants. Which reason holds?",
       "options": [
-        "Reused blocks give wrong answers to the other tenant",
         "Reuse is visible in timing, and the rule must not depend on judging which text is sensitive",
         "Cross-tenant reuse slows the engine down",
-        "Prefix caching is not allowed with Arabic text"
+        "Prefix caching is not allowed with Arabic text",
+        "Reused blocks give wrong answers to the other tenant"
       ],
       "correct": [
-        1
+        0
       ],
       "explanation": "A faster first token reveals that another tenant's prompt started the same way; a salt per tenant closes that channel at little cost.",
       "misconceptions": [
-        "Prefix reuse never changes an answer; the model still writes it",
         "",
         "Reuse makes requests faster, not slower",
-        "Reuse works on tokens in any language"
+        "Reuse works on tokens in any language",
+        "Prefix reuse never changes an answer; the model still writes it"
       ],
       "lo": [
         "LO4"
@@ -529,20 +529,20 @@
       "type": "single",
       "prompt": "A semantic cache at threshold 0.90 hits 3.8% of questions, and every hit in the sample was a wrong answer. Hanadi's limit is one wrong answer in 1,000. What do you recommend?",
       "options": [
-        "Raise the threshold to 0.95",
-        "No semantic cache on text alone; keep the prefix cache",
         "Lower the threshold to get more right hits",
-        "Use it for Arabic only"
+        "Use it for Arabic only",
+        "Raise the threshold to 0.95",
+        "No semantic cache on text alone; keep the prefix cache"
       ],
       "correct": [
-        1
+        3
       ],
       "explanation": "The wrong pairs differ in one slot and are the most similar; no threshold removes them before the useful hits.",
       "misconceptions": [
-        "Leaves the near-identical wrong pairs, the last to fall",
-        "",
         "Adds hits, and wrong answers with them",
-        "Arabic was the worse language at 0.90"
+        "Arabic was the worse language at 0.90",
+        "Leaves the near-identical wrong pairs, the last to fall",
+        ""
       ],
       "lo": [
         "LO4"
@@ -558,20 +558,20 @@
       "type": "single",
       "prompt": "A question reads: \"Can I move booking LW-482913 to Friday? Call me on 0551234567.\" What should a semantic cache do with it?",
       "options": [
+        "Skip masking, since the lookup is internal",
         "Store it with the numbers masked",
         "Mask it for the lookup and never store its answer",
-        "Store it as written, since it is the visitor's own data",
-        "Skip masking, since the lookup is internal"
+        "Store it as written, since it is the visitor's own data"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "Masking keeps numbers out of the index and logs; an answer written for one booking must never be served to another visitor.",
       "misconceptions": [
+        "The index and logs are where personal data leak",
         "The answer itself was written for that booking and would be served to others",
         "",
-        "A cached answer is served to other visitors",
-        "The index and logs are where personal data leak"
+        "A cached answer is served to other visitors"
       ],
       "lo": [
         "LO4"
@@ -616,20 +616,20 @@
       "type": "single",
       "prompt": "A 4-bit variant scores 0.833 in English (floor 0.81) and 0.693 in Arabic (floor 0.73), and has the best goodput. What is the decision?",
       "options": [
-        "Ship it: its average over both languages is 0.76",
         "Reject it: it fails the Arabic floor; serve a variant that passes both",
         "Ship it to English visitors only and keep 16 bits for Arabic, at no extra cost",
-        "Ship it: goodput matters more at the peak"
+        "Ship it: goodput matters more at the peak",
+        "Ship it: its average over both languages is 0.76"
       ],
       "correct": [
-        1
+        0
       ],
       "explanation": "The floors are per language; a variant that misses one does not pass, however fast it is.",
       "misconceptions": [
-        "An average hides the language that fails",
         "",
         "Two models mean two pools of cards: a cost, not free",
-        "Capacity does not buy back quality under the floor"
+        "Capacity does not buy back quality under the floor",
+        "An average hides the language that fails"
       ],
       "lo": [
         "LO5"
@@ -645,20 +645,20 @@
       "type": "single",
       "prompt": "Two cache formats were scored on the same 103 long Arabic items. Their separate 95% intervals overlap. What should you compute before concluding there is no loss?",
       "options": [
-        "The mean of the two scores",
-        "A paired difference over the same items, with its interval",
         "Separate intervals at 99% instead",
-        "The English score on the same items"
+        "The English score on the same items",
+        "The mean of the two scores",
+        "A paired difference over the same items, with its interval"
       ],
       "correct": [
-        1
+        3
       ],
       "explanation": "Pairing removes the variation the two variants share; its interval can lie below zero when separate intervals overlap.",
       "misconceptions": [
-        "A mean of two scores says nothing about their difference",
-        "",
         "Wider separate intervals overlap more, not less",
-        "Another language does not test this one"
+        "Another language does not test this one",
+        "A mean of two scores says nothing about their difference",
+        ""
       ],
       "lo": [
         "LO5"
@@ -674,20 +674,20 @@
       "type": "single",
       "prompt": "A draft model is accepted with probability 0.5 per token and proposes 3 tokens. About how many tokens does the base model emit per verification step?",
       "options": [
+        "4",
         "1.5",
         "1.875",
-        "3",
-        "4"
+        "3"
       ],
       "correct": [
-        1
+        2
       ],
       "explanation": "(1 - 0.5^4) / (1 - 0.5) = 0.9375 / 0.5 = 1.875 tokens per step, before counting the draft's own time.",
       "misconceptions": [
+        "Adds the base model's token to a draft that is always accepted",
         "Counts only the accepted share of drafted tokens, without the base model's own token",
         "",
-        "Assumes every drafted token is accepted",
-        "Adds the base model's token to a draft that is always accepted"
+        "Assumes every drafted token is accepted"
       ],
       "lo": [
         "LO5"
@@ -724,6 +724,151 @@
       "day": "day3",
       "session": 4,
       "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo6-disagg",
+      "type": "single",
+      "prompt": "With chunked prefill, two cards together keep the longest pause at 0.18 s and serve 96.5% of requests; split into a prefill and a decode card, 0.13 s and 93.9%. The objective allows a 1.0 s pause. What do you deploy?",
+      "options": [
+        "Both phases on both cards: the shorter pause buys nothing under this objective",
+        "The split, with a second prefill card bought for it",
+        "One card only, since both layouts pass",
+        "The split: its pauses are shorter"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "Disaggregation pays when a decode limit is tighter than a chunked step; here the objective allows 1.0 s and together serves more.",
+      "misconceptions": [
+        "",
+        "Adds cost to fix a problem the objective does not have",
+        "Two cards were needed for the load; passing on two says nothing about one",
+        "Optimises a clock that already meets its limit"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 1,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo6-transfer",
+      "type": "single",
+      "prompt": "A prompt of 5,000 tokens has a cache of 73,728 bytes per token. The link between prefill and decode moves 20 GB/s. About how long does the transfer take?",
+      "options": [
+        "About 180 ms",
+        "About 1.8 s",
+        "About 2 ms",
+        "About 18 ms"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "5,000 × 73,728 = 369 MB; at 20 GB/s that is about 18 ms.",
+      "misconceptions": [
+        "Uses 2 GB/s, a factor of ten too slow",
+        "Mixes megabytes and gigabytes",
+        "Drops a factor of ten in the bytes",
+        ""
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 1,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo6-router",
+      "type": "single",
+      "prompt": "A router hashes the tenant to pick one of three replicas. One replica shows 30 requests waiting and a full cache; the other two are almost idle. What is wrong?",
+      "options": [
+        "The sequence cap is too high on the busy replica",
+        "The replicas are too small",
+        "Placement: the largest tenant always lands on one replica",
+        "The cache salt prevents sharing between replicas"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "Two idle replicas and one drowning one is a hot spot: route by conversation with a load limit instead.",
+      "misconceptions": [
+        "The cap does not create the imbalance",
+        "Total capacity is ample; it is unevenly used",
+        "",
+        "Replicas never share cache blocks, salted or not"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 2,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo6-scaling",
+      "type": "single",
+      "prompt": "A replica needs 8 minutes to start and the evening demand rises steeply. Which scaling signal keeps the worst hour above the objective at the lowest cost?",
+      "options": [
+        "Requests waiting in the queue",
+        "The request rate, with headroom, and at least one replica",
+        "A fixed number of replicas for the peak, all day",
+        "The request rate with a minimum of zero replicas"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The rate rises before the queue does, and the headroom covers the minutes a new replica needs to start.",
+      "misconceptions": [
+        "Reacts only once visitors wait, then overshoots during the cold start",
+        "",
+        "Meets the objective at more than twice the cost",
+        "Leaves the first morning visitors waiting a whole cold start for almost no saving"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 3,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo6-cost",
+      "type": "single",
+      "prompt": "Over a day the node costs 107 SAR and 40,000 requests met the objective; a hosted API would charge 0.00105 SAR per request. What is the node's cost per successful request, and which is cheaper?",
+      "options": [
+        "0.00268 SAR; the hosted API",
+        "0.00268 SAR; the node",
+        "0.000268 SAR; the node",
+        "0.0268 SAR; the hosted API"
+      ],
+      "correct": [
+        0
+      ],
+      "explanation": "107 / 40,000 = 0.00268 SAR per successful request, about 2.5 times the hosted price.",
+      "misconceptions": [
+        "",
+        "Computes correctly and compares the wrong way",
+        "Divides by ten times the requests",
+        "Divides by a tenth of the requests"
+      ],
+      "lo": [
+        "LO6"
+      ],
+      "day": "day4",
+      "session": 4,
+      "level": "apply",
       "pool": "practice",
       "weight": 1
     }

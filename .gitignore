@@ -34,3 +34,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 /*.log
+
+# Results a participant writes with the capstone starter belong in their own repository
+labs/capstone/results/

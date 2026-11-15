@@ -1,5 +1,33 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>The last teaching day leaves the single card. Four questions, one per session: split the phases or not, which replica gets a request, how many replicas when, and whether Liwan should run any of this itself. The last answer surprises most rooms; do not give it away in the opening.</p></aside>
+</section>
+
+<section class="slide" id="where-day-3-left-us" data-lo="LO5">
+  <div class="kicker">Where Day 3 left us</div>
+  <h2>One card in 8 bits meets the objective in the first minutes of the peak</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">100%</div><div class="lbl">attainment, 8-bit weights and cache, first five minutes of the peak</div></div>
+    <div class="stat center"><div class="big">2.5</div><div class="lbl">good requests per second one replica sustains</div></div>
+    <div class="stat center"><div class="big">0.737</div><div class="lbl">Arabic score with routing at 0.4, floor 0.73</div></div>
+  </div>
+  <p class="small mt">Today: a whole day, a festival's closing night, several cards, and the bill.</p>
+  <aside class="notes"><p>Five minutes of a usual peak is not a closing night, and one card has no spare for a failure. The capacity of 2.5 good requests per second comes from the 48-user run of Day 3's engine; Lab 4.3 measures it again.</p></aside>
+</section>
+
+<section class="slide" id="review-checkpoint" data-lo="LO5">
+  <div class="kicker">Review</div>
+  <h2>Yesterday's trade, read again</h2>
+  <div class="quiz" data-type="single" data-lo="LO5">
+    <p class="lead">A new 3-bit format frees 1.2 GB more than 4-bit and scores 0.845 in English. Nobody has scored it in Arabic yet. What do you tell Yamen?</p>
+    <div class="opts">
+      <div class="opt" data-why="English held under 4-bit while Arabic fell seven points; English says nothing about Arabic">Ship it: English is above its floor, so Arabic will be too</div>
+      <div class="opt" data-why="The memory gain is small and the quality is unknown: more cache cannot justify an unmeasured floor">Ship it: the extra cache is worth any small loss</div>
+      <div class="opt" data-why="The floor rule needs a score per language, not a rejection of the whole format family">Never use formats under 8 bits</div>
+      <div class="opt" data-ok>Score it in Arabic against the floor before any decision</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The floors are per language, and Day 3 showed a format can hold English and fail Arabic.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. Two minutes. If anyone picks A, return to the 4-bit row of the serving table.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
@@ -8,151 +36,318 @@
 
 <section class="slide section" id="s1" data-auto="section" data-session="1"></section>
 
-<section class="slide" id="s1-idea" data-lo="LO6">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="split-the-phases" data-lo="LO6">
+  <div class="kicker">Disaggregation</div>
+  <h2>Prefill on one pool, decode on another, the cache moved between them</h2>
+  <div class="flow">
+    <div class="step"><b>Prefill pool</b><span>computes the prompt</span></div>
+    <div class="step"><b>Transfer</b><span>the prompt's cache, over the link</span></div>
+    <div class="step"><b>Decode pool</b><span>steps never carry a prompt</span></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <ul class="bullets mt">
+    <li>Each pool can be sized and configured for its phase.</li>
+    <li>The price: the transfer, and two pools to keep busy.</li>
+  </ul>
+  <aside class="notes"><p>DistServe (Zhong et al., 2024, arXiv 2401.09670) and Splitwise (Patel et al., 2024, arXiv 2311.18677) both separate the phases onto different machines; vLLM has an experimental disaggregated prefill feature with connectors that move the cache. Day 2's chunked prefill is the other answer to the same interference, inside one engine.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO6">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="predict-pools" data-lo="LO6">
+  <div class="kicker">Lab 4.1 · tasks 1 and 2</div>
+  <h2>One prefill card would be busy 38% of the time; the transfer costs 12 ms</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">38%</div><div class="lbl">busy share of one prefill card, 2.7 requests a second, half with documents</div></div>
+    <div class="stat center"><div class="big">34</div><div class="lbl">sequences decoding at once, by Little's law</div></div>
+    <div class="stat center"><div class="big">12 ms</div><div class="lbl">cache transfer for the mean prompt; 37 ms for 10,000 tokens</div></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>The arithmetic is Day 1's: operations per prompt token over the card's rate, and bytes per token of cache over the link. 20 GB/s is the simulator's effective link inside one node; between nodes it would be slower. Little's law: sequences in the pool = arrival rate × answer tokens × TPOT.</p></aside>
+</section>
+
+<section class="slide" id="predict-steps" data-lo="LO6">
+  <div class="kicker">Lab 4.1 · tasks 3 and 4</div>
+  <h2>The prediction matches the supplied runs: shorter stalls when split, but no gain</h2>
+  <table class="t">
+    <tr><th>Two cards</th><th class="num">Predicted longest step</th><th class="num">Stall p90</th><th class="num">TPOT p50</th><th class="num">Document TTFT p90</th><th class="num">Attainment</th></tr>
+    <tr class="hl"><td>Together, chunked at 1,024</td><td class="num">0.168 s</td><td class="num">0.18 s</td><td class="num">63 ms</td><td class="num">0.88 s</td><td class="num">96.5%</td></tr>
+    <tr><td>Split, one prefill and one decode</td><td class="num">0.074 s</td><td class="num">0.13 s</td><td class="num">74 ms</td><td class="num">1.14 s</td><td class="num">93.9%</td></tr>
+  </table>
+  <p class="small mt">32 users, 50% documents, 8-bit weights and cache. Supplied runs of the course simulator.</p>
+  <aside class="notes"><p>The split decode card holds all 34 sequences, so its steps are slower than each of the two cards together (74 against 56 ms), and all prefills queue on one card. The split's shorter stall buys nothing when the objective allows 1.0 s.</p></aside>
+</section>
+
+<section class="slide" id="when-it-pays" data-lo="LO6">
+  <div class="kicker">Lab 4.1 · task 5</div>
+  <h2>With a 150 ms stall limit, only the split meets the objective</h2>
+  <div class="bars">
+    <div class="row"><span>Together, stall limit 1.0 s</span><div class="bar c-teal" style="--w:96%"></div><span class="val">96.5%</span></div>
+    <div class="row"><span>Split, stall limit 1.0 s</span><div class="bar c-cyan" style="--w:94%"></div><span class="val">93.9%</span></div>
+    <div class="row"><span>Together, stall limit 0.15 s</span><div class="bar c-coral" style="--w:13%"></div><span class="val">13.0%</span></div>
+    <div class="row"><span>Split, stall limit 0.15 s</span><div class="bar c-teal" style="--w:92%"></div><span class="val">92.2%</span></div>
+  </div>
+  <div class="callout tip mt"><b>Condition.</b> Disaggregation pays when the pause limit is shorter than a step that carries a prompt chunk.</div>
+  <aside class="notes"><p>The 150 ms limit is Hanadi's hypothetical voice channel. The general rule: disaggregate when the decode objective is tighter than chunked prefill can hold, with long prompts and enough cards to size each pool. Under Musamir's chat objective, keep both phases on every card.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO6">
+  <div class="kicker">Checkpoint</div>
+  <h2>Split the cards?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6">
+    <p class="lead">Another authority's assistant answers short questions with 3,000-token answers, under a 100 ms TPOT limit and a 1 s stall limit. Chunked prefill keeps its stall at 0.2 s. It has two cards. Should it disaggregate?</p>
+    <div class="opts">
+      <div class="opt" data-why="Disaggregation removes chunk steps from decode; with short prompts there is little to remove">Yes: disaggregation always lowers TPOT</div>
+      <div class="opt" data-ok>Not on this evidence: the stall already meets its limit and prompts are short</div>
+      <div class="opt" data-why="The transfer grows with the prompt; short prompts make it smaller, not decisive">No: the cache transfer would break the TTFT objective</div>
+      <div class="opt" data-why="Long answers load the decode phase; that argues for more decode capacity, not for a prefill pool">Yes: long answers need a dedicated prefill card</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Split pays when chunked steps break a decode limit; here they do not, and one card of two would serve few, short prefills.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. Ask what measurement would change the answer: a TPOT p90 over 100 ms caused by chunk steps.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-4-1" data-auto="lab" data-lab="4.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for checking arithmetic. The supplied runs make tasks 1 to 5 fast; the stretch runs both layouts again at 20% documents, about twenty seconds each. Insist the prediction is written before the comparison.</p></aside>
 </section>
 
 <!-- Session 2 -->
 
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO6">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="where-it-lands" data-lo="LO6">
+  <div class="kicker">Routing</div>
+  <h2>Round robin sends a conversation's next turn to a replica that has not seen it</h2>
+  <ul class="bullets">
+    <li>Each replica has its own cache: history computed on one is not on another.</li>
+    <li>A prefix-aware router sends each turn where its prefix is cached.</li>
+    <li>Affinity piles bursts on one replica unless the router also watches load.</li>
+  </ul>
+  <aside class="notes"><p>Production routers that are prefix-aware exist in several open-source serving stacks; the design is always a cache score traded against a load score. The lab writes the simplest version: a hash of the conversation, and a load limit.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO6">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="closing-night" data-lo="LO6">
+  <div class="kicker">Lab 4.2 · tasks 1 to 3</div>
+  <h2>Affinity with a load limit serves 99% on the closing night; round robin 94%</h2>
+  <table class="t">
+    <tr><th>Router, 3 replicas</th><th class="num">Hit rate</th><th class="num">p90 TTFT</th><th class="num">Attainment</th></tr>
+    <tr><td>Round robin</td><td class="num">77.3%</td><td class="num">1.55 s</td><td class="num">93.5%</td></tr>
+    <tr><td>By conversation, no limit</td><td class="num">80.8%</td><td class="num">3.77 s</td><td class="num">78.7%</td></tr>
+    <tr class="hl"><td>By conversation, limit 24</td><td class="num">77.9%</td><td class="num">0.78 s</td><td class="num">99.4%</td></tr>
+  </table>
+  <p class="small mt">The evening peak played four times faster: about 8 requests per second. Synthetic: the course simulator.</p>
+  <aside class="notes"><p>The hit rate barely moves: every replica caches each tenant's shared instructions anyway. The gain is in the tail: with the limit, long histories are not recomputed at the worst moments and bursts are spread. Without the limit, affinity is worse than round robin.</p></aside>
+</section>
+
+<section class="slide" id="hot-spot" data-lo="LO6">
+  <div class="kicker">Lab 4.2 · task 4</div>
+  <h2>Routing by tenant puts half the night on one replica</h2>
+  <div class="bars">
+    <div class="row"><span>Replica 1, Qamra Festival</span><div class="bar c-coral" style="--w:100%"></div><span class="val">49% of requests</span></div>
+    <div class="row"><span>Replica 2, Sawt Concerts</span><div class="bar c-teal" style="--w:66%"></div><span class="val">33%</span></div>
+    <div class="row"><span>Replica 0, Athar Heritage Week</span><div class="bar c-cyan" style="--w:36%"></div><span class="val">18%</span></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Attainment 52%: the Qamra replica drowns while the Athar replica idles. Highest hit rate of all routers.</p>
+  <aside class="notes"><p>The tempting design: keep each tenant's rules cached on one replica. It wins on hit rate and loses on everything visitors feel, on the night of the tenant that matters most. A hot spot is the first thing to look for in per-replica metrics.</p></aside>
+</section>
+
+<section class="slide" id="router-rule" data-lo="LO6">
+  <div class="kicker">Lab 4.2 · task 5</div>
+  <h2>Route by conversation, fall back to the least-loaded replica</h2>
+  <pre><code class="language-python">def by_session(engines, r, state, limit=24):
+    i = zlib.crc32(r.session.encode()) % len(engines)
+    if load(engines[i]) > limit:
+        i = min(range(len(engines)), key=lambda j: load(engines[j]))
+    return engines[i]</code></pre>
+  <p class="small mt">A stable hash, so a turn finds its history; a limit, so no replica takes a burst alone.</p>
+  <aside class="notes"><p>The stretch sweeps the limit; values from 8 to 32 all meet the objective on this night. Ask what changes when a replica fails: the hash moves a third of the conversations, which lose their cached history once.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO6">
+  <div class="kicker">Checkpoint</div>
+  <h2>Read the replica metrics</h2>
+  <div class="quiz" data-type="single" data-lo="LO6">
+    <p class="lead">On three replicas, one shows 30 requests waiting and the cache 95% full; the other two show nothing waiting and the cache 20% full. The router hashes the tenant. What is the fix?</p>
+    <div class="opts">
+      <div class="opt" data-why="More replicas behind the same hash still send the big tenant to one of them">Add a fourth replica</div>
+      <div class="opt" data-why="The cap is not the cause: the load is unevenly placed">Raise the sequence cap on the busy replica</div>
+      <div class="opt" data-ok>Route by conversation with a load limit, so the busy tenant spreads over all replicas</div>
+      <div class="opt" data-why="Removing the salt would mix tenants' blocks, which Rawya forbids, and does not move load">Remove the cache salt so the replicas can share blocks</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A hot spot is placement, not capacity: two replicas idle while one drowns.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. Those who pick A would pay for a fourth card that idles too.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-4-2" data-auto="lab" data-lab="4.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for Python. Each replay takes about fifteen seconds on a laptop. Common error: a router that returns an index instead of an engine. The safety net uses a reference router so the comparison still runs.</p></aside>
 </section>
 
 <!-- Session 3 -->
 
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO6">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="closing-day" data-lo="LO6">
+  <div class="kicker">Lab 4.3 · task 1</div>
+  <h2>The closing day: 160,000 requests, from 0.3 to 11 per second</h2>
+  <figure class="figure">
+    <img src="../assets/d4-closing-day.svg" alt="Requests per second over the 24 hours of the closing day: near 0.3 at night, rising through the morning, about 2 to 3 in the afternoon, and peaking near 11 per second in the evening, against one replica's 2.25 requests per second at 90% of capacity">
+    <figcaption>Four times a usual day, minute by minute. Synthetic demand.</figcaption>
+  </figure>
+  <aside class="notes"><p>One replica at 90% of its 2.5 good requests per second carries the night alone and needs help from mid-morning. Five replicas carry the peak. The question is what to run between.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO6">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="two-signals" data-lo="LO6">
+  <div class="kicker">Lab 4.3 · tasks 2 and 3</div>
+  <h2>Scaling on the request rate costs 41% of five cards all day</h2>
+  <table class="t">
+    <tr><th>Policy, at least 1 replica, 4-minute cold start</th><th class="num">Replica-hours</th><th class="num">SAR</th><th class="num">Worst hour</th></tr>
+    <tr><td>Five replicas all day</td><td class="num">120.0</td><td class="num">492</td><td class="num">100%</td></tr>
+    <tr class="hl"><td>Request rate, at 50% of capacity</td><td class="num">49.6</td><td class="num">203</td><td class="num">99.8%</td></tr>
+    <tr><td>Queue over 20, down after 10 quiet minutes</td><td class="num">50.5</td><td class="num">207</td><td class="num">96.8%</td></tr>
+  </table>
+  <p class="small mt">The course's scaling simulator, a fluid model calibrated from the capacity runs.</p>
+  <aside class="notes"><p>The rate signal starts replicas while there is still room; the queue signal acts once visitors already wait, then keeps adding while its first replicas start, and overshoots. In vLLM terms the rate is requests per second at the router, the queue is vllm:num_requests_waiting.</p></aside>
+</section>
+
+<section class="slide" id="cold-start" data-lo="LO6">
+  <div class="kicker">Lab 4.3 · task 4</div>
+  <h2>An 8-minute cold start breaks the queue signal, not the rate signal</h2>
+  <table class="t">
+    <tr><th>Signal</th><th class="num">Cold 2 min</th><th class="num">Cold 4 min</th><th class="num">Cold 8 min</th></tr>
+    <tr><td>Request rate, worst hour</td><td class="num">100%</td><td class="num">99.8%</td><td class="num">99.6%</td></tr>
+    <tr><td>Queue, worst hour</td><td class="num">97.9%</td><td class="num">96.8%</td><td class="num">88.5%</td></tr>
+  </table>
+  <p class="small mt">At least one replica. A second minimum replica adds 12.5 replica-hours and changes little.</p>
+  <aside class="notes"><p>Cold start is the machine, the engine, the weights from disk or network, the warm-up. Plan for the slow case: the day the weights come over a congested link is the day the policy must still hold.</p></aside>
+</section>
+
+<section class="slide" id="scale-to-zero" data-lo="LO6">
+  <div class="kicker">Stretch</div>
+  <h2>Scaling to zero saves almost nothing and strands the first visitors of the morning</h2>
+  <ul class="bullets">
+    <li>With a minimum of zero, the closing day costs 0.1 replica-hours less.</li>
+    <li>The first morning visitors wait a whole cold start: the worst hour falls to 77%.</li>
+    <li>One replica at night is the price of never making a visitor wait minutes.</li>
+  </ul>
+  <aside class="notes"><p>On a usual day the saving is larger in share but still small in SAR. The decision is Hanadi's; the table makes it easy.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO6">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which signal?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6">
+    <p class="lead">A replica takes 8 minutes to start. Demand rises from 2 to 10 requests a second in half an hour every evening. Which policy keeps the worst hour above 90% at the lowest cost?</p>
+    <div class="opts">
+      <div class="opt" data-why="The queue appears only once visitors already wait; with an 8-minute start they wait for 8 minutes">Scale up when more than 20 requests are waiting</div>
+      <div class="opt" data-why="Meets the objective at more than twice the cost: the cards idle most of the day">Run enough replicas for the peak all day</div>
+      <div class="opt" data-why="Saves almost nothing and leaves the first visitors of the day waiting a cold start">Scale on the rate with a minimum of zero</div>
+      <div class="opt" data-ok>Scale on the request rate at half of a replica's capacity, never below one replica</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The rate rises before the queue does, and the headroom of 50% covers the minutes a new replica needs to start.</div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Answer: D. The headroom is what absorbs the cold start; ask what headroom a 2-minute start would allow.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-4-3" data-auto="lab" data-lab="4.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for reading the simulator. scaling_sim.py is short; ask the room to read its first lines before task 2, because its fluid model is an assumption they must state in the capstone. Task 1 runs one capacity measurement of about ten seconds.</p></aside>
 </section>
 
 <!-- Session 4 -->
 
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO6">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="per-successful-request" data-lo="LO6">
+  <div class="kicker">The number that decides</div>
+  <h2>Cost per successful request: what was paid, over who was served</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Paid</h4><p class="small mb0">Every replica-hour, starting, serving or idle: card lease plus the node's share.</p></div>
+    <div class="card c-cyan"><h4>Served</h4><p class="small mb0">Only the requests that met the objective: a late answer was paid for and did not serve.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">Case prices in SAR (fictional): 3.20 per L4 hour, 0.90 node share, hosted 0.40 and 1.60 per million input and output tokens.</p>
+  <aside class="notes"><p>Dividing by all requests would reward overload: an engine at 30% attainment would look cheap. The prices are invented for the case and marked so in data/prices.json; the method is what transfers.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO6">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="three-volumes" data-lo="LO6">
+  <div class="kicker">Lab 4.4 · tasks 1 and 2</div>
+  <h2>At Liwan's usual volume, the hosted quote costs 2.5 times less per request</h2>
+  <table class="t">
+    <tr><th class="num">Requests a day</th><th class="num">Replica-hours</th><th class="num">Node, SAR per 1,000 served</th><th class="num">Hosted, SAR per 1,000</th></tr>
+    <tr><td class="num">10,000</td><td class="num">24.0</td><td class="num">9.83</td><td class="num">1.05</td></tr>
+    <tr class="hl"><td class="num">40,000</td><td class="num">26.2</td><td class="num">2.69</td><td class="num">1.05</td></tr>
+    <tr><td class="num">160,000</td><td class="num">49.7</td><td class="num">1.27</td><td class="num">1.05</td></tr>
+  </table>
+  <p class="small mt">A mean request: 2,004 prompt tokens and 157 answer tokens. Scaling on rate, at least one replica, 8-minute cold start.</p>
+  <aside class="notes"><p>The node is mostly one card idling at night at the lower volumes. This is the answer most engineers do not expect after four days of tuning: the tuning made self-hosting possible at the peak, not cheaper than a hosted model at this volume. Prefix caching would also lower a hosted bill if the provider discounts cached input; the quote here does not.</p></aside>
+</section>
+
+<section class="slide" id="break-even" data-lo="LO6">
+  <div class="kicker">Lab 4.4 · task 3</div>
+  <h2>Self-hosting breaks even near 360,000 requests a day, nine times today's</h2>
+  <figure class="figure">
+    <img src="../assets/d4-break-even.svg" alt="SAR per 1,000 successful requests on the node falls from about 5 at 20,000 requests a day to about 1 at 400,000, crossing the hosted quote's flat 1.05 near 360,000 requests a day">
+    <figcaption>Case prices; the course's scaling simulator. With the lease 30% cheaper, the break-even falls to about 140,000 a day.</figcaption>
+  </figure>
+  <aside class="notes"><p>The break-even moves most with the lease price and the replica's capacity, which is why Days 2 and 3 matter: without them a replica serves 0.15 good requests a second instead of 2.5, and self-hosting never breaks even. Reasons the quote does not price, such as where the data is processed, are the Director's to weigh.</p></aside>
+</section>
+
+<section class="slide" id="energy" data-lo="LO6">
+  <div class="kicker">Lab 4.4 · task 4</div>
+  <h2>Idle cards dominate the energy: 117 Wh per 1,000 requests on a usual day</h2>
+  <div class="bars">
+    <div class="row"><span>10,000 a day</span><div class="bar c-coral" style="--w:100%"></div><span class="val">426 Wh</span></div>
+    <div class="row"><span>40,000 a day</span><div class="bar c-amber" style="--w:27%"></div><span class="val">117 Wh</span></div>
+    <div class="row"><span>160,000 a day</span><div class="bar c-teal" style="--w:13%"></div><span class="val">55 Wh</span></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <p class="small mt">Per 1,000 successful requests: card at its 72 W maximum, 55 W of host, PUE 1.4. An upper bound.</p>
+  <aside class="notes"><p>An idle card draws less than its maximum, so these are upper bounds; a measured figure would come from the card's power counter. The shape is the point: energy per request, like cost, falls with utilisation.</p></aside>
+</section>
+
+<section class="slide" id="capstone-plan" data-lo="LO6">
+  <div class="kicker">Lab 4.4 · task 5</div>
+  <h2>The capstone starts from the deployment of Monday morning</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>You get</h4><p class="small mb0">The baseline configuration, the trace, the evaluation outcomes, the prices, the simulator and the stand-in endpoint.</p></div>
+    <div class="card c-cyan"><h4>You submit</h4><p class="small mb0">A public repository: raw benchmark files, engine logs, quality by language, a design document and the commit history.</p></div>
+  </div>
+  <p class="small mt">Defence: 12 minutes of talk and 8 of questions, in front of a panel playing Hanadi, Rawya and Kenan.</p>
+  <aside class="notes"><p>The plan written by the lab lists the changes in the order of the week. Encourage participants to change the order if their measurements say so; the panel rewards a decision backed by a measurement over the course's order.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO6">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which number goes to the Director?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6">
+    <p class="lead">Kenan's slide says self-hosting costs 2.58 SAR per million output tokens against a hosted 1.60, "so the hosted API is cheaper". Hanadi asks if that is the right comparison. What do you answer?</p>
+    <div class="opts">
+      <div class="opt" data-ok>No: compare cost per successful request over a replayed day, input tokens included</div>
+      <div class="opt" data-why="Right conclusion by accident: the comparison leaves out input tokens and the idle hours, which point in opposite directions">Yes: per-token prices are how providers compare</div>
+      <div class="opt" data-why="The minimum replica's idle night is a real cost on the bill, not an accounting choice">No: idle hours should be left out of the node's cost</div>
+      <div class="opt" data-why="Peak capacity is not what the authority pays for; it pays for every hour of every card">No: compare the node at its peak capacity only</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The hosted bill counts 2,004 input tokens a request; the node's bill counts idle hours. Only the cost per served request over a real day includes both.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. The conclusion happens to be the same at today's volume, and the method is wrong: at nine times the volume it would give the wrong answer.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-4-4" data-auto="lab" data-lab="4.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI tutor allowed for the plot and the plan's wording. The whole lab runs in under half a minute. Spend the last minutes on the plan: each participant reads their first measurement and their open question for the Director to a neighbour.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
-  <div class="kicker">Day 4 · wrap-up</div>
-  <h2>Three things to keep</h2>
-  <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+<section class="slide" id="course-recap" data-lo="LO1 LO2 LO3 LO4 LO5 LO6">
+  <div class="kicker">Four days · what to keep</div>
+  <h2>Predict, measure with spread, change one thing, re-evaluate in both languages, price it</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>From 0.15 to 2.5</h4><p class="small mb0">Good requests per second on one L4: scheduling, the prompt, 8-bit weights and cache.</p></div>
+    <div class="card c-cyan"><h4>Quality held</h4><p class="small mb0">Every change scored against the floors per language, with intervals and paired differences.</p></div>
+    <div class="card c-coral"><h4>The honest bill</h4><p class="small mb0">Cost per successful request over a real day, against the quote, with the break-even.</p></div>
   </div>
+  <aside class="notes"><p>The factor of about seventeen came from configuration and number formats on the same card, none of it from buying hardware. And the bill still says hosted, at Liwan's volume. Both facts belong in the capstone.</p></aside>
 </section>
 
-<section class="slide dark" id="next" data-label="Next">
+<section class="slide dark" id="next-capstone" data-lo="LO6">
   <div class="kicker">Next</div>
-  <h2>Capstone: Capstone project presentations</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <h2>Capstone: tune Monday's deployment and defend it</h2>
+  <ul class="bullets">
+    <li>Start from <code>labs/capstone/</code> and your plan from Lab 4.4.</li>
+    <li>Commit as you go: the history is part of the evidence.</li>
+    <li>Bring the one decision you want the Director to take.</li>
+  </ul>
+  <aside class="notes"><p>Remind the room of the rubric weights on the capstone deck. The repository must be public and submitted before the defence.</p></aside>
 </section>

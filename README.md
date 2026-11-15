@@ -72,6 +72,18 @@ Tune a provided under-performing deployment of the case assistant to meet its la
 
 **Submission:** A public GitHub repository link: raw benchmark files, engine logs, quality by language, the design document and a commit history; submitted before the defence
 
+The defence is 12 minutes of talk and 8 minutes of questions. The rubric: cost model 15, benchmark method 25, optimisations with re-evaluation 25, topology design 20, reproducibility 15. The brief, the files given and what full marks look like are in [`labs/capstone/README.md`](labs/capstone/README.md); `labs/capstone/starter.py` measures the provided deployment and keeps the raw rows. AI assistants may be used throughout the capstone; every number in the defence must come from a run in the participant's repository.
+
+## Assessment
+
+- **Checkpoints:** every session ends with a scenario question in the deck, each wrong option naming the misconception behind it.
+- **Practice questions:** [`assessments/bank.json`](assessments/bank.json) holds 30 scenario questions, five per outcome, with explanations. Exam items are kept outside this repository.
+- **Labs:** each lab's checks and its carried-forward file are the evidence of the outcome it serves (see the Evidence column above).
+
+## How the labs run
+
+All sixteen labs run on a laptop processor or a free Colab runtime, with no model download and no API key. They use a simulator of the serving engine calibrated from the published model cards and accelerator sheets, an OpenAI-compatible streaming stand-in for client-side measurement, and recorded evaluation outcomes; a real engine on a notebook GPU can replace the stand-in in Lab 1.3 and the capstone. The numbers on the slides come from these runs and are synthetic. Details, calibration and data: [`labs/README.md`](labs/README.md).
+
 ## Prerequisites
 
 - AE-305 Operating Machine Learning and Language Model Systems

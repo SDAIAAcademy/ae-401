@@ -172,6 +172,16 @@ def d3_3():
     put("d3_3", {"measured": measured, "rows": rows, "synthetic": True})
 
 
+@maker
+def d4_1():
+    """The supplied runs of Lab 4.1: two cards together against one prefill and one decode card."""
+    cfg = S.Config.load("tuned_day2").but(weight_dtype="fp8", kv_cache_dtype="fp8", max_num_seqs=32)
+    pool = S.mixed_pool(share_docs=0.5, n=400, seed=1)
+    for name, kw in (("together", dict(replicas=2)), ("split", dict(disagg=(1, 1)))):
+        run = S.simulate(cfg, users=32, pool=pool, n_requests=256, seed=1, **kw)
+        put_csv(f"d4_1_{name}", run.table())
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(MAKERS)
     for n in names:

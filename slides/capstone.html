@@ -12,6 +12,16 @@
   </div>
 </section>
 
+<section class="slide" id="the-task" data-label="The task">
+  <div class="kicker">Capstone</div>
+  <h2>Monday's deployment, tuned to the objective at the lowest cost per successful request</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Hanadi's brief</h4><p class="small mb0">90% of peak requests within 2.0 s to the first token, 150 ms a token and no pause over 1.0 s; Arabic at least 0.73 and English 0.81; no cache block across tenants; no personal data in a cached entry.</p></div>
+    <div class="card c-cyan"><h4>The evidence</h4><p class="small mb0">A public repository: raw benchmark rows, engine logs, quality by language, the isolation test, a design document with cost and energy per request, and the commit history.</p></div>
+  </div>
+  <aside class="notes"><p>The panel plays Hanadi (the objective and the decision), Rawya (isolation and personal data) and Kenan (cost). Remind presenters that every number must come from a run in their repository, and that saying the hosted quote is cheaper is an acceptable conclusion if the evidence says so.</p></aside>
+</section>
+
 <section class="slide" id="rubric" data-label="The rubric">
   <div class="kicker">How presentations are scored</div>
   <h2>The rubric</h2>
@@ -23,16 +33,16 @@
     <div class="row"><span>Reproducibility</span><div class="bar c-amber" style="--w:60%"></div><span class="val">15%</span></div>
   </div>
   <div class="callout tip mt"><b>Show results from at least two measured runs.</b> A claim without a number is a plan, not a result.</div>
-  <aside class="notes">Walk through each criterion with one example of what full marks look like.</aside>
+  <aside class="notes"><p>Full marks, briefly: cost model, a replayed day with input tokens in the quote and a break-even; benchmark method, three runs a point and all three clocks; optimisations, one change at a time with quality per language; topology, a router with a load limit and a scaling policy justified by cold start; reproducibility, a stranger reruns the repository. The details are in labs/capstone/README.md.</p></aside>
 </section>
 
 <section class="slide" id="format" data-label="Format">
   <div class="kicker">Format</div>
-  <h2>20 minutes for each presentation</h2>
+  <h2>12 minutes of talk, 8 minutes of questions</h2>
   <div class="cols cols-3">
-    <div class="card c-teal"><h4>1 · The problem</h4><p class="small mb0">Who, what, why now. One slide.</p></div>
-    <div class="card c-cyan"><h4>2 · What you built</h4><p class="small mb0">Design, decisions, trade-offs. Then the live demo.</p></div>
-    <div class="card c-coral"><h4>3 · What you measured</h4><p class="small mb0">Baseline, improvement, failures found, what comes next.</p></div>
+    <div class="card c-teal"><h4>1 · The baseline</h4><p class="small mb0">The curve of the provided deployment and the three diagnoses.</p></div>
+    <div class="card c-cyan"><h4>2 · What you changed</h4><p class="small mb0">Each change with goodput and quality per language; the topology.</p></div>
+    <div class="card c-coral"><h4>3 · The decision</h4><p class="small mb0">Cost per successful request against the quote, and what the Director must accept.</p></div>
   </div>
   <div class="callout note mt"><b>Peer feedback.</b> After each talk, everyone writes one strength, one question and one suggestion.</div>
 </section>
@@ -66,7 +76,8 @@
   <div class="kicker center">Now presenting</div>
   <div class="center"><input placeholder="Presenter · project"></div>
   <div class="timers mt">
-    <div><h3>Talk and demo</h3><div class="timer" data-minutes="20"></div></div>
+    <div><h3>Talk</h3><div class="timer" data-minutes="12"></div></div>
+    <div><h3>Questions</h3><div class="timer" data-minutes="8"></div></div>
   </div>
   <aside class="notes">Type the presenter's name and press T to start the timer. Reuse this slide for every presenter.</aside>
 </section>
@@ -87,7 +98,7 @@
   <h2>Keep going</h2>
   <ul class="bullets">
     <li><b>Your project stays yours:</b> keep it reproducible and add the next improvement you named today</li>
-    <li><b>Next Academy course:</b> REPLACE: the course that follows this one</li>
+    <li><b>The follow-up task:</b> within a month, repeat the method on your own deployment or a public trace: baseline curve, one change with its re-evaluation, cost per successful request</li>
   </ul>
 </section>
 
