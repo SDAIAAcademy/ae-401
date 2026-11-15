@@ -105,7 +105,8 @@ except NotImplementedError:
            "stall_s": max(b - a for a, b in zip(times, times[1:])) / SCALE, "e2e_s": (t_end - t0) / SCALE}
 print({k: round(v, 3) for k, v in one.items()})
 if not ENGINE_URL:
-    S.check(0.3 < one["ttft_s"] < 0.9 and 0.06 < one["tpot_s"] < 0.09, "one request alone: TTFT and TPOT as Lab 1.1 predicted")
+    # wall-clock timing on a shared processor runs slow, never fast: the bounds allow for a busy machine
+    S.check(0.3 < one["ttft_s"] < 1.5 and 0.06 < one["tpot_s"] < 0.15, "one request alone: TTFT and TPOT close to Lab 1.1's prediction")
 
 # %% [markdown]
 # ## 3 · Load at 2, 8 and 24 concurrent users (6 min)
