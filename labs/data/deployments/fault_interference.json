@@ -1,0 +1,20 @@
+{
+  "note": "Seeded fault 3 (Lab 2.2)",
+  "config": {
+    "model": "qwen3-8b",
+    "accelerator": "L4",
+    "weight_dtype": "bf16",
+    "kv_cache_dtype": "bf16",
+    "gpu_memory_utilization": 0.9,
+    "max_num_seqs": 16,
+    "max_num_batched_tokens": 8192,
+    "enable_chunked_prefill": false,
+    "enable_prefix_caching": true,
+    "cache_salt": "none",
+    "block_size": 16,
+    "speculative_model": null,
+    "num_speculative_tokens": 0,
+    "role": "both",
+    "layout": "deployed"
+  }
+}

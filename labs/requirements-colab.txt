@@ -1,0 +1,3 @@
+# Colab already ships pandas and matplotlib; the labs need nothing else.
+pandas
+matplotlib

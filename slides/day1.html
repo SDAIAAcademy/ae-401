@@ -1,5 +1,87 @@
 <section class="slide title" id="title" data-auto="title">
-  <aside class="notes">REPLACE: welcome; introduce yourself; one question to the room that calibrates the pace; the rhythm of the day</aside>
+  <aside class="notes"><p>Welcome the room and ask one calibrating question: who has watched an engine's cache usage climb to 100% in production? Their answers set the pace of Session 2. Today is arithmetic and measurement only: no optimisation before we can predict and measure.</p></aside>
+</section>
+
+<section class="slide" id="four-days-one-service" data-lo="LO1 LO2 LO6">
+  <div class="kicker">The course in one slide</div>
+  <h2>Four days on one service: predict, measure, fix, then design</h2>
+  <div class="cols cols-4 gap-s">
+    <div class="card c-teal"><h4>Day 1 · Model the cost</h4><p class="small mb0">Prefill, decode, cache arithmetic, goodput curves.</p></div>
+    <div class="card c-cyan"><h4>Day 2 · Inside the engine</h4><p class="small mb0">Three seeded faults, batching, chunking, caches.</p></div>
+    <div class="card c-coral"><h4>Day 3 · Cheaper tokens</h4><p class="small mb0">Precision, speculation, distillation, each re-evaluated.</p></div>
+    <div class="card c-purple"><h4>Day 4 · Over the day</h4><p class="small mb0">Disaggregation, routing, scaling, cost per success.</p></div>
+  </div>
+  <p class="small mt">The capstone tunes the deployment you measure today until it meets its objectives at the lowest cost you can defend.</p>
+  <aside class="notes"><p>Make the method explicit: every change in this course is predicted on paper first, then measured, then re-evaluated for quality in Arabic and English. A change that cannot be measured does not go into the capstone.</p></aside>
+</section>
+
+<section class="slide" id="liwan-and-musamir" data-lo="LO1 LO2">
+  <div class="kicker">The case study</div>
+  <h2>Musamir is too slow at the evening peak and too costly</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li><b>Liwan National Events Authority</b> (fictional) runs Musamir, a bilingual visitor assistant.</li>
+      <li>Three tenants share it: Qamra Festival, Sawt Concerts, Athar Heritage Week.</li>
+      <li>One leased L4 accelerator serves Qwen3-8B in 16 bits.</li>
+      <li>40,000 synthetic requests a day; 7,656 in the busiest hour; 55% Arabic; 18% ask about long event terms.</li>
+    </ul>
+    <div class="card c-coral flat"><h4>The complaint</h4><p class="small mb0">Visitors wait, answers crawl, and the lease is the largest line of the digital services budget. Dr. Hanadi Al-Kathiri wants the objective met at a cost she can defend.</p></div>
+  </div>
+  <aside class="notes"><p>All data is synthetic and generated with a fixed seed (labs/prepare_data.py, seed 401). The model card and the accelerator sheet are real and copied from the official pages; the traffic, the deployment and the evaluation outcomes are not.</p></aside>
+</section>
+
+<section class="slide" id="people-of-the-case" data-lo="LO6">
+  <div class="kicker">Who you work with</div>
+  <h2>Five people own a piece of the decision</h2>
+  <table class="t small">
+    <tr><th>Person</th><th>Owns</th></tr>
+    <tr><td>Dr. Hanadi Al-Kathiri, head of visitor digital services</td><td>the service objective and the budget</td></tr>
+    <tr><td>Yamen Al-Hulaibi, platform engineer</td><td>the accelerator node and the engine settings</td></tr>
+    <tr><td>Asrar Al-Rifai, evaluation lead</td><td>the Arabic and English evaluation sets and their floors</td></tr>
+    <tr><td>Rawya Al-Twaim, data protection officer</td><td>what may be cached and shared between tenants</td></tr>
+    <tr><td>Kenan Al-Ajlan, finance analyst</td><td>the node lease and the hosted-API quote</td></tr>
+  </table>
+  <p class="small mt">You are Tamader Al-Harqan, the inference engineer asked to fix it.</p>
+  <aside class="notes"><p>Each person returns: Asrar on Day 3 when quality is at stake, Rawya on Day 2 for tenant isolation and personal data in caches, Kenan on Day 4 for cost. In the capstone defence the assessor may speak as any of them.</p></aside>
+</section>
+
+<section class="slide" id="objective-of-the-service" data-lo="LO2">
+  <div class="kicker">What "fixed" means</div>
+  <h2>The objective is per request, and it has two clocks</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">2.0 s</div><div class="lbl">time to first token, at most</div></div>
+    <div class="stat center"><div class="big">100 ms</div><div class="lbl">time per output token, at most</div></div>
+    <div class="stat center"><div class="big">90%</div><div class="lbl">of peak requests meet both</div></div>
+  </div>
+  <div class="callout note mt"><b>Today's question.</b> How far is the deployment from that, and can we say so before we measure?</div>
+  <aside class="notes"><p>The objectives live in labs/data/objectives.json. A visitor reads at roughly ten tokens a second or slower, which is why 100 ms per token is the decoding objective; the first token is what makes the assistant feel responsive.</p></aside>
+</section>
+
+<section class="slide" id="setup-check" data-lo="LO1">
+  <div class="kicker">Before the first lab</div>
+  <h2>A laptop processor or a Colab runtime is enough</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>Clone the course repository and open <code>labs/</code>.</li>
+      <li>Install <code>uv</code>, then <code>uv sync</code> in <code>labs/</code>.</li>
+      <li>Or open any lab in Colab from the course page: the first cell clones the repository.</li>
+      <li>No model is downloaded to your laptop, and no key is needed today.</li>
+    </ul>
+    <pre class="code s" data-file="labs/"><code class="language-bash">uv sync
+uv run prepare_data.py   # optional: same bytes
+uv run jupyter lab</code></pre>
+  </div>
+  <aside class="notes"><p>On Windows with a long folder path, set UV_PROJECT_ENVIRONMENT to a short folder before uv sync (the labs README says how). Check that every participant can run the first cell of Lab 1.1 before Session 1 ends its concepts.</p></aside>
+</section>
+
+<section class="slide" id="how-the-labs-run" data-lo="LO2">
+  <div class="kicker">Two tiers</div>
+  <h2>The labs run a simulator of the engine; a notebook GPU can run the real one</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal"><h4>Simulator tier (default)</h4><p class="small mb0">A course simulator of a serving engine: continuous batching, a paged cache with prefix hashing, chunked prefill, preemption. Calibrated from the real model card and spec sheet. Every supplied run comes from it and is marked synthetic.</p></div>
+    <div class="card c-purple"><h4>Engine tier (optional)</h4><p class="small mb0">On a free notebook GPU, an OpenAI-compatible engine with a small open-weight model. The same load generator measures it. The model is downloaded into the notebook runtime, never to a laptop.</p></div>
+  </div>
+  <aside class="notes"><p>Be clear with the room: the simulator's numbers are teaching numbers. They behave the way engines behave because they follow the same arithmetic, but they are not a benchmark of the L4. AI policy today: no assistant for the hand sizing of Labs 1.1 and 1.2; an assistant may explain code and metrics in Labs 1.3 and 1.4 but does not choose settings.</p></aside>
 </section>
 
 <section class="slide" id="agenda" data-auto="agenda"></section>
@@ -8,151 +90,424 @@
 
 <section class="slide section" id="s1" data-auto="section" data-session="1"></section>
 
-<section class="slide" id="s1-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="two-phases" data-lo="LO1">
+  <div class="kicker">One request, two phases</div>
+  <h2>The prompt is read in one pass; the answer is written one token at a time</h2>
+  <div class="flow">
+    <div class="step c-navy"><b>1 · Prompt</b>2,000 tokens arrive</div>
+    <div class="arrow">→</div>
+    <div class="step c-teal"><b>2 · Prefill</b>all 2,000 in one pass</div>
+    <div class="arrow">→</div>
+    <div class="step c-cyan"><b>3 · First token</b>the visitor sees a reply start</div>
+    <div class="arrow">→</div>
+    <div class="step c-coral"><b>4 · Decode</b>one pass per token</div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <div class="callout tip mt"><b>Two phases, two bottlenecks.</b> Prefill does a lot of work per byte read; decode does almost none.</div>
+  <aside class="notes"><p>Draw the timeline on the board: a long block for prefill, then many thin slices for decode. Ask: which part does the visitor feel as waiting, and which as reading speed? That maps to the two objectives.</p></aside>
 </section>
 
-<section class="slide" id="s1-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="two-operations-per-weight" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · task 2</div>
+  <h2>A token costs about two operations per weight, and a read of every weight</h2>
+  <table class="t">
+    <tr><th>Model</th><th class="num">Operations per token</th><th class="num">Bytes read per step (16-bit)</th><th class="num">Operations per byte</th></tr>
+    <tr><td>Qwen3-8B (base)</td><td class="num">15.14 G</td><td class="num">16.40 GB</td><td class="num">0.92</td></tr>
+    <tr><td>Musamir-mini (1.7B student)</td><td class="num">3.42 G</td><td class="num">3.40 GB</td><td class="num">1.01</td></tr>
+  </table>
+  <p class="small mt">Operations: 2 × (non-embedding parameters + the output head, hidden size × vocabulary). Bytes: every parameter, 2 bytes each.</p>
+  <aside class="notes"><p>Numbers from Lab 1.1's run. The output head matters: 4,096 × 151,936 is 0.62 billion weights, almost a tenth of the work. The embedding is a lookup, not a multiply. Sources: Qwen3-8B model card and configuration on Hugging Face.</p></aside>
+</section>
+
+<section class="slide" id="roofline-for-serving" data-lo="LO1">
+  <div class="kicker">The roofline</div>
+  <h2>Below the ridge a step waits on memory; above it, on arithmetic</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li><b>Intensity</b> = operations ÷ bytes moved.</li>
+      <li><b>Ridge point</b> = reachable operations per second ÷ reachable bytes per second.</li>
+      <li>On the L4: 121 dense BF16 TFLOPS at 45%, 300 GB/s at 80%: <b>227 operations per byte</b>.</li>
+      <li>The sheet prints 242 TFLOPS <em>with sparsity</em>; dense is half.</li>
+    </ul>
+    <div class="card c-navy tint"><h4>Recap from AE-206</h4><p class="small mb0">The roofline of a layer and the efficiencies of an accelerator are in AE-206, Day 1. Here we apply it to the two phases of a language model.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>The 45% and 80% are the node's measured shares of peak, given in the lab (the simulator's calibration). Ask why a real engine never reaches the sheet's peak: kernel launch, small matrices, attention, sampling. Sources: NVIDIA L4 specifications page.</p></aside>
+</section>
+
+<section class="slide" id="prefill-is-compute-bound" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · task 3</div>
+  <h2>A 2,000-token prefill is bound by arithmetic, eight times over</h2>
+  <div class="bars">
+    <div class="row"><span>Compute time</span><div class="bar c-coral" style="--w:100%"></div><span class="val">0.578 s</span></div>
+    <div class="row"><span>Weight reads</span><div class="bar c-teal" style="--w:12%"></div><span class="val">0.068 s</span></div>
+  </div>
+  <p class="small mt">2,000 tokens share one read of the weights. The prompt's length sets the time to first token.</p>
+  <aside class="notes"><p>Attention adds 4 × layers × heads × head size operations per token per earlier token; at 2,000 tokens that is small next to the weights but it grows with the square of the prompt. Long documents (Day 2) make it matter.</p></aside>
+</section>
+
+<section class="slide" id="decode-is-memory-bound" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · task 4</div>
+  <h2>Decoding one token does 0.92 operations per byte: it waits on memory</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">0.92</div><div class="lbl">operations per byte at batch 1</div></div>
+    <div class="stat center"><div class="big">246</div><div class="lbl">sequences decoded together to reach the ridge</div></div>
+  </div>
+  <div class="callout tip mt"><b>Batching is free until the ridge.</b> Each extra sequence in a decode step reuses the same weight read.</div>
+  <aside class="notes"><p>This is the whole economic argument for batching. Ask: can Musamir ever decode 246 sequences at once on this card? Leave the question open; Lab 1.2 answers it (no: the cache holds about 12).</p></aside>
+</section>
+
+<section class="slide" id="predict-then-measure" data-lo="LO1">
+  <div class="kicker">Lab 1.1 · task 5</div>
+  <h2>The hand prediction lands within 10% of the single-request run</h2>
+  <table class="t">
+    <tr><th></th><th class="num">Predicted</th><th class="num">Simulated run</th></tr>
+    <tr><td>Time to first token, 2,000-token prompt</td><td class="num">0.578 s</td><td class="num">0.599 s</td></tr>
+    <tr><td>Time per output token</td><td class="num">68.3 ms</td><td class="num">73.6 ms</td></tr>
+  </table>
+  <p class="small mt">The gap is the step overhead and the cache reads, which grow with the context.</p>
+  <aside class="notes"><p>The point is not the simulator: it is that two lines of arithmetic predict an engine to within a tenth. When a real measurement is far from your arithmetic, suspect the measurement or the configuration first.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Where does the time go?</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Musamir decodes one visitor's answer alone on the L4 at about 74 ms a token. Yamen proposes a card with twice the TFLOPS and the same memory bandwidth. What happens to the time per token?</p>
+    <div class="opts">
+      <div class="opt" data-why="Treats decode as bound by arithmetic: at batch 1 the operations finish long before the weights arrive">It halves, to about 37 ms</div>
+      <div class="opt" data-ok>It barely changes: decode waits on reading the weights</div>
+      <div class="opt" data-why="Mixes up the phases: more compute shortens prefill, it does not slow decode">It rises, because prefill takes more of each step</div>
+      <div class="opt" data-why="Confuses capacity with speed: memory size decides how many fit, not how fast one decodes">It falls only if the card has more memory</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> At 0.92 operations per byte a decode step is far below the ridge point: its time is the time to read 16.4 GB, set by bandwidth.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. If the room picks A, return to the bars of the prefill slide and ask which bar the new card shortens. The faster card would shorten the time to first token of long prompts.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-1" data-auto="lab" data-lab="1.1">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>AI off: no assistant for this lab. Walk the room for the sparsity trap in task 1 (242 against 121) and for people who use 8.2 billion parameters as the operations instead of twice that. If someone's TPOT prediction is off by a factor of two, they forgot the 2 bytes per weight. The safety nets let a participant who is stuck continue to task 5.</p></aside>
 </section>
 
 <!-- Session 2 -->
 
 <section class="slide section" id="s2" data-auto="section" data-session="2"></section>
 
-<section class="slide" id="s2-idea" data-lo="LO1">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
-  </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+<section class="slide" id="keys-and-values" data-lo="LO1">
+  <div class="kicker">The cache</div>
+  <h2>Every token leaves a key and a value in every layer</h2>
+  <pre class="code" data-file="Lab 1.2 · task 1"><code class="language-python">kv_per_token = 2 * layers * kv_heads * head_dim * bytes
+#            = 2 * 36     * 8        * 128      * 2
+#            = 147,456 bytes = 144 KiB per token</code></pre>
+  <p class="small mt">A 2,000-token conversation holds 0.29 GB of cache while it is served.</p>
+  <aside class="notes"><p>The cache exists so that decode does not recompute the whole prompt for every token. It is the price of fast decoding, paid in memory, per conversation, for as long as the conversation runs.</p></aside>
 </section>
 
-<section class="slide" id="s2-steps" data-lo="LO1">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="grouped-query-attention" data-lo="LO1">
+  <div class="kicker">Read the model card</div>
+  <h2>Grouped-query attention cut the cache by four</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal"><h4>32 query heads</h4><p class="small mb0">Used during the step, never stored.</p></div>
+    <div class="card c-coral"><h4>8 key-value heads</h4><p class="small mb0">Stored for every token: the cache is a quarter of what 32 heads would need.</p></div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <div class="callout warn mt"><b>What goes wrong.</b> Sizing with <code>num_attention_heads</code> overestimates the cache four times and underestimates concurrency four times.</div>
+  <aside class="notes"><p>Show the configuration file of Qwen3-8B on Hugging Face: num_attention_heads 32, num_key_value_heads 8, head_dim 128. Ask the room to find the same three numbers for Qwen3-0.6B: 16, 8, 128. Its cache per token is 78% of the 8B's because it keeps 8 KV heads over 28 layers; this returns on Day 3 with speculative decoding.</p></aside>
+</section>
+
+<section class="slide" id="memory-left-for-cache" data-lo="LO1">
+  <div class="kicker">Lab 1.2 · task 2</div>
+  <h2>After the weights, 3.6 GB of the 24 are left for conversations</h2>
+  <div class="bars">
+    <div class="row"><span>Card</span><div class="bar c-navy" style="--w:100%"></div><span class="val">24.0 GB</span></div>
+    <div class="row"><span>Engine may use (90%)</span><div class="bar c-cyan" style="--w:90%"></div><span class="val">21.6 GB</span></div>
+    <div class="row"><span>Weights, 16-bit</span><div class="bar c-coral" style="--w:68%"></div><span class="val">16.4 GB</span></div>
+    <div class="row"><span>Reserve</span><div class="bar c-amber" style="--w:7%"></div><span class="val">1.6 GB</span></div>
+    <div class="row"><span>Cache</span><div class="bar c-teal" style="--w:15%"></div><span class="val">3.6 GB</span></div>
+  </div>
+  <aside class="notes"><p>The reserve covers activations, captured graphs and the runtime; the engine reports it at start. Participants who forget it predict 45% too many conversations, outside the outcome's 25% band. That is the lesson of task 5.</p></aside>
+</section>
+
+<section class="slide" id="pages-not-slabs" data-lo="LO1">
+  <div class="kicker">Paged cache</div>
+  <h2>The engine hands out the cache in blocks of 16 tokens</h2>
+  <ul class="bullets">
+    <li>A conversation takes blocks as it grows, not a slab sized for the longest possible answer.</li>
+    <li>Musamir's engine reports <b>1,525 blocks = 24,400 tokens</b> at start.</li>
+    <li>Blocks can be shared between requests with the same beginning: Day 2's prefix cache.</li>
+    <li>When no block is free, a running sequence is <b>preempted</b> and recomputed later.</li>
+  </ul>
+  <aside class="notes"><p>PagedAttention (Kwon et al., 2023) introduced block tables for the cache, borrowing virtual-memory paging; vLLM's --block-size sets the block length. Sources: arXiv 2309.06180; vLLM engine arguments.</p></aside>
+</section>
+
+<section class="slide" id="three-limits" data-lo="LO1">
+  <div class="kicker">Lab 1.2 · tasks 3 to 5</div>
+  <h2>Three context lengths, three limits, all within the 25% band</h2>
+  <table class="t">
+    <tr><th class="num">Tokens per conversation</th><th class="num">Predicted</th><th class="num">Engine held at most</th><th class="num">Preemptions</th></tr>
+    <tr><td class="num">2,000</td><td class="num">12.2</td><td class="num">13</td><td class="num">7</td></tr>
+    <tr><td class="num">4,000</td><td class="num">6.1</td><td class="num">6</td><td class="num">0</td></tr>
+    <tr class="hl"><td class="num">8,000</td><td class="num">3.0</td><td class="num">3</td><td class="num">0</td></tr>
+  </table>
+  <p class="small mt">The engine admits at the prompt's length and preempts as answers grow, so it settles on the arithmetic.</p>
+  <aside class="notes"><p>From Lab 1.2's saturation run: 40 users, fixed lengths, a sequence cap of 64 so the cache is the limit. The 8,000-token row is the long-document visitor: three at once on the whole card.</p></aside>
+</section>
+
+<section class="slide" id="answers-grow-the-cache" data-lo="LO1 LO3">
+  <div class="kicker">Preemption</div>
+  <h2>A full cache preempts during decoding, not only at admission</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>Every answer token needs room; at 16 tokens a block, a sequence asks for a new block every 16 tokens.</li>
+      <li>No free block: the engine frees the newest sequence and recomputes it later.</li>
+      <li>The visitor sees it as a sudden stall, and the work is done twice.</li>
+    </ul>
+    <div class="card c-coral flat"><h4>Seeded fault 2</h4><p class="small mb0">Tomorrow you meet a deployment that preempts all evening. This slide is how you will recognise it.</p></div>
+  </div>
+  <aside class="notes"><p>vLLM's tuning guide describes the same behaviour: when the cache is insufficient, requests are preempted and recomputed, and it suggests more cache memory. Sources: vLLM optimisation and tuning page.</p></aside>
+</section>
+
+<section class="slide" id="eight-bit-weights-teaser" data-lo="LO1 LO5">
+  <div class="kicker">Lab 1.2 · stretch</div>
+  <h2>With 8-bit weights the cache more than triples</h2>
+  <div class="cols cols-2">
+    <div class="stat center"><div class="big">24,400</div><div class="lbl">tokens of cache, 16-bit weights</div></div>
+    <div class="stat center"><div class="big">80,016</div><div class="lbl">tokens of cache, 8-bit weights</div></div>
+  </div>
+  <p class="small mt">Halving the weights frees 8.2 GB, all of it for conversations. Whether quality holds is Day 3's question.</p>
+  <aside class="notes"><p>Do not let the room conclude yet: this is the memory side only. Asrar's evaluation sets decide on Day 3 whether 8-bit weights keep the Arabic and English scores above their floors.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO1">
+  <div class="kicker">Checkpoint</div>
+  <h2>How many fit?</h2>
+  <div class="quiz" data-type="single" data-lo="LO1">
+    <p class="lead">Another team serves a model with 32 layers, 8 key-value heads of size 128, in 16 bits, and has 4.2 GB left for the cache. About how many 4,000-token conversations fit at once?</p>
+    <div class="opts">
+      <div class="opt" data-why="Uses one byte per value: the cache is in 16 bits, two bytes each">About 16</div>
+      <div class="opt" data-why="Sizes with the query heads as if every head were stored">About 2</div>
+      <div class="opt" data-why="Forgets that both a key and a value are stored">About 16, keys only</div>
+      <div class="opt" data-ok>About 8</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> 2 × 32 × 8 × 128 × 2 = 131,072 bytes per token; 4,000 tokens is 0.52 GB; 4.2 GB holds about 8.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. Let the room compute it on paper, AI off. The two 16 answers come from dropping a factor of two in different places; ask who got which and why.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-2" data-auto="lab" data-lab="1.2">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>Tasks 1 to 3 are AI off. Typical problems: using 24 GB without the utilisation setting, forgetting the reserve, mixing GB and GiB (the engine log prints GiB). The 25% check fails loudly for a participant who forgot the reserve: let it fail, then ask them to read the start log.</p></aside>
 </section>
 
 <!-- Session 3 -->
 
 <section class="slide section" id="s3" data-auto="section" data-session="3"></section>
 
-<section class="slide" id="s3-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
-  <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+<section class="slide" id="three-clocks" data-lo="LO2">
+  <div class="kicker">What a visitor feels</div>
+  <h2>Three clocks per request, and the objective uses two of them</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>TTFT</h4><p class="small mb0">From sending to the first token: queue plus prefill.</p></div>
+    <div class="card c-cyan"><h4>TPOT</h4><p class="small mb0">Per token after the first: the reading pace.</p></div>
+    <div class="card c-purple"><h4>End to end</h4><p class="small mb0">The whole answer: TTFT plus TPOT times the tokens after the first.</p></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <aside class="notes"><p>vLLM reports these as histograms: vllm:time_to_first_token_seconds, vllm:inter_token_latency_seconds and vllm:request_time_per_output_token_seconds. Inter-token latency is per gap; TPOT is per request. Sources: vLLM metrics page.</p></aside>
 </section>
 
-<section class="slide" id="s3-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="goodput-defined" data-lo="LO2">
+  <div class="kicker">The measure of this course</div>
+  <h2>Goodput counts only the requests that met both objectives</h2>
+  <pre class="code" data-file="Lab 1.3 · task 4"><code class="language-python">met = (df.ttft_s &lt;= 2.0) &amp; (df.tpot_s &lt;= 0.100)
+goodput = met.sum() / (df.end.max() - df.start.min())
+attainment = met.mean()</code></pre>
+  <p class="small mt">Throughput counts every finished request. Goodput counts the visitors who were served well.</p>
+  <aside class="notes"><p>DistServe (Zhong et al., 2024) made goodput under TTFT and TPOT objectives the measure for language model serving. The objective is per request: a mean under 2 s can hide a third of visitors waiting longer. Sources: arXiv 2401.09670.</p></aside>
+</section>
+
+<section class="slide" id="measure-from-the-stream" data-lo="LO2">
+  <div class="kicker">Lab 1.3 · tasks 1 and 2</div>
+  <h2>A client measures from the stream it receives</h2>
+  <pre class="code s" data-file="Lab 1.3"><code class="language-python">data: {"choices": [{"index": 0, "text": "tok "}]}
+data: {"choices": [{"index": 0, "text": "tok "}]}
+data: [DONE]
+
+ttft = (times[0] - t0) / scale
+tpot = (times[-1] - times[0]) / (len(times) - 1) / scale</code></pre>
+  <aside class="notes"><p>The stand-in engine speaks the streaming format of OpenAI-compatible servers, so the same client works against vLLM, SGLang or llama.cpp server. It runs four times faster than simulated time; the scale is divided out. Demonstrate the single request: about 0.6 s to the first token and 74 ms a token, as Lab 1.1 predicted.</p></aside>
+</section>
+
+<section class="slide" id="closed-loop-users" data-lo="LO2">
+  <div class="kicker">Load</div>
+  <h2>Concurrency is the number of visitors waiting for an answer at once</h2>
+  <ul class="bullets">
+    <li><b>Closed loop</b>: each user sends the next request when the last answer ends.</li>
+    <li>The load is set by the number of users, not by a rate.</li>
+    <li>It is easy to control and repeat, which is why curves are drawn over it.</li>
+    <li>It is kinder than reality: when the engine slows, the users slow too.</li>
+  </ul>
+  <aside class="notes"><p>Load generators with trace replay (inference-perf, Locust) offer both closed and open loops. Session 4 shows what the closed loop hides. Sources: inference-perf repository; Locust.</p></aside>
+</section>
+
+<section class="slide" id="throughput-rose-goodput-fell" data-lo="LO2">
+  <div class="kicker">Lab 1.3 · tasks 3 and 4</div>
+  <h2>From 8 to 24 users, throughput rose and goodput fell to zero</h2>
+  <table class="t">
+    <tr><th class="num">Users</th><th class="num">Throughput (req/s)</th><th class="num">Goodput (req/s)</th><th class="num">Attainment</th></tr>
+    <tr><td class="num">2</td><td class="num">0.20</td><td class="num">0.20</td><td class="num">100%</td></tr>
+    <tr><td class="num">8</td><td class="num">0.28</td><td class="num">0.09</td><td class="num">31%</td></tr>
+    <tr class="hl"><td class="num">24</td><td class="num">0.51</td><td class="num">0.00</td><td class="num">0%</td></tr>
+  </table>
+  <p class="small mt">The baseline as deployed, through the HTTP stand-in, quick-mode run.</p>
+  <aside class="notes"><p>These are the trainer's run of Lab 1.3 in quick mode (few requests per level); the room's numbers will differ a little. The shape is what matters: an engine can be fully busy and serve nobody well.</p></aside>
+</section>
+
+<section class="slide" id="where-the-time-went" data-lo="LO2 LO3">
+  <div class="kicker">Lab 1.3 · task 5</div>
+  <h2>At 24 users a request spends 28 seconds in the queue</h2>
+  <table class="t">
+    <tr><th class="num">Users</th><th class="num">Queue (s)</th><th class="num">Prefill (s)</th><th class="num">Decode (s)</th></tr>
+    <tr><td class="num">2</td><td class="num">0.00</td><td class="num">0.67</td><td class="num">12.68</td></tr>
+    <tr><td class="num">8</td><td class="num">0.14</td><td class="num">1.33</td><td class="num">17.70</td></tr>
+    <tr class="hl"><td class="num">24</td><td class="num">28.19</td><td class="num">3.44</td><td class="num">19.05</td></tr>
+  </table>
+  <p class="small mt">Mean seconds per request, from the engine's own times in the simulator.</p>
+  <aside class="notes"><p>The client sees only the stream; the engine knows when a request was first scheduled. In production the same split comes from the engine's metrics (vllm:request_queue_time_seconds, vllm:request_prefill_time_seconds, vllm:request_decode_time_seconds) or from a profiler. This breakdown is the first tool of Day 2's diagnoses.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which number goes in the report?</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">A run at 16 users shows a mean TTFT of 1.7 s, a p90 TTFT of 9 s, a TPOT p90 of 95 ms and 0.44 requests per second. Hanadi asks whether the objective is met. What do you report?</p>
+    <div class="opts">
+      <div class="opt" data-why="Reads a mean as the objective: the objective is per request">Yes: the mean TTFT is under 2 s</div>
+      <div class="opt" data-why="Treats throughput as success: busy is not served well">Yes: it serves 0.44 requests per second</div>
+      <div class="opt" data-ok>The share of requests that met both, which the p90 says is under 90%</div>
+      <div class="opt" data-why="Checks one clock only: a request must meet both">Yes: the TPOT p90 is under 100 ms</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> If the 90th percentile of TTFT is 9 s, more than 10% of requests waited over 2 s, so attainment is under 90% whatever the mean.</div>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>Answer: C. Push the room to say the number they would compute: attainment, then goodput.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-3" data-auto="lab" data-lab="1.3">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>The stand-in runs inside the notebook's process; the lab stops it before task 5. If a participant reruns a cell and gets "address already in use", restart the kernel. Problems seen: forgetting to divide by the scale (every time looks four times faster than it is), counting the [DONE] event as a token. A participant with a notebook GPU can try the stretch; it was not run when the course was built.</p></aside>
 </section>
 
 <!-- Session 4 -->
 
 <section class="slide section" id="s4" data-auto="section" data-session="4"></section>
 
-<section class="slide" id="s4-idea" data-lo="LO2">
-  <div class="kicker">REPLACE: the question this slide answers</div>
-  <h2>REPLACE: one idea, stated as a sentence</h2>
+<section class="slide" id="one-run-is-an-anecdote" data-lo="LO2">
+  <div class="kicker">Variance</div>
+  <h2>At 8 users, the p90 TTFT of three runs spreads by 0.7 seconds</h2>
   <div class="cols cols-2">
-    <ul class="bullets">
-      <li>REPLACE: at most six bullets, each a complete thought</li>
-      <li>REPLACE: bold the key phrase; numbers come from the lab run, not from memory</li>
-    </ul>
-    <div class="card c-teal"><h4>In the case study</h4><p class="small mb0">REPLACE: tie the idea to the case study and its data</p></div>
+    <div class="stat center"><div class="big">1.96 s</div><div class="lbl">mean p90 TTFT of three runs</div></div>
+    <div class="stat center"><div class="big">± 0.68 s</div><div class="lbl">standard deviation between them</div></div>
   </div>
-  <div class="callout warn mt"><b>What goes wrong.</b> REPLACE: the failure participants will hit, and how to recognise it</div>
-  <aside class="notes">REPLACE: what to say, the demo to run, the question to ask the room, the common failure and its fix</aside>
+  <p class="small mt">Near the knee, small changes in which requests arrive together decide who waits. A single run could have said 1.3 s or 2.6 s.</p>
+  <aside class="notes"><p>From Lab 1.4's supplied runs (synthetic, seeds 101 to 103). The variance is largest exactly where decisions are made: near the knee. A difference between two configurations smaller than this spread is not a finding.</p></aside>
 </section>
 
-<section class="slide" id="s4-steps" data-lo="LO2">
-  <div class="kicker">Step by step</div>
-  <h2>REPLACE: a process, shown one step per key press</h2>
-  <div class="flow">
-    <div class="step c-teal"><b>1 · REPLACE: name</b>REPLACE: what happens first</div>
-    <div class="arrow frag" data-frag="b">→</div><div class="step c-cyan frag" data-frag="b"><b>2 · REPLACE: name</b>REPLACE: the next piece</div>
-    <div class="arrow frag" data-frag="c">→</div><div class="step c-coral frag" data-frag="c"><b>3 · REPLACE: name</b>REPLACE: the result</div>
+<section class="slide" id="baseline-curve" data-lo="LO2">
+  <div class="kicker">Lab 1.4 · task 4</div>
+  <h2>The baseline's goodput peaks at 4 users and collapses by 12</h2>
+  <figure class="figure">
+    <img src="../assets/d1-baseline-curve.svg" alt="Throughput keeps rising from 1 to 16 users while goodput peaks at 0.23 requests per second at 4 users and falls to almost zero at 12 and 16 users">
+    <figcaption>Mean of three runs per point, error bars one standard deviation. Synthetic: the course simulator.</figcaption>
+  </figure>
+  <aside class="notes"><p>Point at the gap between the two lines: that gap is the work the engine does for visitors who were not served well. Ask where you would run this engine if you had to: just left of the knee, with admission control keeping it there (Day 2).</p></aside>
+</section>
+
+<section class="slide" id="the-knee" data-lo="LO2">
+  <div class="kicker">Lab 1.4 · task 2</div>
+  <h2>Seven points, three runs each, raw rows kept</h2>
+  <table class="t small">
+    <tr><th class="num">Users</th><th class="num">Goodput</th><th class="num">± sd</th><th class="num">Throughput</th><th class="num">TTFT p90 (s)</th><th class="num">TPOT p90 (ms)</th></tr>
+    <tr><td class="num">1</td><td class="num">0.079</td><td class="num">0.003</td><td class="num">0.080</td><td class="num">1.41</td><td class="num">75</td></tr>
+    <tr><td class="num">2</td><td class="num">0.145</td><td class="num">0.006</td><td class="num">0.146</td><td class="num">1.39</td><td class="num">84</td></tr>
+    <tr class="hl"><td class="num">4</td><td class="num">0.233</td><td class="num">0.014</td><td class="num">0.255</td><td class="num">1.42</td><td class="num">99</td></tr>
+    <tr><td class="num">6</td><td class="num">0.194</td><td class="num">0.023</td><td class="num">0.333</td><td class="num">1.51</td><td class="num">110</td></tr>
+    <tr><td class="num">8</td><td class="num">0.096</td><td class="num">0.006</td><td class="num">0.399</td><td class="num">1.96</td><td class="num">122</td></tr>
+    <tr><td class="num">12</td><td class="num">0.009</td><td class="num">0.008</td><td class="num">0.441</td><td class="num">11.42</td><td class="num">128</td></tr>
+    <tr><td class="num">16</td><td class="num">0.001</td><td class="num">0.001</td><td class="num">0.443</td><td class="num">20.81</td><td class="num">132</td></tr>
+  </table>
+  <aside class="notes"><p>The 6-user row is the participant's own point in the lab; the others are supplied. Note what breaks first: TPOT crosses 100 ms at 6 users, before TTFT crosses 2 s. On this deployment, decoding pace is the binding objective at moderate load.</p></aside>
+</section>
+
+<section class="slide" id="benchmark-validity" data-lo="LO2">
+  <div class="kicker">Benchmark validity</div>
+  <h2>A curve is evidence only if someone else can rerun it</h2>
+  <div class="cols cols-2">
+    <ul class="bullets small">
+      <li>The same trace, or a named sample of it, with its seed.</li>
+      <li>Warm-up dropped: the first 10% of each run here.</li>
+      <li>Enough requests per point to fill the engine many times.</li>
+      <li>Three or more repeats, and the spread reported.</li>
+    </ul>
+    <ul class="bullets small">
+      <li>The raw per-request rows kept beside the plot.</li>
+      <li>The configuration and the engine version recorded.</li>
+      <li>The objectives written on the plot.</li>
+      <li>Closed or open loop stated.</li>
+    </ul>
   </div>
-  <div class="callout tip mt frag"><b>Takeaway.</b> REPLACE: the one sentence to remember</div>
-  <aside class="notes">Press once per step and say what each step adds before the next one appears. REPLACE: the example to walk through</aside>
+  <aside class="notes"><p>This is the checklist of the capstone's "benchmark method" criterion, worth 25 of 100. Ask which item a vendor's published throughput number usually leaves out (often the objectives and the spread).</p></aside>
+</section>
+
+<section class="slide" id="closed-loop-hides-the-queue" data-lo="LO2">
+  <div class="kicker">Lab 1.4 · stretch</div>
+  <h2>Replayed at real arrival times, the peak queues for minutes</h2>
+  <div class="cols cols-2">
+    <div class="card c-teal"><h4>Closed loop, 16 users</h4><p class="small mb0">0.44 requests per second, p90 TTFT 21 s. The users waited for each other.</p></div>
+    <div class="card c-coral"><h4>Open loop, two minutes of the peak</h4><p class="small mb0">0.45 requests per second served while 2.13 arrive; p90 TTFT 372 s and growing.</p></div>
+  </div>
+  <div class="callout warn mt"><b>What goes wrong.</b> A closed-loop test at "high concurrency" can look survivable while real arrivals would grow the queue without bound.</div>
+  <aside class="notes"><p>Open-loop numbers from the stretch's quick run: 120 seconds of the busiest hour replayed. Arrivals at 2.13 per second against a best goodput of 0.23: the baseline is short by a factor of about nine. That number is the capstone's starting gap.</p></aside>
+</section>
+
+<section class="slide" id="capacity-claim" data-lo="LO2">
+  <div class="kicker">Lab 1.4 · task 5</div>
+  <h2>A capacity claim names the point, its spread and the objectives</h2>
+  <div class="callout note"><b>Claim.</b> The baseline serves at most 0.23 ± 0.01 good requests per second (mean ± sd of 3 runs) at 4 concurrent users, under TTFT ≤ 2.0 s and TPOT ≤ 100 ms; beyond it goodput falls while throughput keeps rising.</div>
+  <p class="small mt">The evening peak brings 2.13 requests per second: nine times this.</p>
+  <aside class="notes"><p>Have two participants read their claims aloud and let the room check each against the validity checklist. The claim goes into the capstone report as the "before".</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Is the new setting better?</h2>
+  <div class="quiz" data-type="single" data-lo="LO2">
+    <p class="lead">At 8 users, one run with a new engine setting gives a p90 TTFT of 1.5 s against the baseline's 1.96 s mean (sd 0.68 over three runs). What do you conclude?</p>
+    <div class="opts">
+      <div class="opt" data-ok>Nothing yet: the gap is inside the baseline's spread; run three repeats</div>
+      <div class="opt" data-why="Takes one run as a measurement: one run cannot show a spread">The setting cuts TTFT by a quarter</div>
+      <div class="opt" data-why="Uses the wrong measure: the decision rests on goodput, but the spread problem remains">It is better because throughput did not drop</div>
+      <div class="opt" data-why="Overcorrects: a noisy result is not evidence of harm either">The setting is worse: the result is noisy</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A 0.46 s difference against a standard deviation of 0.68 s between runs is noise until repeats show otherwise.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. This is the habit the capstone's benchmark criterion grades.</p></aside>
 </section>
 
 <section class="slide lab" id="lab-1-4" data-auto="lab" data-lab="1.4">
-  <aside class="notes">REPLACE: what to watch for while participants work, the typical problems, and the fallback for anyone who did not finish an earlier lab</aside>
+  <aside class="notes"><p>The supplied runs are synthetic and labelled so; a participant with the engine tier can replace them with real runs of their own. Typical problems: computing goodput over the whole run including the warm-up (the supplied rows already dropped it), and plotting means without error bars.</p></aside>
 </section>
 
-<section class="slide" id="wrap-up">
-  <div class="kicker">Day 1 · wrap-up</div>
-  <h2>Three things to keep</h2>
-  <div class="cols cols-3">
-    <div class="card c-teal"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-coral"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
-    <div class="card c-purple"><h4>Remember</h4><p class="small mb0">REPLACE: one idea participants keep</p></div>
+<section class="slide" id="day-1-recap" data-lo="LO1 LO2">
+  <div class="kicker">Day 1 · three things to keep</div>
+  <h2>Predict first, measure with spread, judge by goodput</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>Two phases</h4><p class="small mb0">Prefill waits on arithmetic, decode on memory. Two lines of arithmetic predict both.</p></div>
+    <div class="card c-cyan"><h4>The cache decides</h4><p class="small mb0">3.6 GB of cache holds about 12 conversations of 2,000 tokens: that, not compute, limits the baseline.</p></div>
+    <div class="card c-coral"><h4>Curves with spread</h4><p class="small mb0">Goodput over concurrency, three runs a point, raw rows kept: 0.23 at the knee.</p></div>
   </div>
+  <aside class="notes"><p>Ask each table for the one number from today they would put in front of Hanadi. Most will pick the factor of nine.</p></aside>
 </section>
 
-<section class="slide dark" id="next" data-label="Next">
+<section class="slide dark" id="tomorrow-inside-the-engine" data-lo="LO3 LO4">
   <div class="kicker">Next</div>
-  <h2>Day 2: Scheduling and caching in the engine</h2>
-  <p class="lead">REPLACE: what participants prepare before then; unfinished labs can be finished at home</p>
-  <aside class="notes">REPLACE: accounts, installs or reading participants need before the next unit</aside>
+  <h2>Tomorrow: three broken deployments, and the settings that fix them</h2>
+  <ul class="bullets">
+    <li>Keep your sizing sheet and your curve: Day 2 starts from them.</li>
+    <li>Read the vLLM page on chunked prefill and preemption (in the sources) before the session.</li>
+    <li>Think of one prompt you know whose beginning changes on every request.</li>
+  </ul>
+  <aside class="notes"><p>The pre-reading is short and practical. The last bullet prepares Session 2.3: Musamir's prompt starts with a per-request header, which defeats the prefix cache.</p></aside>
 </section>

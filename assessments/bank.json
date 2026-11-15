@@ -3,24 +3,24 @@
   "version": 1,
   "questions": [
     {
-      "id": "q-example-1",
+      "id": "q-lo1-decode-bound",
       "type": "single",
-      "prompt": "REPLACE: a practice question on LO1, as a short scenario",
+      "prompt": "A 7B model in 16 bits decodes one sequence on a card with 400 GB/s of bandwidth reached at 80%. About how long is one decode step, ignoring the cache?",
       "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
+        "About 4 ms",
+        "About 44 ms",
+        "About 140 ms",
+        "About 9 ms"
       ],
       "correct": [
         1
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "14 GB of weights read at 320 GB/s takes about 44 ms; at batch 1 the step waits on memory.",
       "misconceptions": [
-        "REPLACE: the misconception behind this option",
+        "Divides by the operation rate as if decode were bound by arithmetic",
         "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
+        "Counts four bytes per weight, as in 32-bit training",
+        "Counts one byte per weight, as if the model were in 8 bits"
       ],
       "lo": [
         "LO1"
@@ -32,134 +32,262 @@
       "weight": 1
     },
     {
-      "id": "q-example-2",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO2 that is true",
+      "id": "q-lo1-prefill-bound",
+      "type": "single",
+      "prompt": "A visitor pastes a 6,000-token event terms document. Which resource mostly sets the time to its first token on Musamir's L4?",
       "options": [
-        "True",
-        "False"
+        "Memory bandwidth, because the weights are read for every token",
+        "The size of the cache",
+        "The accelerator's arithmetic rate",
+        "The network between the visitor and the node"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "A prefill processes all 6,000 tokens in one pass that shares one read of the weights, so it is bound by arithmetic.",
+      "misconceptions": [
+        "Assumes the prompt is read token by token as in decode",
+        "Confuses whether it fits with how fast it runs",
+        "",
+        "Blames transport for compute time: the tokens are small"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 1,
+      "level": "understand",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo1-kv-gqa",
+      "type": "single",
+      "prompt": "A model has 40 layers, 40 query heads and 8 key-value heads of size 128, with a 16-bit cache. How many bytes of cache does one token take?",
+      "options": [
+        "163,840 bytes",
+        "819,200 bytes",
+        "81,920 bytes",
+        "40,960 bytes"
       ],
       "correct": [
         0
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "2 × 40 layers × 8 KV heads × 128 × 2 bytes = 163,840 bytes; only the key-value heads are stored.",
       "misconceptions": [
         "",
-        "REPLACE: the misconception behind this option"
+        "Sizes with the 40 query heads as if every head were stored",
+        "Stores only keys, or only values",
+        "Counts one byte per value and keys only"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 2,
+      "level": "apply",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo1-reserve",
+      "type": "single",
+      "prompt": "Your prediction says 18 conversations of 2,000 tokens fit; the engine holds 12 and preempts. The model and length are right. What did the prediction most likely leave out?",
+      "options": [
+        "The query heads",
+        "The engine's reserve for activations and the memory-utilisation limit",
+        "The tokenizer's vocabulary",
+        "The speed of the accelerator"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "The cache gets only what is left after the utilisation limit, the weights and the reserve; leaving those out overstates the cache.",
+      "misconceptions": [
+        "Would make the prediction four times too low, not too high",
+        "",
+        "The vocabulary affects weights, already counted",
+        "Speed does not change how many conversations fit"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 2,
+      "level": "analyze",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo1-binding",
+      "type": "single",
+      "prompt": "Musamir in 16 bits holds about 12 conversations of 2,000 tokens, and decoding reaches the ridge point only at about 246 sequences. What binds the baseline's concurrency?",
+      "options": [
+        "Arithmetic: the card is too slow",
+        "The sequence cap of the engine",
+        "Cache memory: the batch never grows enough to use the arithmetic",
+        "The network bandwidth"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The cache fills at about 12 sequences, far below the 246 at which decode would use the arithmetic: memory capacity binds.",
+      "misconceptions": [
+        "Reads a memory-bound step as a slow processor",
+        "Blames a setting that could be raised without more room",
+        "",
+        "Moves the problem outside the node"
+      ],
+      "lo": [
+        "LO1"
+      ],
+      "day": "day1",
+      "session": 2,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo2-goodput",
+      "type": "single",
+      "prompt": "In 100 seconds an engine finishes 60 requests; 45 met both TTFT and TPOT objectives, 10 met only TTFT, 5 met only TPOT. What is the goodput?",
+      "options": [
+        "0.60 requests per second",
+        "0.55 requests per second",
+        "0.50 requests per second",
+        "0.45 requests per second"
+      ],
+      "correct": [
+        3
+      ],
+      "explanation": "Only requests meeting both objectives count: 45 in 100 s is 0.45 per second.",
+      "misconceptions": [
+        "Counts throughput, every finished request",
+        "Counts requests that met TTFT",
+        "Counts requests that met TPOT and both",
+        ""
       ],
       "lo": [
         "LO2"
       ],
       "day": "day1",
-      "session": 1,
-      "level": "understand",
-      "pool": "practice",
-      "weight": 1
-    },
-    {
-      "id": "q-example-3",
-      "type": "single",
-      "prompt": "REPLACE: a practice question on LO3, as a short scenario",
-      "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
-      ],
-      "correct": [
-        1
-      ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
-      "misconceptions": [
-        "REPLACE: the misconception behind this option",
-        "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
-      ],
-      "lo": [
-        "LO3"
-      ],
-      "day": "day1",
-      "session": 1,
+      "session": 3,
       "level": "apply",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-4",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO4 that is true",
+      "id": "q-lo2-mean",
+      "type": "single",
+      "prompt": "Two configurations have the same mean TTFT of 1.4 s. A has a p90 of 1.9 s, B a p90 of 4.2 s. Against Musamir's objective, which serves visitors better?",
       "options": [
-        "True",
-        "False"
+        "They are equal: the means are the same",
+        "B, because its spread shows it handles bursts",
+        "A: more of its requests meet the 2.0 s objective",
+        "Neither can be judged without throughput"
       ],
       "correct": [
-        0
+        2
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "The objective is per request; A's 90th percentile is under 2.0 s, B's is not.",
       "misconceptions": [
+        "Treats the mean as the objective",
+        "Reads a long tail as a strength",
         "",
-        "REPLACE: the misconception behind this option"
+        "Throughput does not tell who was served well"
       ],
       "lo": [
-        "LO4"
+        "LO2"
       ],
       "day": "day1",
-      "session": 1,
-      "level": "understand",
+      "session": 3,
+      "level": "evaluate",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-5",
+      "id": "q-lo2-knee",
       "type": "single",
-      "prompt": "REPLACE: a practice question on LO5, as a short scenario",
+      "prompt": "A curve shows throughput rising from 0.25 to 0.44 requests per second between 4 and 16 users, while goodput falls from 0.23 to 0.00. Where should the engine be run?",
       "options": [
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: the right answer",
-        "REPLACE: a wrong option that a common misconception makes tempting",
-        "REPLACE: a wrong option that a common misconception makes tempting"
+        "At 16 users, where throughput is highest",
+        "Near 4 users, with admission control holding it there",
+        "At 1 user, where every request meets the objective",
+        "Anywhere: the objective is met on average"
       ],
       "correct": [
         1
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "The knee of goodput is the operating point; beyond it extra load is served late.",
       "misconceptions": [
-        "REPLACE: the misconception behind this option",
+        "Optimises the busy measure, not the served one",
         "",
-        "REPLACE: the misconception behind this option",
-        "REPLACE: the misconception behind this option"
+        "Wastes the batching that is free until the knee",
+        "Averages away a per-request objective"
       ],
       "lo": [
-        "LO5"
+        "LO2"
       ],
       "day": "day1",
-      "session": 1,
-      "level": "apply",
+      "session": 4,
+      "level": "analyze",
       "pool": "practice",
       "weight": 1
     },
     {
-      "id": "q-example-6",
-      "type": "tf",
-      "prompt": "REPLACE: a statement on LO6 that is true",
+      "id": "q-lo2-repeats",
+      "type": "single",
+      "prompt": "One run of a new setting gives a p90 TTFT 0.3 s lower than the baseline, whose three runs spread by 0.6 s. What do you report?",
       "options": [
-        "True",
-        "False"
+        "An improvement of 0.3 s",
+        "No difference established yet; repeat the new setting three times",
+        "A regression, because the result is noisy",
+        "An improvement, because throughput held"
+      ],
+      "correct": [
+        1
+      ],
+      "explanation": "A difference smaller than the run-to-run spread is not evidence until repeated.",
+      "misconceptions": [
+        "Takes one run as a measurement",
+        "",
+        "Treats noise as evidence of harm",
+        "Swaps the question for another measure"
+      ],
+      "lo": [
+        "LO2"
+      ],
+      "day": "day1",
+      "session": 4,
+      "level": "evaluate",
+      "pool": "practice",
+      "weight": 1
+    },
+    {
+      "id": "q-lo2-open-loop",
+      "type": "single",
+      "prompt": "Why can a closed-loop test at 16 users look survivable when the real evening peak is not?",
+      "options": [
+        "Closed-loop users wait for each answer, so the load eases when the engine slows",
+        "Closed-loop tests use shorter prompts",
+        "Open-loop tests add network delay",
+        "Closed-loop tests skip the warm-up"
       ],
       "correct": [
         0
       ],
-      "explanation": "REPLACE: why the right answer is right, in one sentence",
+      "explanation": "Real arrivals keep coming whatever the engine does; a closed loop throttles itself.",
       "misconceptions": [
         "",
-        "REPLACE: the misconception behind this option"
+        "The prompts are the same in both",
+        "Neither adds delay by itself",
+        "Warm-up is dropped in both"
       ],
       "lo": [
-        "LO6"
+        "LO2"
       ],
       "day": "day1",
-      "session": 1,
+      "session": 4,
       "level": "understand",
       "pool": "practice",
       "weight": 1

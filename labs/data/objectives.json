@@ -1,0 +1,6 @@
+{
+  "ttft_s": 2.0,
+  "tpot_s": 0.1,
+  "attainment_target": 0.9,
+  "note": "Per request: time to first token at most 2.0 s and time per output token at most 100 ms. The service objective: 90% of requests at the evening peak meet both."
+}

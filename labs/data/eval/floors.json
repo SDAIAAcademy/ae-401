@@ -1,0 +1,5 @@
+{
+  "ar": 0.73,
+  "en": 0.81,
+  "note": "Quality floor per language: the base model's score on the set, less three points, rounded."
+}

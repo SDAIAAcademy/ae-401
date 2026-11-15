@@ -39,7 +39,7 @@ Participants take the bilingual visitor assistant of a fictional national events
 
 ## Case study
 
-**REPLACE: the name of the fictional organisation every lab works on.** REPLACE: two sentences on the case study and its synthetic data
+**Liwan National Events Authority** (fictional). Its bilingual visitor assistant, Musamir, serves three event organisers (Qamra Festival, Sawt Concerts and Athar Heritage Week) from one leased NVIDIA L4 accelerator running Qwen3-8B, and is too slow at the evening peak and too costly. The labs work on 40,000 synthetic Arabic and English visitor requests over a day, the real model cards and accelerator sheets, recorded evaluation outcomes for six model variants on 600 Arabic and English items, 240 paraphrase pairs and a course simulator of the serving engine, all generated with a fixed seed (`labs/prepare_data.py`, seed 401). The people of the case: Dr. Hanadi Al-Kathiri (head of visitor digital services, owner of the objective and the budget), Yamen Al-Hulaibi (platform engineer), Asrar Al-Rifai (evaluation lead), Rawya Al-Twaim (data protection officer), Kenan Al-Ajlan (finance analyst); participants play Tamader Al-Harqan, the inference engineer.
 
 <!-- academy:labs -->
 ## Labs
@@ -70,7 +70,7 @@ Every lab is a notebook in `labs/`. Open it in Google Colab from the course page
 
 Tune a provided under-performing deployment of the case assistant to meet its latency objectives at minimum cost per successful request, submitted as a public repository with raw benchmark data, quality by language and a design document, and defended in 20 minutes. The follow-up task repeats the method on the participant's own deployment or a public trace
 
-**Submission:** REPLACE: what participants submit and how: a public repository link, or a shared folder for a course without code
+**Submission:** A public GitHub repository link: raw benchmark files, engine logs, quality by language, the design document and a commit history; submitted before the defence
 
 ## Prerequisites
 
@@ -146,7 +146,7 @@ Each line is a capability; the examples are interchangeable.
 
 ### National references
 
-- Personal Data Protection Law and its implementing regulations: REPLACE: the address of the official text
-- Regulation on Personal Data Transfer outside the Kingdom: REPLACE: the address of the official text
-- NDMO Data Classification Policy: REPLACE: the address of the official text
-- SDAIA Generative AI Guidelines: REPLACE: the address of the official text
+- Personal Data Protection Law and its implementing regulations: <https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf> and <https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulationPersonalDataProtectionLaw.pdf>
+- Regulation on Personal Data Transfer outside the Kingdom: <https://sdaia.gov.sa/Documents/RegulationonPersonalDataEN.pdf>
+- NDMO Data Classification Policy: <https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf>
+- SDAIA Generative AI Guidelines (the Generative AI Guideline for Government): <https://sdaia.gov.sa/en/SDAIA/about/Files/GenAIGuidelinesForGovernmentENCompressed.pdf>

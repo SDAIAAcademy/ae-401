@@ -1,0 +1,7 @@
+{
+  "qwen3-0.6b": {
+    "en": 0.66,
+    "ar": 0.46,
+    "note": "synthetic per-token acceptance of the draft model, by language"
+  }
+}

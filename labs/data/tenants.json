@@ -1,0 +1,23 @@
+{
+  "header_tokens": 24,
+  "base_tokens": 640,
+  "tenants": {
+    "qamra": {
+      "name": "Qamra Festival",
+      "name_ar": "مهرجان قمرة",
+      "tokens": 512
+    },
+    "sawt": {
+      "name": "Sawt Concerts",
+      "name_ar": "حفلات صوت",
+      "tokens": 448
+    },
+    "athar": {
+      "name": "Athar Heritage Week",
+      "name_ar": "أسبوع أثر للتراث",
+      "tokens": 576
+    }
+  },
+  "prompt_as_deployed": "[header] Request {request_id}. Visitor: {visitor_first_name}. Received at second {seconds_of_day} of the day.\n[base] You are Musamir, the visitor assistant of Liwan National Events Authority. Answer in the visitor's language...\n[tenant] Event rules and venue notes of {tenant}...\n[document] The event's terms, when the visitor asks about them...\n[history] The earlier turns of this conversation...\n[question] {question}",
+  "note": "The base instructions are the same text for every tenant; each tenant adds its own rules."
+}
