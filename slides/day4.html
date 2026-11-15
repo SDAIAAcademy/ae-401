@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="deck" data-track="ai-engineering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 4 · Across replicas and over the day · Inference Performance and Cost Engineering</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<link rel="icon" href="../_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="day4.md">
+<link rel="describedby" href="../llms.txt">
+<link rel="stylesheet" href="../_engine/academy.css">
+</head>
+<body>
+<div class="deck" data-course="Inference Performance and Cost Engineering" data-track="ai-engineering" data-day="Day 4">
+<section class="slide title" id="title" data-auto="title" data-label="Welcome" data-n="1">
+  <div class="kicker">SDAIA Academy · Inference Performance and Cost Engineering</div>
+  <h1>Across replicas and over the day</h1>
+  <p class="lead mt">Day 4: Topology, routing, scaling and the cost of a successful request</p>
+  <div class="meta"><span class="track">AI Engineering Track</span><span>4 teaching days + capstone day</span><span>4 sessions · 4 labs</span><span>AE-401</span></div>
+  <aside class="notes"><p>The last teaching day leaves the single card. Four questions, one per session: split the phases or not, which replica gets a request, how many replicas when, and whether Liwan should run any of this itself. The last answer surprises most rooms; do not give it away in the opening.</p></aside>
+</section>
+
+<section class="slide" id="where-day-3-left-us" data-lo="LO5" data-n="2">
+  <div class="kicker">Where Day 3 left us</div>
+  <h2>One card in 8 bits meets the objective in the first minutes of the peak</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">100%</div><div class="lbl">attainment, 8-bit weights and cache, first five minutes of the peak</div></div>
+    <div class="stat center"><div class="big">2.5</div><div class="lbl">good requests per second one replica sustains</div></div>
+    <div class="stat center"><div class="big">0.737</div><div class="lbl">Arabic score with routing at 0.4, floor 0.73</div></div>
+  </div>
+  <p class="small mt">Today: a whole day, a festival's closing night, several cards, and the bill.</p>
+  <aside class="notes"><p>Five minutes of a usual peak is not a closing night, and one card has no spare for a failure. The capacity of 2.5 good requests per second comes from the 48-user run of Day 3's engine; Lab 4.3 measures it again.</p></aside>
+</section>
+
+<section class="slide" id="review-checkpoint" data-lo="LO5" data-n="3">
+  <div class="kicker">Review</div>
+  <h2>Yesterday's trade, read again</h2>
+  <div class="quiz" data-type="single" data-lo="LO5" data-id="review-checkpoint-q1">
+    <p class="lead">A new 3-bit format frees 1.2 GB more than 4-bit and scores 0.845 in English. Nobody has scored it in Arabic yet. What do you tell Yamen?</p>
+    <div class="opts">
+      <div class="opt" data-why="English held under 4-bit while Arabic fell seven points; English says nothing about Arabic" data-k="A">Ship it: English is above its floor, so Arabic will be too</div>
+      <div class="opt" data-why="The memory gain is small and the quality is unknown: more cache cannot justify an unmeasured floor" data-k="B">Ship it: the extra cache is worth any small loss</div>
+      <div class="opt" data-why="The floor rule needs a score per language, not a rejection of the whole format family" data-k="C">Never use formats under 8 bits</div>
+      <div class="opt" data-ok data-k="D">Score it in Arabic against the floor before any decision</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The floors are per language, and Day 3 showed a format can hold English and fail Arabic.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. Two minutes. If anyone picks A, return to the 4-bit row of the serving table.</p></aside>
+</section>
+
+<section class="slide" id="agenda" data-auto="agenda" data-label="Agenda" data-n="4">
+  <div class="kicker">Today</div>
+  <h2>Across replicas and over the day</h2>
+  <div class="agenda"><div class="item"><div><b>Session 1 · Disaggregated prefill and decode</b><small>Separate pools stop prefills from stalling decodes, at the price of moving the cache.</small></div></div><div class="item"><div><b>Session 2 · Routing across replicas</b><small>Where a request lands decides whether its prefix is already cached.</small></div></div><div class="item"><div><b>Session 3 · Autoscaling and cold starts</b><small>Scale on the signal users feel, and keep enough warm replicas for the cold start.</small></div></div><div class="item"><div><b>Session 4 · Cost per successful request</b><small>The number that decides: cost divided by the requests that met the objective.</small></div></div></div>
+</section>
+
+<!-- Session 1 -->
+
+<section class="slide section" id="s1" data-auto="section" data-session="1" data-n="5">
+  <div class="kicker">Session 1</div>
+  <h1>Disaggregated prefill and decode</h1>
+  <ul class="bullets outcomes"><li>Predict the load on separate prefill and decode pools</li><li>Compute the cost of moving the cache between them</li><li>State when disaggregation pays for a traffic mix</li></ul>
+  <div class="sess-no">01</div>
+</section>
+
+<section class="slide" id="split-the-phases" data-lo="LO6" data-n="6" data-session="1">
+  <div class="kicker">Disaggregation</div>
+  <h2>Prefill on one pool, decode on another, the cache moved between them</h2>
+  <div class="flow">
+    <div class="step"><b>Prefill pool</b><span>computes the prompt</span></div>
+    <div class="step"><b>Transfer</b><span>the prompt's cache, over the link</span></div>
+    <div class="step"><b>Decode pool</b><span>steps never carry a prompt</span></div>
+  </div>
+  <ul class="bullets mt">
+    <li>Each pool can be sized and configured for its phase.</li>
+    <li>The price: the transfer, and two pools to keep busy.</li>
+  </ul>
+  <aside class="notes"><p>DistServe (Zhong et al., 2024, arXiv 2401.09670) and Splitwise (Patel et al., 2024, arXiv 2311.18677) both separate the phases onto different machines; vLLM has an experimental disaggregated prefill feature with connectors that move the cache. Day 2's chunked prefill is the other answer to the same interference, inside one engine.</p></aside>
+</section>
+
+<section class="slide" id="predict-pools" data-lo="LO6" data-n="7" data-session="1">
+  <div class="kicker">Lab 4.1 · tasks 1 and 2</div>
+  <h2>One prefill card would be busy 38% of the time; the transfer costs 12 ms</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="stat center"><div class="big">38%</div><div class="lbl">busy share of one prefill card, 2.7 requests a second, half with documents</div></div>
+    <div class="stat center"><div class="big">34</div><div class="lbl">sequences decoding at once, by Little's law</div></div>
+    <div class="stat center"><div class="big">12 ms</div><div class="lbl">cache transfer for the mean prompt; 37 ms for 10,000 tokens</div></div>
+  </div>
+  <aside class="notes"><p>The arithmetic is Day 1's: operations per prompt token over the card's rate, and bytes per token of cache over the link. 20 GB/s is the simulator's effective link inside one node; between nodes it would be slower. Little's law: sequences in the pool = arrival rate × answer tokens × TPOT.</p></aside>
+</section>
+
+<section class="slide" id="predict-steps" data-lo="LO6" data-n="8" data-session="1">
+  <div class="kicker">Lab 4.1 · tasks 3 and 4</div>
+  <h2>The prediction matches the supplied runs: shorter stalls when split, but no gain</h2>
+  <table class="t">
+    <tr><th>Two cards</th><th class="num">Predicted longest step</th><th class="num">Stall p90</th><th class="num">TPOT p50</th><th class="num">Document TTFT p90</th><th class="num">Attainment</th></tr>
+    <tr class="hl"><td>Together, chunked at 1,024</td><td class="num">0.168 s</td><td class="num">0.18 s</td><td class="num">63 ms</td><td class="num">0.88 s</td><td class="num">96.5%</td></tr>
+    <tr><td>Split, one prefill and one decode</td><td class="num">0.074 s</td><td class="num">0.13 s</td><td class="num">74 ms</td><td class="num">1.14 s</td><td class="num">93.9%</td></tr>
+  </table>
+  <p class="small mt">32 users, 50% documents, 8-bit weights and cache. Supplied runs of the course simulator.</p>
+  <aside class="notes"><p>The split decode card holds all 34 sequences, so its steps are slower than each of the two cards together (74 against 56 ms), and all prefills queue on one card. The split's shorter stall buys nothing when the objective allows 1.0 s.</p></aside>
+</section>
+
+<section class="slide" id="when-it-pays" data-lo="LO6" data-n="9" data-session="1">
+  <div class="kicker">Lab 4.1 · task 5</div>
+  <h2>With a 150 ms stall limit, only the split meets the objective</h2>
+  <div class="bars">
+    <div class="row"><span>Together, stall limit 1.0 s</span><div class="bar c-teal" style="--w:96%"></div><span class="val">96.5%</span></div>
+    <div class="row"><span>Split, stall limit 1.0 s</span><div class="bar c-cyan" style="--w:94%"></div><span class="val">93.9%</span></div>
+    <div class="row"><span>Together, stall limit 0.15 s</span><div class="bar c-coral" style="--w:13%"></div><span class="val">13.0%</span></div>
+    <div class="row"><span>Split, stall limit 0.15 s</span><div class="bar c-teal" style="--w:92%"></div><span class="val">92.2%</span></div>
+  </div>
+  <div class="callout tip mt"><b>Condition.</b> Disaggregation pays when the pause limit is shorter than a step that carries a prompt chunk.</div>
+  <aside class="notes"><p>The 150 ms limit is Hanadi's hypothetical voice channel. The general rule: disaggregate when the decode objective is tighter than chunked prefill can hold, with long prompts and enough cards to size each pool. Under Musamir's chat objective, keep both phases on every card.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-1" data-lo="LO6" data-n="10" data-session="1">
+  <div class="kicker">Checkpoint</div>
+  <h2>Split the cards?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6" data-id="checkpoint-1-q1">
+    <p class="lead">Another authority's assistant answers short questions with 3,000-token answers, under a 100 ms TPOT limit and a 1 s stall limit. Chunked prefill keeps its stall at 0.2 s. It has two cards. Should it disaggregate?</p>
+    <div class="opts">
+      <div class="opt" data-why="Disaggregation removes chunk steps from decode; with short prompts there is little to remove" data-k="A">Yes: disaggregation always lowers TPOT</div>
+      <div class="opt" data-ok data-k="B">Not on this evidence: the stall already meets its limit and prompts are short</div>
+      <div class="opt" data-why="The transfer grows with the prompt; short prompts make it smaller, not decisive" data-k="C">No: the cache transfer would break the TTFT objective</div>
+      <div class="opt" data-why="Long answers load the decode phase; that argues for more decode capacity, not for a prefill pool" data-k="D">Yes: long answers need a dedicated prefill card</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> Split pays when chunked steps break a decode limit; here they do not, and one card of two would serve few, short prefills.</div>
+  </div>
+  <aside class="notes"><p>Answer: B. Ask what measurement would change the answer: a TPOT p90 over 100 ms caused by chunk steps.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-4-1" data-auto="lab" data-lab="4.1" data-label="Lab 4.1" data-n="11" data-session="1">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 4.1 · 25 min</div><h2>When disaggregation pays</h2><p class="lead small">Predict when splitting prefill and decode pays on long prompts, then check the prediction against a supplied run.</p><a class="nb" href="../labs/D4_1_predict_when_disaggregation.ipynb">D4_1_predict_when_disaggregation.ipynb</a></div><ul class="checklist"><li>Predict prefill and decode pool load <span class="min">6 min</span></li><li>Cache transfer time per request <span class="min">4 min</span></li><li>Predicted TTFT and TPOT, together and split <span class="min">5 min</span></li><li>Compare with the supplied run <span class="min">6 min</span></li><li>State the condition when it pays <span class="min">4 min</span></li><li class="stretch">✱ Stretch: Change the share of long prompts and predict again</li></ul></div>
+  <aside class="notes"><p>AI tutor allowed for checking arithmetic. The supplied runs make tasks 1 to 5 fast; the stretch runs both layouts again at 20% documents, about twenty seconds each. Insist the prediction is written before the comparison.</p></aside>
+</section>
+
+<!-- Session 2 -->
+
+<section class="slide section" id="s2" data-auto="section" data-session="2" data-n="12">
+  <div class="kicker">Session 2</div>
+  <h1>Routing across replicas</h1>
+  <ul class="bullets outcomes"><li>Compare round-robin and prefix-aware routing on cache hits and latency</li><li>Write a prefix-aware router with a load limit</li><li>Detect a hot spot and correct it</li></ul>
+  <div class="sess-no">02</div>
+</section>
+
+<section class="slide" id="where-it-lands" data-lo="LO6" data-n="13" data-session="2">
+  <div class="kicker">Routing</div>
+  <h2>Round robin sends a conversation's next turn to a replica that has not seen it</h2>
+  <ul class="bullets">
+    <li>Each replica has its own cache: history computed on one is not on another.</li>
+    <li>A prefix-aware router sends each turn where its prefix is cached.</li>
+    <li>Affinity piles bursts on one replica unless the router also watches load.</li>
+  </ul>
+  <p class="small mt">Recap from AE-307, Day 4: inference-aware gateways. Here the question is narrower: what affinity does to one tenant's night and to the tail of the objective.</p>
+  <aside class="notes"><p>Participants compared round robin with queue- and prefix-aware pickers at the gateway in AE-307; do not teach the gateway again. Production routers that are prefix-aware exist in several open-source serving stacks; the design is always a cache score traded against a load score. The lab writes the simplest version: a hash of the conversation, and a load limit, and adds what AE-307 did not: the hot spot of routing by tenant and the per-request objective as the judge.</p></aside>
+</section>
+
+<section class="slide" id="closing-night" data-lo="LO6" data-n="14" data-session="2">
+  <div class="kicker">Lab 4.2 · tasks 1 to 3</div>
+  <h2>Affinity with a load limit serves 99% on the closing night; round robin 94%</h2>
+  <table class="t">
+    <tr><th>Router, 3 replicas</th><th class="num">Hit rate</th><th class="num">p90 TTFT</th><th class="num">Attainment</th></tr>
+    <tr><td>Round robin</td><td class="num">77.3%</td><td class="num">1.55 s</td><td class="num">93.5%</td></tr>
+    <tr><td>By conversation, no limit</td><td class="num">80.8%</td><td class="num">3.77 s</td><td class="num">78.7%</td></tr>
+    <tr class="hl"><td>By conversation, limit 24</td><td class="num">77.9%</td><td class="num">0.78 s</td><td class="num">99.4%</td></tr>
+  </table>
+  <p class="small mt">The evening peak played four times faster: about 8 requests per second. Synthetic: the course simulator.</p>
+  <aside class="notes"><p>The hit rate barely moves: every replica caches each tenant's shared instructions anyway. The gain is in the tail: with the limit, long histories are not recomputed at the worst moments and bursts are spread. Without the limit, affinity is worse than round robin.</p></aside>
+</section>
+
+<section class="slide" id="hot-spot" data-lo="LO6" data-n="15" data-session="2">
+  <div class="kicker">Lab 4.2 · task 4</div>
+  <h2>Routing by tenant puts half the night on one replica</h2>
+  <div class="bars">
+    <div class="row"><span>Replica 1, Qamra Festival</span><div class="bar c-coral" style="--w:100%"></div><span class="val">49% of requests</span></div>
+    <div class="row"><span>Replica 2, Sawt Concerts</span><div class="bar c-teal" style="--w:66%"></div><span class="val">33%</span></div>
+    <div class="row"><span>Replica 0, Athar Heritage Week</span><div class="bar c-cyan" style="--w:36%"></div><span class="val">18%</span></div>
+  </div>
+  <p class="small mt">Attainment 52%: the Qamra replica drowns while the Athar replica idles. Highest hit rate of all routers.</p>
+  <aside class="notes"><p>The tempting design: keep each tenant's rules cached on one replica. It wins on hit rate and loses on everything visitors feel, on the night of the tenant that matters most. A hot spot is the first thing to look for in per-replica metrics.</p></aside>
+</section>
+
+<section class="slide" id="router-rule" data-lo="LO6" data-n="16" data-session="2">
+  <div class="kicker">Lab 4.2 · task 5</div>
+  <h2>Route by conversation, fall back to the least-loaded replica</h2>
+  <pre><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">by_session</span>(<span class="hljs-params">engines, r, state, limit=<span class="hljs-number">24</span></span>):
+    i = zlib.crc32(r.session.encode()) % <span class="hljs-built_in">len</span>(engines)
+    <span class="hljs-keyword">if</span> load(engines[i]) &gt; limit:
+        i = <span class="hljs-built_in">min</span>(<span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(engines)), key=<span class="hljs-keyword">lambda</span> j: load(engines[j]))
+    <span class="hljs-keyword">return</span> engines[i]</code></pre>
+  <p class="small mt">A stable hash, so a turn finds its history; a limit, so no replica takes a burst alone.</p>
+  <aside class="notes"><p>The stretch sweeps the limit; values from 8 to 32 all meet the objective on this night. Ask what changes when a replica fails: the hash moves a third of the conversations, which lose their cached history once.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-2" data-lo="LO6" data-n="17" data-session="2">
+  <div class="kicker">Checkpoint</div>
+  <h2>Read the replica metrics</h2>
+  <div class="quiz" data-type="single" data-lo="LO6" data-id="checkpoint-2-q1">
+    <p class="lead">On three replicas, one shows 30 requests waiting and the cache 95% full; the other two show nothing waiting and the cache 20% full. The router hashes the tenant. What is the fix?</p>
+    <div class="opts">
+      <div class="opt" data-why="More replicas behind the same hash still send the big tenant to one of them" data-k="A">Add a fourth replica</div>
+      <div class="opt" data-why="The cap is not the cause: the load is unevenly placed" data-k="B">Raise the sequence cap on the busy replica</div>
+      <div class="opt" data-ok data-k="C">Route by conversation with a load limit, so the busy tenant spreads over all replicas</div>
+      <div class="opt" data-why="Removing the salt would mix tenants' blocks, which Rawya forbids, and does not move load" data-k="D">Remove the cache salt so the replicas can share blocks</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> A hot spot is placement, not capacity: two replicas idle while one drowns.</div>
+  </div>
+  <aside class="notes"><p>Answer: C. Those who pick A would pay for a fourth card that idles too.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-4-2" data-auto="lab" data-lab="4.2" data-label="Lab 4.2" data-n="18" data-session="2">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 4.2 · 25 min</div><h2>Round robin or prefix-aware</h2><p class="lead small">Replay a multi-turn trace on three replicas, round robin against a prefix-aware router you write, and compare hits, latency and balance.</p><a class="nb" href="../labs/D4_2_compare_round_robin.ipynb">D4_2_compare_round_robin.ipynb</a></div><ul class="checklist"><li>Replay round robin on three replicas <span class="min">5 min</span></li><li>Write a prefix-aware router <span class="min">7 min</span></li><li>Compare hit rate, TTFT and balance <span class="min">6 min</span></li><li>Find the hot spot of one tenant <span class="min">4 min</span></li><li>Choose, with a fallback rule <span class="min">3 min</span></li><li class="stretch">✱ Stretch: Session affinity with a load cap</li></ul></div>
+  <aside class="notes"><p>AI tutor allowed for Python. Each replay takes about fifteen seconds on a laptop. Common error: a router that returns an index instead of an engine. The safety net uses a reference router so the comparison still runs.</p></aside>
+</section>
+
+<!-- Session 3 -->
+
+<section class="slide section" id="s3" data-auto="section" data-session="3" data-n="19">
+  <div class="kicker">Session 3</div>
+  <h1>Autoscaling and cold starts</h1>
+  <ul class="bullets outcomes"><li>Derive a replica's capacity at the objective from its curve</li><li>Compare scaling signals on the same day</li><li>Choose a minimum replica count from cold start and cost</li></ul>
+  <div class="sess-no">03</div>
+</section>
+
+<section class="slide" id="closing-day" data-lo="LO6" data-n="20" data-session="3">
+  <div class="kicker">Lab 4.3 · task 1</div>
+  <h2>The closing day: 160,000 requests, from 0.3 to 11 per second</h2>
+  <figure class="figure">
+    <img src="../assets/d4-closing-day.svg" alt="Requests per second over the 24 hours of the closing day: near 0.3 at night, rising through the morning, about 2 to 3 in the afternoon, and peaking near 11 per second in the evening, against one replica's 2.25 requests per second at 90% of capacity">
+    <figcaption>Four times a usual day, minute by minute. Synthetic demand.</figcaption>
+  </figure>
+  <aside class="notes"><p>One replica at 90% of its 2.5 good requests per second carries the night alone and needs help from mid-morning. Five replicas carry the peak. The question is what to run between. AE-307 (Day 3) already showed why processor load is the wrong signal and what scale to zero costs; today's step is to choose between two serving signals, request rate and queue length, judged by the per-request objective and priced in SAR.</p></aside>
+</section>
+
+<section class="slide" id="two-signals" data-lo="LO6" data-n="21" data-session="3">
+  <div class="kicker">Lab 4.3 · tasks 2 and 3</div>
+  <h2>Scaling on the request rate costs 41% of five cards all day</h2>
+  <table class="t">
+    <tr><th>Policy, at least 1 replica, 4-minute cold start</th><th class="num">Replica-hours</th><th class="num">SAR</th><th class="num">Worst hour</th></tr>
+    <tr><td>Five replicas all day</td><td class="num">120.0</td><td class="num">492</td><td class="num">100%</td></tr>
+    <tr class="hl"><td>Request rate, at 50% of capacity</td><td class="num">49.6</td><td class="num">203</td><td class="num">99.8%</td></tr>
+    <tr><td>Queue over 20, down after 10 quiet minutes</td><td class="num">50.5</td><td class="num">207</td><td class="num">96.8%</td></tr>
+  </table>
+  <p class="small mt">The course's scaling simulator, a fluid model calibrated from the capacity runs.</p>
+  <aside class="notes"><p>The rate signal starts replicas while there is still room; the queue signal acts once visitors already wait, then keeps adding while its first replicas start, and overshoots. In vLLM terms the rate is requests per second at the router, the queue is vllm:num_requests_waiting.</p></aside>
+</section>
+
+<section class="slide" id="cold-start" data-lo="LO6" data-n="22" data-session="3">
+  <div class="kicker">Lab 4.3 · task 4</div>
+  <h2>An 8-minute cold start breaks the queue signal, not the rate signal</h2>
+  <table class="t">
+    <tr><th>Signal</th><th class="num">Cold 2 min</th><th class="num">Cold 4 min</th><th class="num">Cold 8 min</th></tr>
+    <tr><td>Request rate, worst hour</td><td class="num">100%</td><td class="num">99.8%</td><td class="num">99.6%</td></tr>
+    <tr><td>Queue, worst hour</td><td class="num">97.9%</td><td class="num">96.8%</td><td class="num">88.5%</td></tr>
+  </table>
+  <p class="small mt">At least one replica. A second minimum replica adds 12.5 replica-hours and changes little.</p>
+  <aside class="notes"><p>Cold start is the machine, the engine, the weights from disk or network, the warm-up. Plan for the slow case: the day the weights come over a congested link is the day the policy must still hold.</p></aside>
+</section>
+
+<section class="slide" id="scale-to-zero" data-lo="LO6" data-n="23" data-session="3">
+  <div class="kicker">Stretch · recap from AE-307, Day 3</div>
+  <h2>Scaling to zero saves almost nothing and strands the first visitors of the morning</h2>
+  <ul class="bullets">
+    <li>With a minimum of zero, the closing day costs 0.1 replica-hours less.</li>
+    <li>The first morning visitors wait a whole cold start: the worst hour falls to 77%.</li>
+    <li>One replica at night is the price of never making a visitor wait minutes.</li>
+  </ul>
+  <aside class="notes"><p>Participants measured cold starts and chose a minimum replica count in AE-307; this slide only checks that their rule holds on Liwan's closing day. On a usual day the saving is larger in share but still small in SAR. The decision is Hanadi's; the table makes it easy.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-3" data-lo="LO6" data-n="24" data-session="3">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which signal?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6" data-id="checkpoint-3-q1">
+    <p class="lead">A replica takes 8 minutes to start. Demand rises from 2 to 10 requests a second in half an hour every evening. Which policy keeps the worst hour above 90% at the lowest cost?</p>
+    <div class="opts">
+      <div class="opt" data-why="The queue appears only once visitors already wait; with an 8-minute start they wait for 8 minutes" data-k="A">Scale up when more than 20 requests are waiting</div>
+      <div class="opt" data-why="Meets the objective at more than twice the cost: the cards idle most of the day" data-k="B">Run enough replicas for the peak all day</div>
+      <div class="opt" data-why="Saves almost nothing and leaves the first visitors of the day waiting a cold start" data-k="C">Scale on the rate with a minimum of zero</div>
+      <div class="opt" data-ok data-k="D">Scale on the request rate at half of a replica's capacity, never below one replica</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The rate rises before the queue does, and the headroom of 50% covers the minutes a new replica needs to start.</div>
+  </div>
+  <aside class="notes"><p>Answer: D. The headroom is what absorbs the cold start; ask what headroom a 2-minute start would allow.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-4-3" data-auto="lab" data-lab="4.3" data-label="Lab 4.3" data-n="25" data-session="3">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 4.3 · 25 min</div><h2>Scaling over the day</h2><p class="lead small">Replay the daily demand pattern in the course scaling simulator and choose the scaling signal and the minimum number of replicas.</p><a class="nb" href="../labs/D4_3_replay_daily_pattern.ipynb">D4_3_replay_daily_pattern.ipynb</a></div><ul class="checklist"><li>Load the daily pattern and a replica's capacity <span class="min">4 min</span></li><li>Scale on request rate <span class="min">5 min</span></li><li>Scale on queue length <span class="min">5 min</span></li><li>Cold start and minimum replicas <span class="min">6 min</span></li><li>Choose signal and minimum by cost and attainment <span class="min">5 min</span></li><li class="stretch">✱ Stretch: Scale to zero overnight and measure the first morning visitors</li></ul></div>
+  <aside class="notes"><p>AI tutor allowed for reading the simulator. scaling_sim.py is short; ask the room to read its first lines before task 2, because its fluid model is an assumption they must state in the capstone. Task 1 runs one capacity measurement of about ten seconds.</p></aside>
+</section>
+
+<!-- Session 4 -->
+
+<section class="slide section" id="s4" data-auto="section" data-session="4" data-n="26">
+  <div class="kicker">Session 4</div>
+  <h1>Cost per successful request</h1>
+  <ul class="bullets outcomes"><li>Compute cost and energy per successful request</li><li>Compare self-hosting with a hosted API at three volumes</li><li>Plan the capstone from the course's measurements</li></ul>
+  <div class="sess-no">04</div>
+</section>
+
+<section class="slide" id="per-successful-request" data-lo="LO6" data-n="27" data-session="4">
+  <div class="kicker">The number that decides</div>
+  <h2>Cost per successful request: what was paid, over who was served</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>Paid</h4><p class="small mb0">Every replica-hour, starting, serving or idle: card lease plus the node's share.</p></div>
+    <div class="card c-cyan"><h4>Served</h4><p class="small mb0">Only the requests that met the objective: a late answer was paid for and did not serve.</p></div>
+  </div>
+  <p class="small mt">Case prices in SAR (fictional): 3.20 per L4 hour, 0.90 node share, hosted 0.40 and 1.60 per million input and output tokens.</p>
+  <aside class="notes"><p>Dividing by all requests would reward overload: an engine at 30% attainment would look cheap. The prices are invented for the case and marked so in data/prices.json; the method is what transfers.</p></aside>
+</section>
+
+<section class="slide" id="three-volumes" data-lo="LO6" data-n="28" data-session="4">
+  <div class="kicker">Lab 4.4 · tasks 1 and 2</div>
+  <h2>At Liwan's usual volume, the hosted quote costs 2.5 times less per request</h2>
+  <table class="t">
+    <tr><th class="num">Requests a day</th><th class="num">Replica-hours</th><th class="num">Node, SAR per 1,000 served</th><th class="num">Hosted, SAR per 1,000</th></tr>
+    <tr><td class="num">10,000</td><td class="num">24.0</td><td class="num">9.83</td><td class="num">1.05</td></tr>
+    <tr class="hl"><td class="num">40,000</td><td class="num">26.2</td><td class="num">2.69</td><td class="num">1.05</td></tr>
+    <tr><td class="num">160,000</td><td class="num">49.7</td><td class="num">1.27</td><td class="num">1.05</td></tr>
+  </table>
+  <p class="small mt">A mean request: 2,004 prompt tokens and 157 answer tokens. Scaling on rate, at least one replica, 8-minute cold start.</p>
+  <aside class="notes"><p>The node is mostly one card idling at night at the lower volumes. This is the answer most engineers do not expect after four days of tuning: the tuning made self-hosting possible at the peak, not cheaper than a hosted model at this volume. Prefix caching would also lower a hosted bill if the provider discounts cached input; the quote here does not.</p></aside>
+</section>
+
+<section class="slide" id="break-even" data-lo="LO6" data-n="29" data-session="4">
+  <div class="kicker">Lab 4.4 · task 3</div>
+  <h2>Self-hosting breaks even near 360,000 requests a day, nine times today's</h2>
+  <figure class="figure">
+    <img src="../assets/d4-break-even.svg" alt="SAR per 1,000 successful requests on the node falls from about 5 at 20,000 requests a day to about 1 at 400,000, crossing the hosted quote's flat 1.05 near 360,000 requests a day">
+    <figcaption>Case prices; the course's scaling simulator. With the lease 30% cheaper, the break-even falls to about 140,000 a day.</figcaption>
+  </figure>
+  <aside class="notes"><p>The break-even moves most with the lease price and the replica's capacity, which is why Days 2 and 3 matter: without them a replica serves 0.15 good requests a second instead of 2.5, and self-hosting never breaks even. Reasons the quote does not price, such as where the data is processed, are the Director's to weigh.</p></aside>
+</section>
+
+<section class="slide" id="energy" data-lo="LO6" data-n="30" data-session="4">
+  <div class="kicker">Lab 4.4 · task 4</div>
+  <h2>Idle cards dominate the energy: 117 Wh per 1,000 requests on a usual day</h2>
+  <div class="bars">
+    <div class="row"><span>10,000 a day</span><div class="bar c-coral" style="--w:100%"></div><span class="val">426 Wh</span></div>
+    <div class="row"><span>40,000 a day</span><div class="bar c-amber" style="--w:27%"></div><span class="val">117 Wh</span></div>
+    <div class="row"><span>160,000 a day</span><div class="bar c-teal" style="--w:13%"></div><span class="val">55 Wh</span></div>
+  </div>
+  <p class="small mt">Per 1,000 successful requests: card at its 72 W maximum, 55 W of host, PUE 1.4. An upper bound.</p>
+  <aside class="notes"><p>An idle card draws less than its maximum, so these are upper bounds; a measured figure would come from the card's power counter. The shape is the point: energy per request, like cost, falls with utilisation.</p></aside>
+</section>
+
+<section class="slide" id="capstone-plan" data-lo="LO6" data-n="31" data-session="4">
+  <div class="kicker">Lab 4.4 · task 5</div>
+  <h2>The capstone starts from the deployment of Monday morning</h2>
+  <div class="cols cols-2 gap-s">
+    <div class="card c-teal"><h4>You get</h4><p class="small mb0">The baseline configuration, the trace, the evaluation outcomes, the prices, the simulator and the stand-in endpoint.</p></div>
+    <div class="card c-cyan"><h4>You submit</h4><p class="small mb0">A public repository: raw benchmark files, engine logs, quality by language, a design document and the commit history.</p></div>
+  </div>
+  <p class="small mt">Defence: 12 minutes of talk and 8 of questions, in front of a panel playing Hanadi, Rawya and Kenan.</p>
+  <aside class="notes"><p>The plan written by the lab lists the changes in the order of the week. Encourage participants to change the order if their measurements say so; the panel rewards a decision backed by a measurement over the course's order.</p></aside>
+</section>
+
+<section class="slide" id="checkpoint-4" data-lo="LO6" data-n="32" data-session="4">
+  <div class="kicker">Checkpoint</div>
+  <h2>Which number goes to the Director?</h2>
+  <div class="quiz" data-type="single" data-lo="LO6" data-id="checkpoint-4-q1">
+    <p class="lead">Kenan's slide says self-hosting costs 2.58 SAR per million output tokens against a hosted 1.60, "so the hosted API is cheaper". Hanadi asks if that is the right comparison. What do you answer?</p>
+    <div class="opts">
+      <div class="opt" data-ok data-k="A">No: compare cost per successful request over a replayed day, input tokens included</div>
+      <div class="opt" data-why="Right conclusion by accident: the comparison leaves out input tokens and the idle hours, which point in opposite directions" data-k="B">Yes: per-token prices are how providers compare</div>
+      <div class="opt" data-why="The minimum replica's idle night is a real cost on the bill, not an accounting choice" data-k="C">No: idle hours should be left out of the node's cost</div>
+      <div class="opt" data-why="Peak capacity is not what the authority pays for; it pays for every hour of every card" data-k="D">No: compare the node at its peak capacity only</div>
+    </div>
+    <div class="callout tip why"><b>Why.</b> The hosted bill counts 2,004 input tokens a request; the node's bill counts idle hours. Only the cost per served request over a real day includes both.</div>
+  </div>
+  <aside class="notes"><p>Answer: A. The conclusion happens to be the same at today's volume, and the method is wrong: at nine times the volume it would give the wrong answer.</p></aside>
+</section>
+
+<section class="slide lab top" id="lab-4-4" data-auto="lab" data-lab="4.4" data-label="Lab 4.4" data-n="33" data-session="4">
+  <div class="cols cols-2 mid"><div><div class="lab-tag">Lab 4.4 · 25 min</div><h2>Self-hosting or a hosted API</h2><p class="lead small">Compare the cost per successful request of the node with a hosted API quote at three volumes, add energy per thousand requests and plan the capstone.</p><a class="nb" href="../labs/D4_4_compare_self_hosting.ipynb">D4_4_compare_self_hosting.ipynb</a></div><ul class="checklist"><li>Cost per successful request on the node <span class="min">6 min</span></li><li>The hosted API at three volumes <span class="min">5 min</span></li><li>The break-even volume <span class="min">4 min</span></li><li>Energy per thousand requests <span class="min">4 min</span></li><li>Plan the capstone <span class="min">6 min</span></li><li class="stretch">✱ Stretch: How sensitive the break-even is to the lease price</li></ul></div>
+  <aside class="notes"><p>AI tutor allowed for the plot and the plan's wording. The whole lab runs in under half a minute. Spend the last minutes on the plan: each participant reads their first measurement and their open question for the Director to a neighbour.</p></aside>
+</section>
+
+<section class="slide" id="course-recap" data-lo="LO1 LO2 LO3 LO4 LO5 LO6" data-n="34" data-session="4">
+  <div class="kicker">Four days · what to keep</div>
+  <h2>Predict, measure with spread, change one thing, re-evaluate in both languages, price it</h2>
+  <div class="cols cols-3 gap-s">
+    <div class="card c-teal"><h4>From 0.15 to 2.5</h4><p class="small mb0">Good requests per second on one L4: scheduling, the prompt, 8-bit weights and cache.</p></div>
+    <div class="card c-cyan"><h4>Quality held</h4><p class="small mb0">Every change scored against the floors per language, with intervals and paired differences.</p></div>
+    <div class="card c-coral"><h4>The honest bill</h4><p class="small mb0">Cost per successful request over a real day, against the quote, with the break-even.</p></div>
+  </div>
+  <aside class="notes"><p>The factor of about seventeen came from configuration and number formats on the same card, none of it from buying hardware. And the bill still says hosted, at Liwan's volume. Both facts belong in the capstone.</p></aside>
+</section>
+
+<section class="slide dark" id="next-capstone" data-lo="LO6" data-n="35" data-session="4">
+  <div class="kicker">Next</div>
+  <h2>Capstone: tune Monday's deployment and defend it</h2>
+  <ul class="bullets">
+    <li>Start from <code>labs/capstone/</code> and your plan from Lab 4.4.</li>
+    <li>Commit as you go: the history is part of the evidence.</li>
+    <li>Bring the one decision you want the Director to take.</li>
+  </ul>
+  <aside class="notes"><p>Remind the room of the rubric weights on the capstone deck. The repository must be public and submitted before the defence.</p></aside>
+</section>
+</div>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T16:19:23Z","version":"2027.1.0","commit":"65b5aad"},"course":{"id":"ae-401","code":"AE-401","title":"Inference Performance and Cost Engineering","track":"ai-engineering","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ae-401/","repo":"SDAIAAcademy/ae-401","home":"../index.html"},"deck":{"id":"day4","kind":"day","day":4,"label":"Day 4","title":"Across replicas and over the day","prev":"day3.html","next":"capstone.html","md":"day4.md","alt":{}},"sessions":[{"n":1,"label":"Session 1","title":"Disaggregated prefill and decode","slide":"s1","outcomes":["Predict the load on separate prefill and decode pools","Compute the cost of moving the cache between them","State when disaggregation pays for a traffic mix"],"minutes":50,"lab":{"id":"4.1","title":"When disaggregation pays","minutes":25,"href":"../labs/D4_1_predict_when_disaggregation.ipynb"}},{"n":2,"label":"Session 2","title":"Routing across replicas","slide":"s2","outcomes":["Compare round-robin and prefix-aware routing on cache hits and latency","Write a prefix-aware router with a load limit","Detect a hot spot and correct it"],"minutes":50,"lab":{"id":"4.2","title":"Round robin or prefix-aware","minutes":25,"href":"../labs/D4_2_compare_round_robin.ipynb"}},{"n":3,"label":"Session 3","title":"Autoscaling and cold starts","slide":"s3","outcomes":["Derive a replica's capacity at the objective from its curve","Compare scaling signals on the same day","Choose a minimum replica count from cold start and cost"],"minutes":50,"lab":{"id":"4.3","title":"Scaling over the day","minutes":25,"href":"../labs/D4_3_replay_daily_pattern.ipynb"}},{"n":4,"label":"Session 4","title":"Cost per successful request","slide":"s4","outcomes":["Compute cost and energy per successful request","Compare self-hosting with a hosted API at three volumes","Plan the capstone from the course's measurements"],"minutes":50,"lab":{"id":"4.4","title":"Self-hosting or a hosted API","minutes":25,"href":"../labs/D4_4_compare_self_hosting.ipynb"}}],"slides":[{"id":"title","n":1,"title":"Across replicas and over the day","kind":"title","session":0,"hash":"540396b0","md":"#### [day4#title] Across replicas and over the day\n\n*SDAIA Academy · Inference Performance and Cost Engineering*\n\nDay 4: Topology, routing, scaling and the cost of a successful request\n\nAI Engineering Track · 4 teaching days + capstone day · 4 sessions · 4 labs · AE-401","notes":"The last teaching day leaves the single card. Four questions, one per session: split the phases or not, which replica gets a request, how many replicas when, and whether Liwan should run any of this itself. The last answer surprises most rooms; do not give it away in the opening.","minutes":null,"lo":[]},{"id":"where-day-3-left-us","n":2,"title":"One card in 8 bits meets the objective in the first minutes of the peak","kind":"content","session":0,"hash":"72da7618","md":"#### [day4#where-day-3-left-us] One card in 8 bits meets the objective in the first minutes of the peak\n\n*Where Day 3 left us*\n\n- **100%** attainment, 8-bit weights and cache, first five minutes of the peak\n- **2.5** good requests per second one replica sustains\n- **0.737** Arabic score with routing at 0.4, floor 0.73\n\nToday: a whole day, a festival's closing night, several cards, and the bill.","notes":"Five minutes of a usual peak is not a closing night, and one card has no spare for a failure. The capacity of 2.5 good requests per second comes from the 48-user run of Day 3's engine; Lab 4.3 measures it again.","minutes":null,"lo":["LO5"]},{"id":"review-checkpoint","n":3,"title":"Yesterday's trade, read again","kind":"quiz","session":0,"hash":"37b40750","md":"#### [day4#review-checkpoint] Yesterday's trade, read again\n\n*Review*\n\n**Question:** A new 3-bit format frees 1.2 GB more than 4-bit and scores 0.845 in English. Nobody has scored it in Arabic yet. What do you tell Yamen?\n\n- A. Ship it: English is above its floor, so Arabic will be too\n- B. Ship it: the extra cache is worth any small loss\n- C. Never use formats under 8 bits\n- D. Score it in Arabic against the floor before any decision","notes":"Answer: D. Two minutes. If anyone picks A, return to the 4-bit row of the serving table.","minutes":null,"lo":["LO5"]},{"id":"agenda","n":4,"title":"Across replicas and over the day","kind":"content","session":0,"hash":"90015bea","md":"#### [day4#agenda] Across replicas and over the day\n\n*Today*\n\n- **Session 1 · Disaggregated prefill and decode**: Separate pools stop prefills from stalling decodes, at the price of moving the cache.\n- **Session 2 · Routing across replicas**: Where a request lands decides whether its prefix is already cached.\n- **Session 3 · Autoscaling and cold starts**: Scale on the signal users feel, and keep enough warm replicas for the cold start.\n- **Session 4 · Cost per successful request**: The number that decides: cost divided by the requests that met the objective.","notes":"","minutes":null,"lo":[]},{"id":"s1","n":5,"title":"Disaggregated prefill and decode","kind":"section","session":1,"hash":"a5d5e827","md":"#### [day4#s1] Disaggregated prefill and decode\n\n*Session 1*\n\n- Predict the load on separate prefill and decode pools\n- Compute the cost of moving the cache between them\n- State when disaggregation pays for a traffic mix","notes":"","minutes":null,"lo":["LO6"]},{"id":"split-the-phases","n":6,"title":"Prefill on one pool, decode on another, the cache moved between them","kind":"content","session":1,"hash":"c7011b14","md":"#### [day4#split-the-phases] Prefill on one pool, decode on another, the cache moved between them\n\n*Disaggregation*\n\n1. **Prefill pool** computes the prompt\n2. **Transfer** the prompt's cache, over the link\n3. **Decode pool** steps never carry a prompt\n\n- Each pool can be sized and configured for its phase.\n- The price: the transfer, and two pools to keep busy.","notes":"DistServe (Zhong et al., 2024, arXiv 2401.09670) and Splitwise (Patel et al., 2024, arXiv 2311.18677) both separate the phases onto different machines; vLLM has an experimental disaggregated prefill feature with connectors that move the cache. Day 2's chunked prefill is the other answer to the same interference, inside one engine.","minutes":null,"lo":["LO6"]},{"id":"predict-pools","n":7,"title":"One prefill card would be busy 38% of the time; the transfer costs 12 ms","kind":"content","session":1,"hash":"cd5b3c03","md":"#### [day4#predict-pools] One prefill card would be busy 38% of the time; the transfer costs 12 ms\n\n*Lab 4.1 · tasks 1 and 2*\n\n- **38%** busy share of one prefill card, 2.7 requests a second, half with documents\n- **34** sequences decoding at once, by Little's law\n- **12 ms** cache transfer for the mean prompt; 37 ms for 10,000 tokens","notes":"The arithmetic is Day 1's: operations per prompt token over the card's rate, and bytes per token of cache over the link. 20 GB/s is the simulator's effective link inside one node; between nodes it would be slower. Little's law: sequences in the pool = arrival rate × answer tokens × TPOT.","minutes":null,"lo":["LO6"]},{"id":"predict-steps","n":8,"title":"The prediction matches the supplied runs: shorter stalls when split, but no gain","kind":"content","session":1,"hash":"d62e2a5b","md":"#### [day4#predict-steps] The prediction matches the supplied runs: shorter stalls when split, but no gain\n\n*Lab 4.1 · tasks 3 and 4*\n\n| Two cards | Predicted longest step | Stall p90 | TPOT p50 | Document TTFT p90 | Attainment |\n| --- | --- | --- | --- | --- | --- |\n| Together, chunked at 1,024 | 0.168 s | 0.18 s | 63 ms | 0.88 s | 96.5% |\n| Split, one prefill and one decode | 0.074 s | 0.13 s | 74 ms | 1.14 s | 93.9% |\n\n32 users, 50% documents, 8-bit weights and cache. Supplied runs of the course simulator.","notes":"The split decode card holds all 34 sequences, so its steps are slower than each of the two cards together (74 against 56 ms), and all prefills queue on one card. The split's shorter stall buys nothing when the objective allows 1.0 s.","minutes":null,"lo":["LO6"]},{"id":"when-it-pays","n":9,"title":"With a 150 ms stall limit, only the split meets the objective","kind":"content","session":1,"hash":"d35a0694","md":"#### [day4#when-it-pays] With a 150 ms stall limit, only the split meets the objective\n\n*Lab 4.1 · task 5*\n\n| Item | Value |\n| --- | --- |\n| Together, stall limit 1.0 s | 96.5% |\n| Split, stall limit 1.0 s | 93.9% |\n| Together, stall limit 0.15 s | 13.0% |\n| Split, stall limit 0.15 s | 92.2% |\n\n> **Condition.** Disaggregation pays when the pause limit is shorter than a step that carries a prompt chunk.","notes":"The 150 ms limit is Hanadi's hypothetical voice channel. The general rule: disaggregate when the decode objective is tighter than chunked prefill can hold, with long prompts and enough cards to size each pool. Under Musamir's chat objective, keep both phases on every card.","minutes":null,"lo":["LO6"]},{"id":"checkpoint-1","n":10,"title":"Split the cards?","kind":"quiz","session":1,"hash":"ab5efc8f","md":"#### [day4#checkpoint-1] Split the cards?\n\n*Checkpoint*\n\n**Question:** Another authority's assistant answers short questions with 3,000-token answers, under a 100 ms TPOT limit and a 1 s stall limit. Chunked prefill keeps its stall at 0.2 s. It has two cards. Should it disaggregate?\n\n- A. Yes: disaggregation always lowers TPOT\n- B. Not on this evidence: the stall already meets its limit and prompts are short\n- C. No: the cache transfer would break the TTFT objective\n- D. Yes: long answers need a dedicated prefill card","notes":"Answer: B. Ask what measurement would change the answer: a TPOT p90 over 100 ms caused by chunk steps.","minutes":null,"lo":["LO6"]},{"id":"lab-4-1","n":11,"title":"When disaggregation pays","kind":"lab","session":1,"hash":"c7de8f8f","md":"#### [day4#lab-4-1] When disaggregation pays\n\nLab 4.1 · 25 min\n\nPredict when splitting prefill and decode pays on long prompts, then check the prediction against a supplied run.\n\n[D4_1_predict_when_disaggregation.ipynb](https://sdaiaacademy.github.io/ae-401/labs/D4_1_predict_when_disaggregation.ipynb)\n\n- [ ] Predict prefill and decode pool load (6 min)\n- [ ] Cache transfer time per request (4 min)\n- [ ] Predicted TTFT and TPOT, together and split (5 min)\n- [ ] Compare with the supplied run (6 min)\n- [ ] State the condition when it pays (4 min)\n- [ ] ✱ Stretch: Change the share of long prompts and predict again","notes":"AI tutor allowed for checking arithmetic. The supplied runs make tasks 1 to 5 fast; the stretch runs both layouts again at 20% documents, about twenty seconds each. Insist the prediction is written before the comparison.","minutes":null,"lo":[]},{"id":"s2","n":12,"title":"Routing across replicas","kind":"section","session":2,"hash":"6a2b091e","md":"#### [day4#s2] Routing across replicas\n\n*Session 2*\n\n- Compare round-robin and prefix-aware routing on cache hits and latency\n- Write a prefix-aware router with a load limit\n- Detect a hot spot and correct it","notes":"","minutes":null,"lo":["LO6"]},{"id":"where-it-lands","n":13,"title":"Round robin sends a conversation's next turn to a replica that has not seen it","kind":"content","session":2,"hash":"b9ca1b12","md":"#### [day4#where-it-lands] Round robin sends a conversation's next turn to a replica that has not seen it\n\n*Routing*\n\n- Each replica has its own cache: history computed on one is not on another.\n- A prefix-aware router sends each turn where its prefix is cached.\n- Affinity piles bursts on one replica unless the router also watches load.\n\nRecap from AE-307, Day 4: inference-aware gateways. Here the question is narrower: what affinity does to one tenant's night and to the tail of the objective.","notes":"Participants compared round robin with queue- and prefix-aware pickers at the gateway in AE-307; do not teach the gateway again. Production routers that are prefix-aware exist in several open-source serving stacks; the design is always a cache score traded against a load score. The lab writes the simplest version: a hash of the conversation, and a load limit, and adds what AE-307 did not: the hot spot of routing by tenant and the per-request objective as the judge.","minutes":null,"lo":["LO6"]},{"id":"closing-night","n":14,"title":"Affinity with a load limit serves 99% on the closing night; round robin 94%","kind":"content","session":2,"hash":"29e999bc","md":"#### [day4#closing-night] Affinity with a load limit serves 99% on the closing night; round robin 94%\n\n*Lab 4.2 · tasks 1 to 3*\n\n| Router, 3 replicas | Hit rate | p90 TTFT | Attainment |\n| --- | --- | --- | --- |\n| Round robin | 77.3% | 1.55 s | 93.5% |\n| By conversation, no limit | 80.8% | 3.77 s | 78.7% |\n| By conversation, limit 24 | 77.9% | 0.78 s | 99.4% |\n\nThe evening peak played four times faster: about 8 requests per second. Synthetic: the course simulator.","notes":"The hit rate barely moves: every replica caches each tenant's shared instructions anyway. The gain is in the tail: with the limit, long histories are not recomputed at the worst moments and bursts are spread. Without the limit, affinity is worse than round robin.","minutes":null,"lo":["LO6"]},{"id":"hot-spot","n":15,"title":"Routing by tenant puts half the night on one replica","kind":"content","session":2,"hash":"4fcbeb6d","md":"#### [day4#hot-spot] Routing by tenant puts half the night on one replica\n\n*Lab 4.2 · task 4*\n\n| Item | Value |\n| --- | --- |\n| Replica 1, Qamra Festival | 49% of requests |\n| Replica 2, Sawt Concerts | 33% |\n| Replica 0, Athar Heritage Week | 18% |\n\nAttainment 52%: the Qamra replica drowns while the Athar replica idles. Highest hit rate of all routers.","notes":"The tempting design: keep each tenant's rules cached on one replica. It wins on hit rate and loses on everything visitors feel, on the night of the tenant that matters most. A hot spot is the first thing to look for in per-replica metrics.","minutes":null,"lo":["LO6"]},{"id":"router-rule","n":16,"title":"Route by conversation, fall back to the least-loaded replica","kind":"content","session":2,"hash":"64628379","md":"#### [day4#router-rule] Route by conversation, fall back to the least-loaded replica\n\n*Lab 4.2 · task 5*\n\n```python\ndef by_session(engines, r, state, limit=24):\n    i = zlib.crc32(r.session.encode()) % len(engines)\n    if load(engines[i]) > limit:\n        i = min(range(len(engines)), key=lambda j: load(engines[j]))\n    return engines[i]\n```\n\nA stable hash, so a turn finds its history; a limit, so no replica takes a burst alone.","notes":"The stretch sweeps the limit; values from 8 to 32 all meet the objective on this night. Ask what changes when a replica fails: the hash moves a third of the conversations, which lose their cached history once.","minutes":null,"lo":["LO6"]},{"id":"checkpoint-2","n":17,"title":"Read the replica metrics","kind":"quiz","session":2,"hash":"08f92579","md":"#### [day4#checkpoint-2] Read the replica metrics\n\n*Checkpoint*\n\n**Question:** On three replicas, one shows 30 requests waiting and the cache 95% full; the other two show nothing waiting and the cache 20% full. The router hashes the tenant. What is the fix?\n\n- A. Add a fourth replica\n- B. Raise the sequence cap on the busy replica\n- C. Route by conversation with a load limit, so the busy tenant spreads over all replicas\n- D. Remove the cache salt so the replicas can share blocks","notes":"Answer: C. Those who pick A would pay for a fourth card that idles too.","minutes":null,"lo":["LO6"]},{"id":"lab-4-2","n":18,"title":"Round robin or prefix-aware","kind":"lab","session":2,"hash":"a98c0090","md":"#### [day4#lab-4-2] Round robin or prefix-aware\n\nLab 4.2 · 25 min\n\nReplay a multi-turn trace on three replicas, round robin against a prefix-aware router you write, and compare hits, latency and balance.\n\n[D4_2_compare_round_robin.ipynb](https://sdaiaacademy.github.io/ae-401/labs/D4_2_compare_round_robin.ipynb)\n\n- [ ] Replay round robin on three replicas (5 min)\n- [ ] Write a prefix-aware router (7 min)\n- [ ] Compare hit rate, TTFT and balance (6 min)\n- [ ] Find the hot spot of one tenant (4 min)\n- [ ] Choose, with a fallback rule (3 min)\n- [ ] ✱ Stretch: Session affinity with a load cap","notes":"AI tutor allowed for Python. Each replay takes about fifteen seconds on a laptop. Common error: a router that returns an index instead of an engine. The safety net uses a reference router so the comparison still runs.","minutes":null,"lo":[]},{"id":"s3","n":19,"title":"Autoscaling and cold starts","kind":"section","session":3,"hash":"f66fef2b","md":"#### [day4#s3] Autoscaling and cold starts\n\n*Session 3*\n\n- Derive a replica's capacity at the objective from its curve\n- Compare scaling signals on the same day\n- Choose a minimum replica count from cold start and cost","notes":"","minutes":null,"lo":["LO6"]},{"id":"closing-day","n":20,"title":"The closing day: 160,000 requests, from 0.3 to 11 per second","kind":"content","session":3,"hash":"c91dc468","md":"#### [day4#closing-day] The closing day: 160,000 requests, from 0.3 to 11 per second\n\n*Lab 4.3 · task 1*\n\nFigure: Four times a usual day, minute by minute. Synthetic demand.","notes":"One replica at 90% of its 2.5 good requests per second carries the night alone and needs help from mid-morning. Five replicas carry the peak. The question is what to run between. AE-307 (Day 3) already showed why processor load is the wrong signal and what scale to zero costs; today's step is to choose between two serving signals, request rate and queue length, judged by the per-request objective and priced in SAR.","minutes":null,"lo":["LO6"]},{"id":"two-signals","n":21,"title":"Scaling on the request rate costs 41% of five cards all day","kind":"content","session":3,"hash":"37cc3393","md":"#### [day4#two-signals] Scaling on the request rate costs 41% of five cards all day\n\n*Lab 4.3 · tasks 2 and 3*\n\n| Policy, at least 1 replica, 4-minute cold start | Replica-hours | SAR | Worst hour |\n| --- | --- | --- | --- |\n| Five replicas all day | 120.0 | 492 | 100% |\n| Request rate, at 50% of capacity | 49.6 | 203 | 99.8% |\n| Queue over 20, down after 10 quiet minutes | 50.5 | 207 | 96.8% |\n\nThe course's scaling simulator, a fluid model calibrated from the capacity runs.","notes":"The rate signal starts replicas while there is still room; the queue signal acts once visitors already wait, then keeps adding while its first replicas start, and overshoots. In vLLM terms the rate is requests per second at the router, the queue is vllm:num_requests_waiting.","minutes":null,"lo":["LO6"]},{"id":"cold-start","n":22,"title":"An 8-minute cold start breaks the queue signal, not the rate signal","kind":"content","session":3,"hash":"b9a809a2","md":"#### [day4#cold-start] An 8-minute cold start breaks the queue signal, not the rate signal\n\n*Lab 4.3 · task 4*\n\n| Signal | Cold 2 min | Cold 4 min | Cold 8 min |\n| --- | --- | --- | --- |\n| Request rate, worst hour | 100% | 99.8% | 99.6% |\n| Queue, worst hour | 97.9% | 96.8% | 88.5% |\n\nAt least one replica. A second minimum replica adds 12.5 replica-hours and changes little.","notes":"Cold start is the machine, the engine, the weights from disk or network, the warm-up. Plan for the slow case: the day the weights come over a congested link is the day the policy must still hold.","minutes":null,"lo":["LO6"]},{"id":"scale-to-zero","n":23,"title":"Scaling to zero saves almost nothing and strands the first visitors of the morning","kind":"content","session":3,"hash":"a1ed6aae","md":"#### [day4#scale-to-zero] Scaling to zero saves almost nothing and strands the first visitors of the morning\n\n*Stretch · recap from AE-307, Day 3*\n\n- With a minimum of zero, the closing day costs 0.1 replica-hours less.\n- The first morning visitors wait a whole cold start: the worst hour falls to 77%.\n- One replica at night is the price of never making a visitor wait minutes.","notes":"Participants measured cold starts and chose a minimum replica count in AE-307; this slide only checks that their rule holds on Liwan's closing day. On a usual day the saving is larger in share but still small in SAR. The decision is Hanadi's; the table makes it easy.","minutes":null,"lo":["LO6"]},{"id":"checkpoint-3","n":24,"title":"Which signal?","kind":"quiz","session":3,"hash":"57d4a9f8","md":"#### [day4#checkpoint-3] Which signal?\n\n*Checkpoint*\n\n**Question:** A replica takes 8 minutes to start. Demand rises from 2 to 10 requests a second in half an hour every evening. Which policy keeps the worst hour above 90% at the lowest cost?\n\n- A. Scale up when more than 20 requests are waiting\n- B. Run enough replicas for the peak all day\n- C. Scale on the rate with a minimum of zero\n- D. Scale on the request rate at half of a replica's capacity, never below one replica","notes":"Answer: D. The headroom is what absorbs the cold start; ask what headroom a 2-minute start would allow.","minutes":null,"lo":["LO6"]},{"id":"lab-4-3","n":25,"title":"Scaling over the day","kind":"lab","session":3,"hash":"2a56fb26","md":"#### [day4#lab-4-3] Scaling over the day\n\nLab 4.3 · 25 min\n\nReplay the daily demand pattern in the course scaling simulator and choose the scaling signal and the minimum number of replicas.\n\n[D4_3_replay_daily_pattern.ipynb](https://sdaiaacademy.github.io/ae-401/labs/D4_3_replay_daily_pattern.ipynb)\n\n- [ ] Load the daily pattern and a replica's capacity (4 min)\n- [ ] Scale on request rate (5 min)\n- [ ] Scale on queue length (5 min)\n- [ ] Cold start and minimum replicas (6 min)\n- [ ] Choose signal and minimum by cost and attainment (5 min)\n- [ ] ✱ Stretch: Scale to zero overnight and measure the first morning visitors","notes":"AI tutor allowed for reading the simulator. scaling_sim.py is short; ask the room to read its first lines before task 2, because its fluid model is an assumption they must state in the capstone. Task 1 runs one capacity measurement of about ten seconds.","minutes":null,"lo":[]},{"id":"s4","n":26,"title":"Cost per successful request","kind":"section","session":4,"hash":"e23691e3","md":"#### [day4#s4] Cost per successful request\n\n*Session 4*\n\n- Compute cost and energy per successful request\n- Compare self-hosting with a hosted API at three volumes\n- Plan the capstone from the course's measurements","notes":"","minutes":null,"lo":["LO6"]},{"id":"per-successful-request","n":27,"title":"Cost per successful request: what was paid, over who was served","kind":"content","session":4,"hash":"f18a9a1f","md":"#### [day4#per-successful-request] Cost per successful request: what was paid, over who was served\n\n*The number that decides*\n\n- **Paid.** Every replica-hour, starting, serving or idle: card lease plus the node's share.\n- **Served.** Only the requests that met the objective: a late answer was paid for and did not serve.\n\nCase prices in SAR (fictional): 3.20 per L4 hour, 0.90 node share, hosted 0.40 and 1.60 per million input and output tokens.","notes":"Dividing by all requests would reward overload: an engine at 30% attainment would look cheap. The prices are invented for the case and marked so in data/prices.json; the method is what transfers.","minutes":null,"lo":["LO6"]},{"id":"three-volumes","n":28,"title":"At Liwan's usual volume, the hosted quote costs 2.5 times less per request","kind":"content","session":4,"hash":"bfa3f529","md":"#### [day4#three-volumes] At Liwan's usual volume, the hosted quote costs 2.5 times less per request\n\n*Lab 4.4 · tasks 1 and 2*\n\n| Requests a day | Replica-hours | Node, SAR per 1,000 served | Hosted, SAR per 1,000 |\n| --- | --- | --- | --- |\n| 10,000 | 24.0 | 9.83 | 1.05 |\n| 40,000 | 26.2 | 2.69 | 1.05 |\n| 160,000 | 49.7 | 1.27 | 1.05 |\n\nA mean request: 2,004 prompt tokens and 157 answer tokens. Scaling on rate, at least one replica, 8-minute cold start.","notes":"The node is mostly one card idling at night at the lower volumes. This is the answer most engineers do not expect after four days of tuning: the tuning made self-hosting possible at the peak, not cheaper than a hosted model at this volume. Prefix caching would also lower a hosted bill if the provider discounts cached input; the quote here does not.","minutes":null,"lo":["LO6"]},{"id":"break-even","n":29,"title":"Self-hosting breaks even near 360,000 requests a day, nine times today's","kind":"content","session":4,"hash":"2fdefd53","md":"#### [day4#break-even] Self-hosting breaks even near 360,000 requests a day, nine times today's\n\n*Lab 4.4 · task 3*\n\nFigure: Case prices; the course's scaling simulator. With the lease 30% cheaper, the break-even falls to about 140,000 a day.","notes":"The break-even moves most with the lease price and the replica's capacity, which is why Days 2 and 3 matter: without them a replica serves 0.15 good requests a second instead of 2.5, and self-hosting never breaks even. Reasons the quote does not price, such as where the data is processed, are the Director's to weigh.","minutes":null,"lo":["LO6"]},{"id":"energy","n":30,"title":"Idle cards dominate the energy: 117 Wh per 1,000 requests on a usual day","kind":"content","session":4,"hash":"390e555d","md":"#### [day4#energy] Idle cards dominate the energy: 117 Wh per 1,000 requests on a usual day\n\n*Lab 4.4 · task 4*\n\n| Item | Value |\n| --- | --- |\n| 10,000 a day | 426 Wh |\n| 40,000 a day | 117 Wh |\n| 160,000 a day | 55 Wh |\n\nPer 1,000 successful requests: card at its 72 W maximum, 55 W of host, PUE 1.4. An upper bound.","notes":"An idle card draws less than its maximum, so these are upper bounds; a measured figure would come from the card's power counter. The shape is the point: energy per request, like cost, falls with utilisation.","minutes":null,"lo":["LO6"]},{"id":"capstone-plan","n":31,"title":"The capstone starts from the deployment of Monday morning","kind":"content","session":4,"hash":"c224d491","md":"#### [day4#capstone-plan] The capstone starts from the deployment of Monday morning\n\n*Lab 4.4 · task 5*\n\n- **You get.** The baseline configuration, the trace, the evaluation outcomes, the prices, the simulator and the stand-in endpoint.\n- **You submit.** A public repository: raw benchmark files, engine logs, quality by language, a design document and the commit history.\n\nDefence: 12 minutes of talk and 8 of questions, in front of a panel playing Hanadi, Rawya and Kenan.","notes":"The plan written by the lab lists the changes in the order of the week. Encourage participants to change the order if their measurements say so; the panel rewards a decision backed by a measurement over the course's order.","minutes":null,"lo":["LO6"]},{"id":"checkpoint-4","n":32,"title":"Which number goes to the Director?","kind":"quiz","session":4,"hash":"5641c4e9","md":"#### [day4#checkpoint-4] Which number goes to the Director?\n\n*Checkpoint*\n\n**Question:** Kenan's slide says self-hosting costs 2.58 SAR per million output tokens against a hosted 1.60, \"so the hosted API is cheaper\". Hanadi asks if that is the right comparison. What do you answer?\n\n- A. No: compare cost per successful request over a replayed day, input tokens included\n- B. Yes: per-token prices are how providers compare\n- C. No: idle hours should be left out of the node's cost\n- D. No: compare the node at its peak capacity only","notes":"Answer: A. The conclusion happens to be the same at today's volume, and the method is wrong: at nine times the volume it would give the wrong answer.","minutes":null,"lo":["LO6"]},{"id":"lab-4-4","n":33,"title":"Self-hosting or a hosted API","kind":"lab","session":4,"hash":"b1fa9569","md":"#### [day4#lab-4-4] Self-hosting or a hosted API\n\nLab 4.4 · 25 min\n\nCompare the cost per successful request of the node with a hosted API quote at three volumes, add energy per thousand requests and plan the capstone.\n\n[D4_4_compare_self_hosting.ipynb](https://sdaiaacademy.github.io/ae-401/labs/D4_4_compare_self_hosting.ipynb)\n\n- [ ] Cost per successful request on the node (6 min)\n- [ ] The hosted API at three volumes (5 min)\n- [ ] The break-even volume (4 min)\n- [ ] Energy per thousand requests (4 min)\n- [ ] Plan the capstone (6 min)\n- [ ] ✱ Stretch: How sensitive the break-even is to the lease price","notes":"AI tutor allowed for the plot and the plan's wording. The whole lab runs in under half a minute. Spend the last minutes on the plan: each participant reads their first measurement and their open question for the Director to a neighbour.","minutes":null,"lo":[]},{"id":"course-recap","n":34,"title":"Predict, measure with spread, change one thing, re-evaluate in both languages, price it","kind":"content","session":4,"hash":"03b24fb0","md":"#### [day4#course-recap] Predict, measure with spread, change one thing, re-evaluate in both languages, price it\n\n*Four days · what to keep*\n\n- **From 0.15 to 2.5.** Good requests per second on one L4: scheduling, the prompt, 8-bit weights and cache.\n- **Quality held.** Every change scored against the floors per language, with intervals and paired differences.\n- **The honest bill.** Cost per successful request over a real day, against the quote, with the break-even.","notes":"The factor of about seventeen came from configuration and number formats on the same card, none of it from buying hardware. And the bill still says hosted, at Liwan's volume. Both facts belong in the capstone.","minutes":null,"lo":["LO1","LO2","LO3","LO4","LO5","LO6"]},{"id":"next-capstone","n":35,"title":"Capstone: tune Monday's deployment and defend it","kind":"content","session":4,"hash":"c120b65f","md":"#### [day4#next-capstone] Capstone: tune Monday's deployment and defend it\n\n*Next*\n\n- Start from `labs/capstone/` and your plan from Lab 4.4.\n- Commit as you go: the history is part of the evidence.\n- Bring the one decision you want the Director to take.","notes":"Remind the room of the rubric weights on the capstone deck. The repository must be public and submitted before the defence.","minutes":null,"lo":["LO6"]}],"activities":[{"id":"review-checkpoint-q1","slide":"review-checkpoint","type":"single","prompt":"A new 3-bit format frees 1.2 GB more than 4-bit and scores 0.845 in English. Nobody has scored it in Arabic yet. What do you tell Yamen?","options":[{"key":"A","text":"Ship it: English is above its floor, so Arabic will be too"},{"key":"B","text":"Ship it: the extra cache is worth any small loss"},{"key":"C","text":"Never use formats under 8 bits"},{"key":"D","text":"Score it in Arabic against the floor before any decision"}],"correct":[3],"explanation":"The floors are per language, and Day 3 showed a format can hold English and fail Arabic.","misconceptions":["English held under 4-bit while Arabic fell seven points; English says nothing about Arabic","The memory gain is small and the quality is unknown: more cache cannot justify an unmeasured floor","The floor rule needs a score per language, not a rejection of the whole format family",""],"lo":["LO5"]},{"id":"checkpoint-1-q1","slide":"checkpoint-1","type":"single","prompt":"Another authority's assistant answers short questions with 3,000-token answers, under a 100 ms TPOT limit and a 1 s stall limit. Chunked prefill keeps its stall at 0.2 s. It has two cards. Should it disaggregate?","options":[{"key":"A","text":"Yes: disaggregation always lowers TPOT"},{"key":"B","text":"Not on this evidence: the stall already meets its limit and prompts are short"},{"key":"C","text":"No: the cache transfer would break the TTFT objective"},{"key":"D","text":"Yes: long answers need a dedicated prefill card"}],"correct":[1],"explanation":"Split pays when chunked steps break a decode limit; here they do not, and one card of two would serve few, short prefills.","misconceptions":["Disaggregation removes chunk steps from decode; with short prompts there is little to remove","","The transfer grows with the prompt; short prompts make it smaller, not decisive","Long answers load the decode phase; that argues for more decode capacity, not for a prefill pool"],"lo":["LO6"]},{"id":"checkpoint-2-q1","slide":"checkpoint-2","type":"single","prompt":"On three replicas, one shows 30 requests waiting and the cache 95% full; the other two show nothing waiting and the cache 20% full. The router hashes the tenant. What is the fix?","options":[{"key":"A","text":"Add a fourth replica"},{"key":"B","text":"Raise the sequence cap on the busy replica"},{"key":"C","text":"Route by conversation with a load limit, so the busy tenant spreads over all replicas"},{"key":"D","text":"Remove the cache salt so the replicas can share blocks"}],"correct":[2],"explanation":"A hot spot is placement, not capacity: two replicas idle while one drowns.","misconceptions":["More replicas behind the same hash still send the big tenant to one of them","The cap is not the cause: the load is unevenly placed","","Removing the salt would mix tenants' blocks, which Rawya forbids, and does not move load"],"lo":["LO6"]},{"id":"checkpoint-3-q1","slide":"checkpoint-3","type":"single","prompt":"A replica takes 8 minutes to start. Demand rises from 2 to 10 requests a second in half an hour every evening. Which policy keeps the worst hour above 90% at the lowest cost?","options":[{"key":"A","text":"Scale up when more than 20 requests are waiting"},{"key":"B","text":"Run enough replicas for the peak all day"},{"key":"C","text":"Scale on the rate with a minimum of zero"},{"key":"D","text":"Scale on the request rate at half of a replica's capacity, never below one replica"}],"correct":[3],"explanation":"The rate rises before the queue does, and the headroom of 50% covers the minutes a new replica needs to start.","misconceptions":["The queue appears only once visitors already wait; with an 8-minute start they wait for 8 minutes","Meets the objective at more than twice the cost: the cards idle most of the day","Saves almost nothing and leaves the first visitors of the day waiting a cold start",""],"lo":["LO6"]},{"id":"checkpoint-4-q1","slide":"checkpoint-4","type":"single","prompt":"Kenan's slide says self-hosting costs 2.58 SAR per million output tokens against a hosted 1.60, \"so the hosted API is cheaper\". Hanadi asks if that is the right comparison. What do you answer?","options":[{"key":"A","text":"No: compare cost per successful request over a replayed day, input tokens included"},{"key":"B","text":"Yes: per-token prices are how providers compare"},{"key":"C","text":"No: idle hours should be left out of the node's cost"},{"key":"D","text":"No: compare the node at its peak capacity only"}],"correct":[0],"explanation":"The hosted bill counts 2,004 input tokens a request; the node's bill counts idle hours. Only the cost per served request over a real day includes both.","misconceptions":["","Right conclusion by accident: the comparison leaves out input tokens and the idle hours, which point in opposite directions","The minimum replica's idle night is a real cost on the bill, not an accounting choice","Peak capacity is not what the authority pays for; it pays for every hour of every card"],"lo":["LO6"]}],"ai":{"context":{"course":"../context/course.md","courseJs":"../context/course.js","day":"day4.md","llms":"../llms.txt"},"tasks":[],"tools":[]},"bridge":{"allowedOrigins":[]},"features":{},"strings":{}}</script>
+<script src="../_engine/academy.js"></script>
+</body>
+</html>

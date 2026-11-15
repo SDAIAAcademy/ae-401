@@ -1,0 +1,33 @@
+{
+ "rows": [
+  {
+   "budget": "off",
+   "attainment": 0.2654,
+   "chat_tpot_p90": 0.114,
+   "chat_stall_p90": 2.209,
+   "doc_ttft_p90": 2.124
+  },
+  {
+   "budget": 512,
+   "attainment": 0.9321,
+   "chat_tpot_p90": 0.096,
+   "chat_stall_p90": 0.183,
+   "doc_ttft_p90": 2.468
+  },
+  {
+   "budget": 1024,
+   "attainment": 0.9568,
+   "chat_tpot_p90": 0.104,
+   "chat_stall_p90": 0.353,
+   "doc_ttft_p90": 2.196
+  },
+  {
+   "budget": 2048,
+   "attainment": 0.963,
+   "chat_tpot_p90": 0.108,
+   "chat_stall_p90": 0.681,
+   "doc_ttft_p90": 2.088
+  }
+ ],
+ "synthetic": true
+}

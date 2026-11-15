@@ -1,0 +1,23 @@
+{
+ "gain": [
+  {
+   "cache": "bf16",
+   "running": 23.77,
+   "waiting": 1.24,
+   "kv_cache_usage": 0.363,
+   "goodput_rps": 1.5853,
+   "attainment": 0.8203,
+   "ttft_p90": 3.723
+  },
+  {
+   "cache": "fp8",
+   "running": 16.41,
+   "waiting": 0.0,
+   "kv_cache_usage": 0.136,
+   "goodput_rps": 1.9741,
+   "attainment": 1.0,
+   "ttft_p90": 0.115
+  }
+ ],
+ "synthetic": true
+}

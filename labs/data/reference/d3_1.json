@@ -1,0 +1,29 @@
+{
+ "runs": [
+  {
+   "weights": "bf16",
+   "throughput_rps": 0.8911,
+   "goodput_rps": 0.0,
+   "attainment": 0.0,
+   "ttft_p90": 311.537,
+   "tpot_p90": 0.1314
+  },
+  {
+   "weights": "fp8",
+   "throughput_rps": 1.9326,
+   "goodput_rps": 1.5853,
+   "attainment": 0.8203,
+   "ttft_p90": 3.723,
+   "tpot_p90": 0.0891
+  },
+  {
+   "weights": "int4",
+   "throughput_rps": 1.9705,
+   "goodput_rps": 1.8863,
+   "attainment": 0.9573,
+   "ttft_p90": 1.409,
+   "tpot_p90": 0.0843
+  }
+ ],
+ "synthetic": true
+}

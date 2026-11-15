@@ -1,0 +1,50 @@
+{
+ "caps": [
+  {
+   "cap": 2,
+   "throughput_rps": 0.1469,
+   "goodput_rps": 0.0,
+   "attainment": 0.0,
+   "ttft_p90": 35.193,
+   "tpot_p90": 0.082,
+   "preemptions": 0
+  },
+  {
+   "cap": 4,
+   "throughput_rps": 0.2613,
+   "goodput_rps": 0.0,
+   "attainment": 0.0,
+   "ttft_p90": 11.695,
+   "tpot_p90": 0.0933,
+   "preemptions": 0
+  },
+  {
+   "cap": 6,
+   "throughput_rps": 0.348,
+   "goodput_rps": 0.3342,
+   "attainment": 0.9603,
+   "ttft_p90": 1.549,
+   "tpot_p90": 0.1034,
+   "preemptions": 0
+  },
+  {
+   "cap": 8,
+   "throughput_rps": 0.348,
+   "goodput_rps": 0.3342,
+   "attainment": 0.9603,
+   "ttft_p90": 1.549,
+   "tpot_p90": 0.1034,
+   "preemptions": 0
+  },
+  {
+   "cap": 12,
+   "throughput_rps": 0.348,
+   "goodput_rps": 0.3342,
+   "attainment": 0.9603,
+   "ttft_p90": 1.549,
+   "tpot_p90": 0.1034,
+   "preemptions": 0
+  }
+ ],
+ "synthetic": true
+}

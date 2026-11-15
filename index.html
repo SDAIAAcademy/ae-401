@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-ax="page" data-track="ai-engineering">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inference Performance and Cost Engineering · SDAIA Academy</title>
+<meta name="generator" content="SDAIA Academy engine 1.0.0">
+<meta name="description" content="Make a language model service meet its latency objectives at the lowest cost you can defend, with quality held in Arabic and English">
+<link rel="icon" href="_engine/icon.svg">
+<link rel="alternate" type="text/markdown" href="index.md">
+<link rel="describedby" href="llms.txt">
+<link rel="stylesheet" href="_engine/academy.css">
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="top"><div class="logo" id="logo"></div><nav><a href="slides/day1.html">Slides</a><a href="practice.html">Practice</a><a href="index.md" type="text/markdown">Markdown</a></nav></div>
+<div class="kicker">AI Engineering Track · SDAIA Academy · AE-401</div>
+<h1>Inference Performance and Cost Engineering<span class="sub ar" lang="ar" dir="rtl">هندسة أداء الاستدلال وتكلفته</span></h1>
+<p>Make a language model service meet its latency objectives at the lowest cost you can defend, with quality held in Arabic and English</p>
+<div class="meta"><span class="track">AI Engineering Track</span><span>4 teaching days + capstone day</span><span>26 hours</span><span>Level 400</span><span>AI Engineering · Expert badge</span></div>
+</div>
+</header>
+<main class="wrap">
+<h2>About the course</h2>
+<p>Participants take the bilingual visitor assistant of a fictional national events authority, too slow at evening peaks and too costly, and make it meet its service objective at the lowest cost they can defend. They build a first-principles cost model, measure goodput curves on replayed traffic, diagnose seeded bottlenecks, then apply batching, caching, quantisation, speculative decoding, distillation, routing, disaggregated serving and autoscaling, re-running an Arabic and English task evaluation after every change.</p>
+<p><b>Who it is for:</b> Specialists. Engineers who have completed the level 300 core or can show equivalent work: a production AI system they built, operated and can defend.</p>
+<p><b>Format:</b> Intensive: 4 teaching days of four sessions and a capstone day, with guided pre-work and a tracked follow-up task</p>
+<h2>The case study</h2>
+<div class="note info"><b>Liwan National Events Authority.</b> Musamir, the bilingual visitor assistant of a fictional national events authority, serves three event organisers from one leased accelerator and is too slow at evening peaks and too costly. Every lab works on the same synthetic data: 40,000 Arabic and English visitor requests over a day, model cards and spec sheets, recorded evaluation outcomes for six model variants and a course simulator of the serving engine, all generated with a fixed seed.</div>
+<h2>The course</h2>
+<div class="day">
+<div class="day-head c-teal"><div><div class="t">Day 1 · 4 sessions · 4 labs</div><h3>Model the cost first</h3></div><a class="btn" href="slides/day1.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Prefill and decode are different problems</b><br>Why a prompt is processed at the speed of arithmetic and an answer at the speed of memory.<ul><li>Compute the operations and bytes of one token for a model card</li><li>Place prefill and decode on the roofline of an accelerator</li><li>Predict time to first token and time per output token from first principles</li></ul></td><td><a href="labs/D1_1_compute_operations_bytes.ipynb">Lab 1.1 · Operations and bytes per token</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D1_1_compute_operations_bytes.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Key-value cache arithmetic</b><br>The cache, not the weights, decides how many visitors are served at once.<ul><li>Compute key-value cache bytes per token from a model card</li><li>Predict the concurrency limit at a given context length</li><li>Explain the gap between a prediction and the engine's block count</li></ul></td><td><a href="labs/D1_2_predict_concurrency_limit.ipynb">Lab 1.2 · Concurrency limit at three context lengths</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D1_2_predict_concurrency_limit.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Goodput against an objective</b><br>Requests per second that meet the whole latency objective, measured from a stream.<ul><li>Measure time to first token and time per output token from a streamed response</li><li>Compute goodput against two per-request objectives</li><li>Break a request's time into queue, prefill and decode</li></ul></td><td><a href="labs/D1_3_load_baseline_three.ipynb">Lab 1.3 · The baseline at three concurrency levels</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D1_3_load_baseline_three.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Curves, not single numbers</b><br>A capacity is a point on a curve with an error bar, not a number from one run.<ul><li>Build a goodput curve over concurrency with repeated runs</li><li>Read the knee of a curve and state a capacity with its variance</li><li>Judge whether a benchmark is valid</li></ul></td><td><a href="labs/D1_4_build_seven_point.ipynb">Lab 1.4 · A seven-point goodput curve</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D1_4_build_seven_point.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-cyan"><div><div class="t">Day 2 · 4 sessions · 4 labs</div><h3>Scheduling and caching in the engine</h3></div><a class="btn" href="slides/day2.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Continuous batching and admission</b><br>How the scheduler admits sequences, and how queueing and preemption look in the metrics.<ul><li>Explain iteration-level scheduling and the sequence cap</li><li>Tell queueing from preemption by their metrics</li><li>Choose a concurrency cap from a tail-latency and throughput plot</li></ul></td><td><a href="labs/D2_1_vary_concurrency_cap.ipynb">Lab 2.1 · The concurrency cap</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D2_1_vary_concurrency_cap.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Long prompts slow short ones</b><br>A long prefill stalls every decode in the batch unless it is cut into chunks.<ul><li>Recognise prefill interference in time per output token</li><li>Tune chunked prefill with a token budget</li><li>Confirm a fix with a rerun against the objective</li></ul></td><td><a href="labs/D2_2_mix_long_document.ipynb">Lab 2.2 · Long documents and chat, chunked or not</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D2_2_mix_long_document.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Prefix caching starts with prompt layout</b><br>Reuse needs identical leading blocks, and reuse across tenants must be blocked.<ul><li>Lay out a prompt so that its stable part comes first</li><li>Measure the prefix-cache hit rate and its effect on time to first token</li><li>Prove that no cache block is shared between tenants</li></ul></td><td><a href="labs/D2_3_reorder_prompt_reuse.ipynb">Lab 2.3 · Prompt layout and tenant isolation</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D2_3_reorder_prompt_reuse.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Semantic caching and wrong answers</b><br>A similar question is not the same question: every semantic hit is a bet.<ul><li>Measure hit rate and wrong-answer rate of a semantic cache</li><li>Compare the rates by language</li><li>Keep personal data out of cached entries</li></ul></td><td><a href="labs/D2_4_measure_hit_rate.ipynb">Lab 2.4 · Semantic cache thresholds</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D2_4_measure_hit_rate.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-coral"><div><div class="t">Day 3 · 4 sessions · 4 labs</div><h3>Cheaper tokens, same quality</h3></div><a class="btn" href="slides/day3.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Quantising weights</b><br>Fewer bytes per weight free memory for the cache and speed up decode, if quality holds.<ul><li>Choose a weight format the accelerator supports</li><li>Measure memory, goodput and quality of each precision</li><li>Report quality by language with intervals</li></ul></td><td><a href="labs/D3_1_compare_two_weight.ipynb">Lab 3.1 · Two weight precisions</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D3_1_compare_two_weight.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Cache precision buys concurrency</b><br>An 8-bit cache doubles the blocks; long contexts pay for it first.<ul><li>Compute the blocks gained by a lower cache precision</li><li>Measure the concurrency and goodput gained</li><li>Measure long-context accuracy lost, per language, as a paired difference</li></ul></td><td><a href="labs/D3_2_lower_cache_precision.ipynb">Lab 3.2 · Lower cache precision</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D3_2_lower_cache_precision.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Speculative decoding</b><br>A small model guesses, the large one checks: faster when the engine is quiet, a cost when it is full.<ul><li>Compute the expected tokens per step from an acceptance rate</li><li>Measure acceptance and time per output token at low and high load</li><li>Decide when to switch speculation on</li></ul></td><td><a href="labs/D3_3_measure_acceptance_rate.ipynb">Lab 3.3 · Acceptance rate at two loads</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D3_3_measure_acceptance_rate.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Distilled models and routing to them</b><br>Send the easy requests to a small model and keep the base for the hard ones.<ul><li>Compare a distilled model with the base by language</li><li>Choose a routing threshold from a quality and cost sweep</li><li>Write a one-page serving decision</li></ul></td><td><a href="labs/D3_4_route_supplied_difficulty.ipynb">Lab 3.4 · Route by difficulty</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D3_4_route_supplied_difficulty.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-purple"><div><div class="t">Day 4 · 4 sessions · 4 labs</div><h3>Across replicas and over the day</h3></div><a class="btn" href="slides/day4.html">Open the slides</a></div>
+<div class="scroll"><table>
+<tr><th>Session</th><th>Topic</th><th>Lab</th></tr>
+<tr><td>1</td><td><b>Disaggregated prefill and decode</b><br>Separate pools stop prefills from stalling decodes, at the price of moving the cache.<ul><li>Predict the load on separate prefill and decode pools</li><li>Compute the cost of moving the cache between them</li><li>State when disaggregation pays for a traffic mix</li></ul></td><td><a href="labs/D4_1_predict_when_disaggregation.ipynb">Lab 4.1 · When disaggregation pays</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D4_1_predict_when_disaggregation.ipynb">Open in Colab</a></td></tr>
+<tr><td>2</td><td><b>Routing across replicas</b><br>Where a request lands decides whether its prefix is already cached.<ul><li>Compare round-robin and prefix-aware routing on cache hits and latency</li><li>Write a prefix-aware router with a load limit</li><li>Detect a hot spot and correct it</li></ul></td><td><a href="labs/D4_2_compare_round_robin.ipynb">Lab 4.2 · Round robin or prefix-aware</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D4_2_compare_round_robin.ipynb">Open in Colab</a></td></tr>
+<tr><td>3</td><td><b>Autoscaling and cold starts</b><br>Scale on the signal users feel, and keep enough warm replicas for the cold start.<ul><li>Derive a replica's capacity at the objective from its curve</li><li>Compare scaling signals on the same day</li><li>Choose a minimum replica count from cold start and cost</li></ul></td><td><a href="labs/D4_3_replay_daily_pattern.ipynb">Lab 4.3 · Scaling over the day</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D4_3_replay_daily_pattern.ipynb">Open in Colab</a></td></tr>
+<tr><td>4</td><td><b>Cost per successful request</b><br>The number that decides: cost divided by the requests that met the objective.<ul><li>Compute cost and energy per successful request</li><li>Compare self-hosting with a hosted API at three volumes</li><li>Plan the capstone from the course's measurements</li></ul></td><td><a href="labs/D4_4_compare_self_hosting.ipynb">Lab 4.4 · Self-hosting or a hosted API</a> <span class="muted">(25 min)</span><br><a href="https://colab.research.google.com/github/SDAIAAcademy/ae-401/blob/main/labs/D4_4_compare_self_hosting.ipynb">Open in Colab</a></td></tr>
+</table></div>
+</div>
+<div class="day">
+<div class="day-head c-amber"><div><div class="t">Capstone</div><h3>Capstone project presentations</h3></div><a class="btn" href="slides/capstone.html">Open the slides</a></div>
+<div class="scroll"><table><tr><td>Twelve minutes of evidence and eight of questions, with one traffic change predicted and rerun</td></tr></table></div>
+</div>
+<h2>Capstone</h2>
+<div class="two">
+<div><p>Tune a provided under-performing deployment of the case assistant to meet its latency objectives at minimum cost per successful request, submitted as a public repository with raw benchmark data, quality by language and a design document, and defended in 20 minutes. The follow-up task repeats the method on the participant's own deployment or a public trace</p><p><b>What you submit:</b> A public GitHub repository link: raw benchmark files, engine logs, quality by language, the design document and a commit history; submitted before the defence</p><p><b>Format:</b> 12 min talk and demo · 8 min Q&amp;A</p></div>
+<div><h3>Rubric</h3><div class="bar c-teal"><span>Cost model<i style="--w:60%"></i></span><b>15%</b></div><div class="bar c-cyan"><span>Benchmark method<i style="--w:100%"></i></span><b>25%</b></div><div class="bar c-coral"><span>Optimisations with re-evaluation<i style="--w:100%"></i></span><b>25%</b></div><div class="bar c-purple"><span>Topology design<i style="--w:80%"></i></span><b>20%</b></div><div class="bar c-amber"><span>Reproducibility<i style="--w:60%"></i></span><b>15%</b></div></div>
+</div>
+<h2>Outcomes</h2>
+<p>By the end of the course, participants can:</p>
+<div class="day"><div class="scroll"><table>
+<tr><th></th><th>Outcomes</th><th>Level</th><th>Evidence</th></tr>
+<tr><td><b>LO1</b></td><td>Compute prefill cost, decode cost and key-value cache memory, and predict the binding resource, given a model card, an accelerator specification sheet and a traffic profile</td><td>Applied</td><td>a sizing sheet whose predicted concurrency limit is within 25% of a measured run</td></tr>
+<tr><td><b>LO2</b></td><td>Evaluate a serving configuration by measuring its goodput curve over concurrency against latency objectives, given an engine, a small open-weight model and a replayed synthetic trace</td><td>Performance</td><td>a repeatable curve of at least seven points with raw data and run-to-run variance</td></tr>
+<tr><td><b>LO3</b></td><td>Diagnose why a deployment misses its service objective and confirm the fix, given three seeded faults: queueing, preemption under cache pressure and prefill interference</td><td>Performance</td><td>a diagnosis per fault with its evidence, and a rerun that meets the objective</td></tr>
+<tr><td><b>LO4</b></td><td>Optimise batching, admission, prefix caching and cache precision while holding task quality, given a multi-tenant trace and Arabic and English evaluation sets</td><td>Performance</td><td>before-and-after goodput, cost per million tokens and quality with intervals, and a passed cross-tenant cache test</td></tr>
+<tr><td><b>LO5</b></td><td>Evaluate quantised, distilled and speculative-decoding variants against the base model and decide which to serve, given a quality floor per language and a cost target</td><td>Performance</td><td>a quality and cost table by language and a one-page serving decision</td></tr>
+<tr><td><b>LO6</b></td><td>Design and defend a serving topology covering disaggregation, routing, replica count and scaling policy, given a daily demand pattern, a service objective and a budget</td><td>Performance</td><td>a design document with predicted and measured goodput and cost per successful request</td></tr>
+</table></div></div>
+<h2>Tools</h2>
+<div class="grid">
+<div class="card c-teal"><h3>Inference engine</h3><p>vLLM · SGLang · llama.cpp server</p></div>
+<div class="card c-cyan"><h3>Load generator with trace replay</h3><p>inference-perf · Locust</p></div>
+<div class="card c-coral"><h3>Profiling and metrics</h3><p>PyTorch profiler · Prometheus with Grafana</p></div>
+<div class="card c-purple"><h3>Analytical performance model</h3><p>MLSys·im · a spreadsheet roofline and queueing model</p></div>
+<div class="card c-green"><h3>Quality regression harness</h3><p>lm-evaluation-harness · Inspect</p></div>
+<div class="card c-teal"><h3>Autoscaling</h3><p>a course-supplied scaling simulator · KEDA on the provided node</p></div>
+</div>
+<h2>Before you start</h2>
+<h3>Prerequisites</h3>
+<ul><li>AE-305 Operating Machine Learning and Language Model Systems</li><li>AE-307 Container Orchestration and Cloud Infrastructure for AI Workloads</li><li>Has served an open-weight model behind an HTTP endpoint and load-tested it</li><li>Computes percentiles and reads a latency histogram</li><li>Estimates memory from parameter count and numeric precision</li></ul>
+<div class="note tip">The labs are notebooks. Open each one in Google Colab from the table above, or clone the repository and run them locally.</div>
+<h2>Sources</h2>
+<h3>Models and accelerators</h3>
+<ul><li><a href="https://huggingface.co/Qwen/Qwen3-8B">Qwen3-8B model card and configuration (Hugging Face)</a></li><li><a href="https://huggingface.co/Qwen/Qwen3-1.7B">Qwen3-1.7B model card (Hugging Face)</a></li><li><a href="https://huggingface.co/Qwen/Qwen3-0.6B">Qwen3-0.6B model card (Hugging Face)</a></li><li><a href="https://www.nvidia.com/en-us/data-center/l4/">NVIDIA L4 Tensor Core GPU specifications</a></li><li><a href="https://www.nvidia.com/en-us/data-center/tesla-t4/">NVIDIA T4 Tensor Core GPU specifications</a></li></ul>
+<h3>Serving engines and their documentation</h3>
+<ul><li><a href="https://docs.vllm.ai/en/latest/configuration/engine_args.html">vLLM: engine arguments</a></li><li><a href="https://docs.vllm.ai/en/latest/configuration/optimization/">vLLM: optimisation and tuning (preemption, chunked prefill)</a></li><li><a href="https://docs.vllm.ai/en/latest/design/prefix_caching.html">vLLM: automatic prefix caching and cache salts</a></li><li><a href="https://docs.vllm.ai/en/latest/design/metrics/">vLLM: metrics</a></li><li><a href="https://docs.vllm.ai/en/latest/features/quantization/">vLLM: quantization</a></li><li><a href="https://docs.vllm.ai/en/latest/features/speculative_decoding/">vLLM: speculative decoding</a></li><li><a href="https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache.html">vLLM: quantized KV cache</a></li><li><a href="https://github.com/vllm-project/vllm">vLLM (GitHub)</a></li><li><a href="https://github.com/sgl-project/sglang">SGLang (GitHub)</a></li><li><a href="https://github.com/ggml-org/llama.cpp">llama.cpp (GitHub)</a></li></ul>
+<h3>Research</h3>
+<ul><li><a href="https://arxiv.org/abs/2309.06180">Kwon et al., Efficient Memory Management for Large Language Model Serving with PagedAttention (2023)</a></li><li><a href="https://www.usenix.org/conference/osdi22/presentation/yu">Yu et al., Orca: A Distributed Serving System for Transformer-Based Generative Models (OSDI 2022)</a></li><li><a href="https://arxiv.org/abs/2403.02310">Agrawal et al., Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve (2024)</a></li><li><a href="https://arxiv.org/abs/2401.09670">Zhong et al., DistServe: Disaggregating Prefill and Decoding for Goodput-optimized LLM Serving (2024)</a></li><li><a href="https://arxiv.org/abs/2311.18677">Patel et al., Splitwise: Efficient generative LLM inference using phase splitting (2023)</a></li><li><a href="https://arxiv.org/abs/2211.17192">Leviathan et al., Fast Inference from Transformers via Speculative Decoding (2022)</a></li><li><a href="https://arxiv.org/abs/2302.01318">Chen et al., Accelerating Large Language Model Decoding with Speculative Sampling (2023)</a></li><li><a href="https://arxiv.org/abs/1503.02531">Hinton et al., Distilling the Knowledge in a Neural Network (2015)</a></li><li><a href="https://arxiv.org/abs/2306.00978">Lin et al., AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration (2023)</a></li><li><a href="https://arxiv.org/abs/2208.07339">Dettmers et al., LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale (2022)</a></li></ul>
+<h3>Tools</h3>
+<ul><li><a href="https://github.com/kubernetes-sigs/inference-perf">inference-perf (Kubernetes SIGs)</a></li><li><a href="https://locust.io/">Locust</a></li><li><a href="https://prometheus.io/">Prometheus</a></li><li><a href="https://harvard-edge.github.io/cs249r_book_dev/mlsysim/whitepaper.html">MLSYSIM whitepaper (Harvard)</a></li><li><a href="https://github.com/EleutherAI/lm-evaluation-harness">lm-evaluation-harness (EleutherAI)</a></li><li><a href="https://inspect.aisi.org.uk/">Inspect</a></li><li><a href="https://keda.sh/">KEDA</a></li></ul>
+<h3>National references</h3>
+<ul><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataProtectionLaw.pdf">Personal Data Protection Law (SDAIA)</a></li><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulationPersonalDataProtectionLaw.pdf">Implementing Regulation of the Personal Data Protection Law (SDAIA)</a></li><li><a href="https://sdaia.gov.sa/Documents/RegulationonPersonalDataEN.pdf">Regulation on Personal Data Transfer outside the Kingdom (SDAIA)</a></li><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/DataClassificationPolicy.pdf">Data Classification Policy (NDMO, SDAIA)</a></li><li><a href="https://sdaia.gov.sa/en/SDAIA/about/Files/GenAIGuidelinesForGovernmentENCompressed.pdf">Generative AI Guidelines for Government (SDAIA)</a></li></ul>
+<h2>Files and links</h2>
+<div class="files">
+<a href="practice.html"><b>practice.html</b><span>Practice questions with feedback</span></a>
+<a href="index.md"><b>index.md</b><span>This page as Markdown, for an AI assistant</span></a>
+<a href="llms.txt"><b>llms.txt</b><span>The course for AI assistants (llms.txt)</span></a>
+<a href="https://github.com/SDAIAAcademy/ae-401"><b>SDAIAAcademy/ae-401</b><span>The course repository</span></a>
+</div>
+</main>
+<footer><div class="wrap">SDAIA Academy · AI Engineering Track · Inference Performance and Cost Engineering<br><span class="muted">Course version 2027.1.0 · engine 1.0.0 · built 2026-11-15 · commit 65b5aad</span></div></footer>
+<script type="application/json" id="academy-data">{"v":1,"engine":"1.0.0","build":{"at":"2026-11-15T16:19:23Z","version":"2027.1.0","commit":"65b5aad"},"course":{"id":"ae-401","code":"AE-401","title":"Inference Performance and Cost Engineering","track":"ai-engineering","lang":"en","dir":"ltr","url":"https://sdaiaacademy.github.io/ae-401/","repo":"SDAIAAcademy/ae-401","home":"index.html"},"ai":{"context":{"course":"context/course.md","courseJs":"context/course.js","day":null,"llms":"llms.txt"},"tasks":[],"tools":[]},"features":{},"strings":{}}</script>
+<script src="_engine/academy.js"></script>
+</body>
+</html>

@@ -1,0 +1,601 @@
+item,lang,task,context,context_tokens,difficulty,classifier_score
+AR-001,ar,accessibility,short,944,-1.824,0.1107
+AR-002,ar,terms question,long,8452,-0.874,0.3112
+AR-003,ar,accessibility,short,1169,-0.015,0.6103
+AR-004,ar,terms question,long,10229,0.876,0.674
+AR-005,ar,terms question,long,8907,0.144,0.4983
+AR-006,ar,terms question,long,15923,-0.337,0.4336
+AR-007,ar,venue directions,short,1670,-0.632,0.3749
+AR-008,ar,terms question,short,1680,1.023,0.6804
+AR-009,ar,accessibility,short,1345,-0.467,0.4853
+AR-010,ar,venue directions,short,1297,-1.215,0.3319
+AR-011,ar,ticket change,long,9696,0.776,0.8314
+AR-012,ar,answer from event rules,short,1137,-0.464,0.446
+AR-013,ar,answer from event rules,short,2953,1.068,0.5917
+AR-014,ar,accessibility,long,10578,-1.501,0.1998
+AR-015,ar,accessibility,short,1008,1.225,0.8905
+AR-016,ar,accessibility,long,9141,1.267,0.8619
+AR-017,ar,terms question,long,8000,0.152,0.6833
+AR-018,ar,venue directions,long,10210,-1.587,0.1423
+AR-019,ar,terms question,short,899,1.324,0.6505
+AR-020,ar,terms question,long,9660,-0.916,0.2929
+AR-021,ar,ticket change,short,1374,-0.474,0.3033
+AR-022,ar,terms question,short,1096,-0.433,0.4868
+AR-023,ar,venue directions,long,16000,0.405,0.7435
+AR-024,ar,accessibility,short,2311,1.011,0.8507
+AR-025,ar,terms question,short,880,1.82,0.9199
+AR-026,ar,ticket change,short,876,1.089,0.7153
+AR-027,ar,answer from event rules,short,1875,-1.51,0.1973
+AR-028,ar,accessibility,short,668,3.603,0.9734
+AR-029,ar,ticket change,long,11370,-1.296,0.1191
+AR-030,ar,accessibility,short,1230,0.384,0.4571
+AR-031,ar,terms question,short,1369,-2.244,0.0849
+AR-032,ar,answer from event rules,long,12791,1.117,0.5736
+AR-033,ar,accessibility,short,1188,-0.804,0.2895
+AR-034,ar,ticket change,long,8498,0.264,0.5186
+AR-035,ar,venue directions,long,11074,2.426,0.9057
+AR-036,ar,accessibility,short,600,-2.154,0.0541
+AR-037,ar,terms question,short,1887,-0.455,0.2101
+AR-038,ar,accessibility,long,11302,0.568,0.6235
+AR-039,ar,answer from event rules,short,1520,1.277,0.7373
+AR-040,ar,terms question,short,1499,0.873,0.8283
+AR-041,ar,venue directions,short,1024,0.716,0.8329
+AR-042,ar,ticket change,long,7633,0.825,0.6294
+AR-043,ar,venue directions,long,12983,0.585,0.722
+AR-044,ar,terms question,short,1980,0.177,0.6616
+AR-045,ar,ticket change,short,1529,-0.631,0.4194
+AR-046,ar,terms question,short,1514,1.789,0.89
+AR-047,ar,answer from event rules,short,1657,-0.168,0.6087
+AR-048,ar,terms question,short,1146,-0.03,0.4789
+AR-049,ar,answer from event rules,long,9787,-0.025,0.6998
+AR-050,ar,terms question,short,1592,0.001,0.5339
+AR-051,ar,accessibility,long,6000,0.863,0.5574
+AR-052,ar,ticket change,short,1063,-1.246,0.2204
+AR-053,ar,answer from event rules,long,7057,1.37,0.7146
+AR-054,ar,answer from event rules,long,9144,0.005,0.5539
+AR-055,ar,ticket change,short,901,-0.222,0.493
+AR-056,ar,answer from event rules,short,1640,0.397,0.7057
+AR-057,ar,terms question,short,1192,0.816,0.6454
+AR-058,ar,terms question,short,969,0.913,0.5338
+AR-059,ar,answer from event rules,short,1059,-0.02,0.4618
+AR-060,ar,answer from event rules,short,1436,-1.413,0.2874
+AR-061,ar,answer from event rules,short,1359,1.113,0.5874
+AR-062,ar,ticket change,short,1143,-0.998,0.2558
+AR-063,ar,ticket change,short,1719,-0.214,0.4438
+AR-064,ar,ticket change,long,6000,1.39,0.753
+AR-065,ar,terms question,short,1081,-0.712,0.2197
+AR-066,ar,terms question,short,2027,0.416,0.6646
+AR-067,ar,answer from event rules,short,600,-0.421,0.2866
+AR-068,ar,terms question,long,13422,-0.228,0.5309
+AR-069,ar,terms question,long,10304,-0.17,0.4881
+AR-070,ar,terms question,long,14259,0.181,0.4361
+AR-071,ar,venue directions,short,1750,-1.87,0.0942
+AR-072,ar,terms question,short,1356,-0.924,0.3737
+AR-073,ar,venue directions,long,8243,-0.981,0.0975
+AR-074,ar,venue directions,long,8160,2.614,0.9324
+AR-075,ar,ticket change,short,932,0.37,0.6582
+AR-076,ar,terms question,short,1148,-0.663,0.3167
+AR-077,ar,venue directions,short,1006,-1.409,0.1054
+AR-078,ar,terms question,long,11178,-2.745,0.0738
+AR-079,ar,answer from event rules,short,1430,0.043,0.3967
+AR-080,ar,accessibility,long,8958,-0.846,0.1625
+AR-081,ar,terms question,long,12344,-1.248,0.1789
+AR-082,ar,ticket change,short,1386,0.035,0.4282
+AR-083,ar,answer from event rules,long,8896,-1.201,0.306
+AR-084,ar,accessibility,long,9608,0.693,0.7066
+AR-085,ar,venue directions,short,652,2.514,0.9301
+AR-086,ar,ticket change,short,1255,0.869,0.7643
+AR-087,ar,answer from event rules,short,805,0.203,0.4708
+AR-088,ar,ticket change,short,2107,1.013,0.5634
+AR-089,ar,accessibility,short,2057,-1.384,0.2636
+AR-090,ar,accessibility,short,1277,0.053,0.4507
+AR-091,ar,terms question,short,1248,0.107,0.4526
+AR-092,ar,ticket change,short,1450,0.939,0.7526
+AR-093,ar,accessibility,long,7341,1.93,0.9133
+AR-094,ar,venue directions,long,12645,1.31,0.9005
+AR-095,ar,answer from event rules,short,1574,0.068,0.3532
+AR-096,ar,venue directions,short,1665,0.282,0.792
+AR-097,ar,terms question,short,1097,-0.648,0.5017
+AR-098,ar,accessibility,short,3022,0.018,0.4236
+AR-099,ar,venue directions,short,718,-0.575,0.4661
+AR-100,ar,accessibility,short,1919,0.425,0.7371
+AR-101,ar,accessibility,short,1635,-1.442,0.2553
+AR-102,ar,ticket change,short,1410,0.65,0.6143
+AR-103,ar,ticket change,short,2026,-0.347,0.3995
+AR-104,ar,answer from event rules,long,7853,1.039,0.8341
+AR-105,ar,answer from event rules,long,11390,-1.576,0.1101
+AR-106,ar,terms question,short,1785,-0.682,0.4641
+AR-107,ar,accessibility,short,2417,0.944,0.8908
+AR-108,ar,ticket change,long,10486,0.076,0.6246
+AR-109,ar,answer from event rules,short,1036,0.569,0.6642
+AR-110,ar,ticket change,short,2001,0.819,0.8272
+AR-111,ar,terms question,short,1070,-0.323,0.3843
+AR-112,ar,ticket change,short,1179,1.232,0.6589
+AR-113,ar,answer from event rules,long,16000,0.273,0.5507
+AR-114,ar,ticket change,long,6217,-0.409,0.2922
+AR-115,ar,terms question,long,13134,0.532,0.3893
+AR-116,ar,ticket change,long,8167,-0.838,0.2476
+AR-117,ar,venue directions,short,1836,0.068,0.5908
+AR-118,ar,venue directions,short,1181,2.513,0.9555
+AR-119,ar,venue directions,long,8980,-0.147,0.3175
+AR-120,ar,accessibility,short,1843,0.861,0.7318
+AR-121,ar,accessibility,short,1452,0.061,0.2814
+AR-122,ar,answer from event rules,long,8740,0.195,0.4379
+AR-123,ar,accessibility,short,1250,0.389,0.4374
+AR-124,ar,accessibility,short,1268,-0.081,0.4866
+AR-125,ar,terms question,short,1278,-0.431,0.2885
+AR-126,ar,terms question,short,1028,0.066,0.5973
+AR-127,ar,ticket change,long,10470,0.447,0.6982
+AR-128,ar,accessibility,long,10234,0.539,0.8356
+AR-129,ar,answer from event rules,short,602,-0.395,0.3567
+AR-130,ar,ticket change,long,7782,1.569,0.8405
+AR-131,ar,ticket change,long,6053,2.425,0.9431
+AR-132,ar,venue directions,long,6000,0.017,0.2976
+AR-133,ar,terms question,short,1468,-0.406,0.1799
+AR-134,ar,ticket change,long,12281,-1.827,0.0463
+AR-135,ar,terms question,long,11599,0.794,0.6222
+AR-136,ar,accessibility,long,11702,1.191,0.8843
+AR-137,ar,ticket change,long,8750,0.285,0.5178
+AR-138,ar,accessibility,long,7624,0.447,0.7128
+AR-139,ar,terms question,short,1361,-0.849,0.3127
+AR-140,ar,venue directions,short,1842,-1.577,0.23
+AR-141,ar,venue directions,short,1757,-0.801,0.4871
+AR-142,ar,ticket change,short,811,1.776,0.9477
+AR-143,ar,ticket change,long,8700,2.121,0.8657
+AR-144,ar,venue directions,long,7870,-0.049,0.2971
+AR-145,ar,ticket change,short,3500,-0.158,0.5799
+AR-146,ar,ticket change,long,9122,-0.368,0.4581
+AR-147,ar,answer from event rules,long,7902,0.15,0.427
+AR-148,ar,answer from event rules,long,9339,-0.947,0.1699
+AR-149,ar,terms question,short,673,-1.089,0.5359
+AR-150,ar,accessibility,short,1168,0.878,0.6733
+AR-151,ar,ticket change,long,9077,3.114,0.9724
+AR-152,ar,answer from event rules,short,1088,-1.209,0.2824
+AR-153,ar,ticket change,long,10434,-2.338,0.0513
+AR-154,ar,venue directions,short,2406,0.29,0.5459
+AR-155,ar,terms question,short,978,1.108,0.7776
+AR-156,ar,ticket change,short,2280,1.218,0.6631
+AR-157,ar,accessibility,long,9830,0.937,0.7469
+AR-158,ar,answer from event rules,long,13606,0.308,0.6384
+AR-159,ar,venue directions,long,8519,-0.399,0.4742
+AR-160,ar,ticket change,short,1253,-0.672,0.3596
+AR-161,ar,venue directions,long,9018,1.551,0.8717
+AR-162,ar,answer from event rules,long,8608,-0.475,0.3526
+AR-163,ar,ticket change,short,1511,2.579,0.899
+AR-164,ar,terms question,short,926,-0.208,0.428
+AR-165,ar,answer from event rules,short,1124,0.024,0.4376
+AR-166,ar,ticket change,short,1251,-0.421,0.4636
+AR-167,ar,ticket change,short,1630,-0.803,0.4039
+AR-168,ar,ticket change,short,1466,-2.241,0.0743
+AR-169,ar,accessibility,short,2387,2.429,0.9566
+AR-170,ar,terms question,long,8567,0.038,0.4804
+AR-171,ar,accessibility,short,1506,-0.51,0.3474
+AR-172,ar,accessibility,short,1150,-0.17,0.513
+AR-173,ar,venue directions,long,11169,2.292,0.9387
+AR-174,ar,answer from event rules,short,1087,-1.058,0.1702
+AR-175,ar,ticket change,short,952,-0.239,0.2494
+AR-176,ar,terms question,short,944,0.911,0.7726
+AR-177,ar,ticket change,long,12744,1.554,0.9228
+AR-178,ar,ticket change,short,1222,-2.423,0.0621
+AR-179,ar,answer from event rules,short,2410,-1.431,0.1291
+AR-180,ar,answer from event rules,short,1350,-0.537,0.2115
+AR-181,ar,ticket change,long,10322,0.523,0.679
+AR-182,ar,ticket change,short,667,-1.13,0.1196
+AR-183,ar,answer from event rules,short,919,0.677,0.7466
+AR-184,ar,accessibility,short,1806,-1.227,0.0974
+AR-185,ar,answer from event rules,long,9572,-1.095,0.2604
+AR-186,ar,answer from event rules,short,1936,0.626,0.549
+AR-187,ar,ticket change,long,10607,1.781,0.927
+AR-188,ar,accessibility,short,1318,0.626,0.586
+AR-189,ar,terms question,short,813,1.855,0.8552
+AR-190,ar,terms question,short,1792,-1.353,0.1016
+AR-191,ar,ticket change,short,928,2.235,0.9609
+AR-192,ar,accessibility,short,1378,0.138,0.6891
+AR-193,ar,answer from event rules,short,1073,-0.133,0.3678
+AR-194,ar,terms question,short,1992,-0.671,0.4901
+AR-195,ar,terms question,long,10858,0.522,0.7871
+AR-196,ar,accessibility,short,970,0.642,0.5317
+AR-197,ar,terms question,long,8142,1.277,0.5809
+AR-198,ar,accessibility,short,1659,0.146,0.6676
+AR-199,ar,ticket change,long,6000,-1.316,0.2184
+AR-200,ar,answer from event rules,short,2209,1.786,0.8192
+AR-201,ar,terms question,long,7569,-1.079,0.1526
+AR-202,ar,answer from event rules,short,664,0.803,0.7897
+AR-203,ar,accessibility,short,1763,0.679,0.515
+AR-204,ar,venue directions,short,2304,0.919,0.7181
+AR-205,ar,accessibility,short,972,-0.234,0.4127
+AR-206,ar,ticket change,short,826,-0.157,0.3651
+AR-207,ar,accessibility,short,2084,-0.96,0.3172
+AR-208,ar,accessibility,long,10720,1.434,0.7398
+AR-209,ar,answer from event rules,short,1667,0.638,0.5029
+AR-210,ar,venue directions,long,8247,1.705,0.8477
+AR-211,ar,venue directions,short,2363,0.627,0.9248
+AR-212,ar,venue directions,long,8939,2.14,0.9186
+AR-213,ar,venue directions,short,746,0.205,0.6133
+AR-214,ar,answer from event rules,short,1176,0.365,0.5665
+AR-215,ar,accessibility,short,1727,-0.69,0.2896
+AR-216,ar,ticket change,short,1321,-0.075,0.5406
+AR-217,ar,answer from event rules,short,1525,-1.536,0.136
+AR-218,ar,venue directions,long,6000,0.054,0.3135
+AR-219,ar,accessibility,long,9758,0.018,0.6608
+AR-220,ar,ticket change,long,9505,2.0,0.8513
+AR-221,ar,venue directions,short,1698,1.459,0.9455
+AR-222,ar,accessibility,short,932,-0.84,0.2653
+AR-223,ar,accessibility,short,2135,1.479,0.745
+AR-224,ar,accessibility,long,9600,-2.246,0.0545
+AR-225,ar,venue directions,short,1141,-0.994,0.3494
+AR-226,ar,venue directions,long,6775,0.823,0.5978
+AR-227,ar,answer from event rules,short,1216,-1.242,0.1656
+AR-228,ar,terms question,short,1271,-1.773,0.1626
+AR-229,ar,terms question,short,715,1.651,0.8486
+AR-230,ar,answer from event rules,long,7684,-0.645,0.6603
+AR-231,ar,ticket change,long,11069,1.316,0.757
+AR-232,ar,ticket change,short,1297,-0.775,0.251
+AR-233,ar,answer from event rules,long,6552,1.206,0.8194
+AR-234,ar,accessibility,long,8391,0.064,0.4914
+AR-235,ar,venue directions,short,1155,0.555,0.6695
+AR-236,ar,accessibility,short,1579,1.17,0.7764
+AR-237,ar,venue directions,short,758,0.702,0.5245
+AR-238,ar,venue directions,short,1401,-1.093,0.3055
+AR-239,ar,accessibility,short,790,-0.521,0.2721
+AR-240,ar,accessibility,short,1036,-1.717,0.1098
+AR-241,ar,venue directions,short,2133,1.448,0.5475
+AR-242,ar,terms question,long,8350,-0.35,0.3233
+AR-243,ar,accessibility,short,1001,-0.249,0.2533
+AR-244,ar,ticket change,short,3148,1.52,0.8941
+AR-245,ar,ticket change,short,993,-2.043,0.0751
+AR-246,ar,answer from event rules,short,1090,1.719,0.891
+AR-247,ar,ticket change,short,956,-1.727,0.1918
+AR-248,ar,accessibility,long,10765,0.344,0.28
+AR-249,ar,accessibility,short,2043,0.442,0.7373
+AR-250,ar,venue directions,long,6000,-0.857,0.2409
+AR-251,ar,answer from event rules,long,8161,-1.995,0.0932
+AR-252,ar,ticket change,short,1159,-1.095,0.3426
+AR-253,ar,venue directions,long,12117,0.649,0.5816
+AR-254,ar,answer from event rules,short,1675,1.013,0.8125
+AR-255,ar,terms question,short,1468,-1.792,0.1187
+AR-256,ar,accessibility,short,931,1.248,0.8761
+AR-257,ar,terms question,short,2041,-1.37,0.1138
+AR-258,ar,accessibility,short,2247,1.718,0.8203
+AR-259,ar,ticket change,short,1188,-0.245,0.4917
+AR-260,ar,ticket change,short,2077,-1.679,0.1082
+AR-261,ar,answer from event rules,short,964,-0.322,0.6472
+AR-262,ar,ticket change,short,1521,-3.025,0.0312
+AR-263,ar,venue directions,short,997,-0.779,0.3181
+AR-264,ar,terms question,short,1416,-0.349,0.3829
+AR-265,ar,venue directions,short,941,-0.383,0.1357
+AR-266,ar,answer from event rules,short,1084,-1.581,0.0801
+AR-267,ar,terms question,long,9244,-0.567,0.6018
+AR-268,ar,terms question,long,6366,-0.079,0.65
+AR-269,ar,accessibility,short,631,0.845,0.7585
+AR-270,ar,venue directions,short,1542,1.11,0.7963
+AR-271,ar,answer from event rules,short,889,1.254,0.8466
+AR-272,ar,ticket change,short,2617,0.21,0.5094
+AR-273,ar,ticket change,short,1649,-0.182,0.2416
+AR-274,ar,ticket change,short,1708,0.26,0.8117
+AR-275,ar,answer from event rules,short,1389,-0.887,0.5689
+AR-276,ar,answer from event rules,long,7472,-2.216,0.0288
+AR-277,ar,terms question,short,1341,0.782,0.9118
+AR-278,ar,terms question,short,2170,-0.266,0.3821
+AR-279,ar,accessibility,short,1199,0.08,0.3512
+AR-280,ar,venue directions,short,1608,-0.642,0.5261
+AR-281,ar,terms question,short,2324,2.769,0.9759
+AR-282,ar,ticket change,long,6545,-0.453,0.5139
+AR-283,ar,answer from event rules,long,12109,-0.584,0.5727
+AR-284,ar,answer from event rules,short,1177,1.428,0.8877
+AR-285,ar,accessibility,long,9741,1.696,0.9354
+AR-286,ar,venue directions,short,1121,1.819,0.8478
+AR-287,ar,terms question,long,9233,0.472,0.541
+AR-288,ar,ticket change,long,11834,0.799,0.5781
+AR-289,ar,terms question,short,707,-0.256,0.6692
+AR-290,ar,ticket change,long,8272,-2.062,0.0499
+AR-291,ar,terms question,short,1252,-0.474,0.3937
+AR-292,ar,terms question,short,2418,-1.569,0.1235
+AR-293,ar,ticket change,short,1258,1.084,0.5879
+AR-294,ar,answer from event rules,short,1625,0.297,0.492
+AR-295,ar,ticket change,short,1508,-0.763,0.4284
+AR-296,ar,terms question,short,1638,1.199,0.8395
+AR-297,ar,venue directions,short,2855,-0.352,0.5381
+AR-298,ar,accessibility,long,13543,0.362,0.6292
+AR-299,ar,ticket change,short,1372,0.446,0.4039
+AR-300,ar,venue directions,short,2347,0.081,0.6993
+EN-001,en,answer from event rules,short,1513,1.876,0.9241
+EN-002,en,terms question,short,1034,-1.808,0.1988
+EN-003,en,answer from event rules,long,12925,-0.933,0.4428
+EN-004,en,answer from event rules,long,11020,-1.241,0.153
+EN-005,en,venue directions,short,778,-0.515,0.285
+EN-006,en,terms question,short,1432,-0.588,0.2275
+EN-007,en,answer from event rules,short,867,1.235,0.8692
+EN-008,en,venue directions,long,15001,0.027,0.458
+EN-009,en,ticket change,long,10146,-0.54,0.2249
+EN-010,en,answer from event rules,short,997,-1.07,0.378
+EN-011,en,accessibility,long,11913,2.184,0.885
+EN-012,en,accessibility,long,7801,-1.618,0.0861
+EN-013,en,accessibility,long,10991,0.509,0.5761
+EN-014,en,answer from event rules,short,1047,0.254,0.696
+EN-015,en,accessibility,short,2860,0.732,0.8054
+EN-016,en,ticket change,short,783,-0.568,0.4143
+EN-017,en,terms question,long,6213,0.67,0.6868
+EN-018,en,venue directions,short,2821,-1.129,0.2302
+EN-019,en,answer from event rules,short,2177,-0.36,0.4982
+EN-020,en,accessibility,short,1762,0.527,0.7041
+EN-021,en,venue directions,long,8045,3.54,0.9826
+EN-022,en,answer from event rules,short,1209,0.619,0.8128
+EN-023,en,accessibility,short,761,0.228,0.5527
+EN-024,en,venue directions,short,961,-1.112,0.1316
+EN-025,en,venue directions,short,970,0.698,0.8179
+EN-026,en,ticket change,short,3146,0.04,0.2184
+EN-027,en,answer from event rules,short,1196,0.983,0.6786
+EN-028,en,venue directions,short,685,-0.693,0.3693
+EN-029,en,answer from event rules,short,2057,0.074,0.4931
+EN-030,en,terms question,short,1049,0.291,0.5412
+EN-031,en,venue directions,short,1685,-1.294,0.2302
+EN-032,en,answer from event rules,short,1854,0.817,0.7174
+EN-033,en,answer from event rules,short,1206,1.315,0.8704
+EN-034,en,answer from event rules,short,753,-0.002,0.4562
+EN-035,en,answer from event rules,short,1180,-0.855,0.3573
+EN-036,en,venue directions,short,1296,0.726,0.6594
+EN-037,en,answer from event rules,short,1219,-0.1,0.4012
+EN-038,en,venue directions,long,13472,1.334,0.9047
+EN-039,en,answer from event rules,long,9546,0.06,0.2239
+EN-040,en,accessibility,long,9260,-0.764,0.3359
+EN-041,en,ticket change,long,16000,1.758,0.9263
+EN-042,en,accessibility,short,712,-1.299,0.2778
+EN-043,en,answer from event rules,short,1959,-1.022,0.2205
+EN-044,en,answer from event rules,long,10259,-0.325,0.5051
+EN-045,en,answer from event rules,long,7624,1.921,0.8539
+EN-046,en,answer from event rules,long,7111,-0.054,0.3274
+EN-047,en,ticket change,long,10092,0.638,0.7716
+EN-048,en,ticket change,short,2025,-1.002,0.1101
+EN-049,en,venue directions,short,1556,-0.501,0.4352
+EN-050,en,accessibility,short,2313,0.019,0.4157
+EN-051,en,answer from event rules,long,11148,-2.253,0.0901
+EN-052,en,accessibility,long,8128,-1.143,0.0768
+EN-053,en,answer from event rules,long,9300,-0.862,0.4483
+EN-054,en,ticket change,short,1148,-0.058,0.2687
+EN-055,en,venue directions,long,11119,-1.791,0.0887
+EN-056,en,accessibility,short,2312,-0.947,0.2245
+EN-057,en,terms question,short,2110,0.122,0.5299
+EN-058,en,answer from event rules,long,11926,1.182,0.8798
+EN-059,en,venue directions,short,2192,-0.291,0.4526
+EN-060,en,venue directions,long,6359,0.606,0.8077
+EN-061,en,venue directions,short,723,0.917,0.8962
+EN-062,en,answer from event rules,long,10594,0.353,0.6497
+EN-063,en,answer from event rules,short,1073,0.616,0.8774
+EN-064,en,terms question,long,7914,-0.839,0.3006
+EN-065,en,accessibility,short,2137,2.281,0.9143
+EN-066,en,answer from event rules,long,6846,0.947,0.5143
+EN-067,en,venue directions,short,1147,-1.262,0.3167
+EN-068,en,accessibility,short,1716,1.089,0.7612
+EN-069,en,ticket change,long,6000,0.608,0.7813
+EN-070,en,venue directions,short,1177,0.005,0.4786
+EN-071,en,answer from event rules,short,965,2.671,0.9479
+EN-072,en,answer from event rules,long,10610,-1.798,0.1183
+EN-073,en,ticket change,long,11933,-2.303,0.0993
+EN-074,en,answer from event rules,long,9957,-0.236,0.5216
+EN-075,en,accessibility,short,2400,-3.036,0.0221
+EN-076,en,accessibility,short,935,0.34,0.556
+EN-077,en,answer from event rules,short,2226,1.113,0.861
+EN-078,en,accessibility,short,600,1.389,0.7997
+EN-079,en,accessibility,short,1551,-0.846,0.333
+EN-080,en,venue directions,short,1498,-0.786,0.3566
+EN-081,en,answer from event rules,short,1199,0.528,0.4562
+EN-082,en,ticket change,short,1289,-0.06,0.6561
+EN-083,en,terms question,long,11562,0.341,0.7513
+EN-084,en,venue directions,long,12288,-0.065,0.5624
+EN-085,en,venue directions,short,840,-0.584,0.4028
+EN-086,en,answer from event rules,long,9865,0.673,0.4793
+EN-087,en,ticket change,long,10195,-0.392,0.5504
+EN-088,en,ticket change,long,10383,0.738,0.6679
+EN-089,en,accessibility,short,2135,0.313,0.6606
+EN-090,en,accessibility,short,2285,-0.433,0.2732
+EN-091,en,venue directions,short,884,0.907,0.7464
+EN-092,en,terms question,short,1429,1.99,0.9172
+EN-093,en,venue directions,long,9105,0.834,0.8272
+EN-094,en,answer from event rules,long,9254,-0.967,0.0882
+EN-095,en,ticket change,short,1191,-0.455,0.3785
+EN-096,en,terms question,long,8483,0.017,0.478
+EN-097,en,terms question,long,8105,1.017,0.8106
+EN-098,en,ticket change,long,9988,1.308,0.809
+EN-099,en,accessibility,long,6000,-1.075,0.3329
+EN-100,en,answer from event rules,short,940,1.4,0.8383
+EN-101,en,accessibility,long,7448,-0.325,0.1659
+EN-102,en,ticket change,long,8873,-0.322,0.3735
+EN-103,en,accessibility,short,1163,0.117,0.6252
+EN-104,en,ticket change,short,1858,0.148,0.5575
+EN-105,en,terms question,short,1335,-0.636,0.2457
+EN-106,en,answer from event rules,short,1551,-0.607,0.4865
+EN-107,en,ticket change,long,10055,0.85,0.7484
+EN-108,en,answer from event rules,long,13824,-1.083,0.4064
+EN-109,en,venue directions,long,10986,-0.772,0.4421
+EN-110,en,accessibility,short,1359,-1.914,0.0957
+EN-111,en,ticket change,short,1201,0.609,0.5919
+EN-112,en,ticket change,short,1141,2.87,0.9688
+EN-113,en,ticket change,short,830,-2.34,0.1217
+EN-114,en,venue directions,short,1275,1.971,0.9357
+EN-115,en,venue directions,long,10174,-0.433,0.4739
+EN-116,en,terms question,short,1004,0.446,0.803
+EN-117,en,accessibility,long,7837,1.181,0.7877
+EN-118,en,accessibility,short,600,0.802,0.3423
+EN-119,en,answer from event rules,short,1689,-1.04,0.1601
+EN-120,en,ticket change,short,2512,-0.32,0.2748
+EN-121,en,terms question,short,1181,-0.193,0.4122
+EN-122,en,ticket change,short,1840,0.591,0.5701
+EN-123,en,terms question,short,1091,1.551,0.8967
+EN-124,en,terms question,short,2181,1.747,0.8954
+EN-125,en,accessibility,short,714,-0.288,0.4149
+EN-126,en,accessibility,long,8186,1.322,0.8312
+EN-127,en,ticket change,short,1357,0.692,0.6192
+EN-128,en,answer from event rules,long,7104,1.183,0.8723
+EN-129,en,answer from event rules,short,1642,0.368,0.6913
+EN-130,en,answer from event rules,short,698,-1.014,0.2668
+EN-131,en,ticket change,short,2298,-0.703,0.2602
+EN-132,en,ticket change,short,1302,-0.878,0.2192
+EN-133,en,answer from event rules,short,2243,0.698,0.762
+EN-134,en,terms question,long,6000,-0.13,0.4111
+EN-135,en,ticket change,short,1740,-0.074,0.3713
+EN-136,en,ticket change,long,7535,1.248,0.7206
+EN-137,en,terms question,short,1170,-0.605,0.4728
+EN-138,en,accessibility,short,1101,-2.303,0.0459
+EN-139,en,terms question,short,1495,1.901,0.8873
+EN-140,en,terms question,short,1916,-2.103,0.0754
+EN-141,en,ticket change,short,1425,-1.743,0.048
+EN-142,en,ticket change,short,1730,0.025,0.6295
+EN-143,en,answer from event rules,short,1349,-2.2,0.038
+EN-144,en,ticket change,short,1495,0.878,0.6134
+EN-145,en,ticket change,short,1994,-3.354,0.0359
+EN-146,en,venue directions,long,7773,0.611,0.6589
+EN-147,en,answer from event rules,short,3251,0.888,0.8393
+EN-148,en,answer from event rules,short,1057,1.018,0.4748
+EN-149,en,venue directions,long,6000,1.092,0.7661
+EN-150,en,ticket change,short,2391,0.392,0.4784
+EN-151,en,ticket change,short,2487,0.404,0.6428
+EN-152,en,answer from event rules,short,1706,0.132,0.5218
+EN-153,en,ticket change,short,1832,0.173,0.3495
+EN-154,en,venue directions,short,917,-0.246,0.4978
+EN-155,en,accessibility,short,794,1.83,0.916
+EN-156,en,answer from event rules,short,1436,-0.531,0.339
+EN-157,en,answer from event rules,long,8873,0.82,0.6936
+EN-158,en,accessibility,long,11414,1.127,0.6318
+EN-159,en,accessibility,short,2925,-2.706,0.0267
+EN-160,en,ticket change,long,6027,-2.586,0.0407
+EN-161,en,terms question,long,9654,0.067,0.355
+EN-162,en,accessibility,long,11425,0.499,0.5977
+EN-163,en,accessibility,long,9056,0.762,0.8098
+EN-164,en,terms question,long,9203,0.726,0.4916
+EN-165,en,terms question,long,7669,-0.724,0.1188
+EN-166,en,ticket change,short,1777,-0.161,0.3918
+EN-167,en,accessibility,short,1857,2.808,0.9104
+EN-168,en,venue directions,long,13485,0.426,0.6233
+EN-169,en,answer from event rules,long,10474,-0.78,0.3636
+EN-170,en,terms question,short,1102,-1.607,0.1455
+EN-171,en,answer from event rules,short,1026,1.303,0.8774
+EN-172,en,terms question,long,9673,1.553,0.6765
+EN-173,en,venue directions,long,8796,-1.19,0.3136
+EN-174,en,answer from event rules,long,12390,0.631,0.4753
+EN-175,en,ticket change,short,944,-1.859,0.0787
+EN-176,en,ticket change,short,1139,-0.72,0.2897
+EN-177,en,venue directions,short,2817,-1.331,0.2053
+EN-178,en,accessibility,short,1668,0.235,0.6978
+EN-179,en,answer from event rules,short,2054,-0.143,0.4233
+EN-180,en,answer from event rules,long,11383,0.91,0.592
+EN-181,en,ticket change,short,2407,-1.04,0.1836
+EN-182,en,venue directions,short,677,1.026,0.7668
+EN-183,en,accessibility,long,9404,-0.098,0.6153
+EN-184,en,ticket change,short,1522,1.765,0.9347
+EN-185,en,terms question,short,1120,-0.2,0.2853
+EN-186,en,ticket change,short,2345,-1.087,0.0937
+EN-187,en,venue directions,short,1460,0.323,0.3024
+EN-188,en,answer from event rules,long,7857,2.23,0.9146
+EN-189,en,answer from event rules,long,9788,2.13,0.9601
+EN-190,en,venue directions,short,826,-1.201,0.3061
+EN-191,en,ticket change,short,1203,-0.002,0.5078
+EN-192,en,accessibility,short,1308,0.381,0.5406
+EN-193,en,venue directions,short,1883,0.757,0.6469
+EN-194,en,ticket change,long,12434,1.395,0.9121
+EN-195,en,venue directions,short,985,-0.572,0.3066
+EN-196,en,venue directions,short,1343,-0.424,0.473
+EN-197,en,answer from event rules,short,885,-0.862,0.4622
+EN-198,en,answer from event rules,long,10369,0.557,0.7439
+EN-199,en,accessibility,long,15724,-2.173,0.0833
+EN-200,en,terms question,short,1834,-1.842,0.1629
+EN-201,en,answer from event rules,long,7557,1.607,0.8981
+EN-202,en,accessibility,long,8836,-0.078,0.6546
+EN-203,en,ticket change,long,9160,-1.794,0.1354
+EN-204,en,answer from event rules,long,12526,0.26,0.5913
+EN-205,en,ticket change,short,732,-0.136,0.4604
+EN-206,en,answer from event rules,long,9540,-0.289,0.6067
+EN-207,en,answer from event rules,long,8097,0.152,0.534
+EN-208,en,ticket change,short,2060,-1.997,0.0351
+EN-209,en,ticket change,short,2022,-0.038,0.5312
+EN-210,en,ticket change,long,14141,-0.241,0.6585
+EN-211,en,venue directions,short,1250,1.137,0.8139
+EN-212,en,venue directions,short,1541,0.156,0.408
+EN-213,en,accessibility,short,954,0.061,0.4612
+EN-214,en,ticket change,short,2917,0.155,0.4575
+EN-215,en,accessibility,short,2863,-1.165,0.2379
+EN-216,en,terms question,short,1384,-0.82,0.192
+EN-217,en,terms question,long,9089,-1.247,0.1099
+EN-218,en,ticket change,short,2373,0.403,0.6498
+EN-219,en,accessibility,long,8431,0.772,0.4604
+EN-220,en,answer from event rules,short,1074,0.247,0.5302
+EN-221,en,answer from event rules,short,1383,-0.476,0.2795
+EN-222,en,venue directions,short,1827,1.299,0.6202
+EN-223,en,accessibility,short,1644,1.809,0.8043
+EN-224,en,answer from event rules,short,2109,-0.066,0.6027
+EN-225,en,ticket change,short,1777,1.267,0.7985
+EN-226,en,accessibility,short,2494,0.206,0.5724
+EN-227,en,answer from event rules,short,2089,-0.105,0.3822
+EN-228,en,ticket change,short,845,-0.67,0.2268
+EN-229,en,venue directions,short,955,0.88,0.5354
+EN-230,en,answer from event rules,short,995,-0.649,0.4581
+EN-231,en,answer from event rules,short,978,0.233,0.6289
+EN-232,en,terms question,short,1305,-1.049,0.4347
+EN-233,en,answer from event rules,long,8918,-0.924,0.2149
+EN-234,en,venue directions,short,1657,-0.986,0.1604
+EN-235,en,venue directions,long,16000,1.847,0.8952
+EN-236,en,venue directions,long,7835,-1.714,0.1675
+EN-237,en,venue directions,long,7918,1.119,0.847
+EN-238,en,answer from event rules,long,8556,-0.28,0.294
+EN-239,en,venue directions,long,7498,1.204,0.7428
+EN-240,en,terms question,short,1438,0.493,0.6643
+EN-241,en,terms question,short,1021,1.07,0.7309
+EN-242,en,terms question,short,1035,0.015,0.4529
+EN-243,en,venue directions,short,1891,-0.352,0.2473
+EN-244,en,answer from event rules,short,624,0.692,0.7678
+EN-245,en,ticket change,short,987,-1.033,0.2083
+EN-246,en,accessibility,long,6000,0.439,0.5587
+EN-247,en,venue directions,short,2254,-1.335,0.3875
+EN-248,en,ticket change,short,1167,1.256,0.7891
+EN-249,en,venue directions,short,1212,-0.339,0.3357
+EN-250,en,answer from event rules,short,1130,-0.65,0.2472
+EN-251,en,terms question,long,9548,-0.714,0.1604
+EN-252,en,ticket change,long,10053,-0.44,0.1794
+EN-253,en,venue directions,short,2087,0.922,0.7972
+EN-254,en,ticket change,long,9691,-0.936,0.1651
+EN-255,en,venue directions,short,2027,0.166,0.3347
+EN-256,en,accessibility,short,1312,1.625,0.8666
+EN-257,en,ticket change,short,966,0.361,0.3976
+EN-258,en,accessibility,long,9619,-2.045,0.0976
+EN-259,en,terms question,short,2364,0.286,0.5766
+EN-260,en,ticket change,short,1679,0.751,0.5186
+EN-261,en,answer from event rules,long,10772,1.081,0.8676
+EN-262,en,venue directions,long,6895,-0.031,0.4919
+EN-263,en,answer from event rules,short,1487,1.863,0.8416
+EN-264,en,venue directions,short,2125,1.063,0.8649
+EN-265,en,venue directions,short,1282,-1.112,0.3846
+EN-266,en,accessibility,long,11735,0.499,0.6157
+EN-267,en,terms question,short,3500,-0.368,0.3425
+EN-268,en,ticket change,short,2147,-2.081,0.1166
+EN-269,en,venue directions,long,8089,-0.266,0.1656
+EN-270,en,answer from event rules,long,10917,0.281,0.5681
+EN-271,en,venue directions,short,2032,0.536,0.8002
+EN-272,en,terms question,short,1776,-0.166,0.5559
+EN-273,en,accessibility,long,9522,-1.686,0.2055
+EN-274,en,answer from event rules,short,3500,-1.009,0.3117
+EN-275,en,ticket change,short,1063,0.515,0.5737
+EN-276,en,ticket change,short,909,0.197,0.7736
+EN-277,en,terms question,long,10397,-1.477,0.1438
+EN-278,en,answer from event rules,short,1175,-0.319,0.5078
+EN-279,en,answer from event rules,short,974,-0.432,0.2763
+EN-280,en,venue directions,short,1536,-2.04,0.1103
+EN-281,en,terms question,long,9149,0.242,0.4801
+EN-282,en,venue directions,short,1078,-0.673,0.3978
+EN-283,en,terms question,short,1227,0.968,0.6878
+EN-284,en,accessibility,short,883,-0.0,0.5024
+EN-285,en,terms question,short,1337,-1.7,0.1097
+EN-286,en,accessibility,long,8742,-1.728,0.1132
+EN-287,en,terms question,short,2309,1.433,0.8257
+EN-288,en,ticket change,short,600,0.804,0.6569
+EN-289,en,venue directions,short,735,2.964,0.9488
+EN-290,en,venue directions,long,6110,-0.018,0.5697
+EN-291,en,venue directions,short,2353,1.617,0.8316
+EN-292,en,answer from event rules,long,10556,0.211,0.5737
+EN-293,en,venue directions,short,1180,0.222,0.2422
+EN-294,en,answer from event rules,short,1055,-1.151,0.236
+EN-295,en,venue directions,short,2721,0.91,0.8919
+EN-296,en,terms question,long,7819,-0.355,0.5923
+EN-297,en,accessibility,long,13353,-1.919,0.0653
+EN-298,en,terms question,short,1887,0.101,0.5042
+EN-299,en,terms question,long,14663,0.591,0.4605
+EN-300,en,ticket change,long,14730,-0.544,0.2563

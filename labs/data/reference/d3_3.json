@@ -1,0 +1,49 @@
+{
+ "measured": {
+  "ar": 1.75,
+  "en": 2.39
+ },
+ "rows": [
+  {
+   "users": 4,
+   "speculation": "off",
+   "tpot_p50": 0.0423,
+   "tpot_p90": 0.0457,
+   "ttft_p90": 0.557,
+   "goodput_rps": 0.5554,
+   "attainment": 1.0,
+   "cache_blocks": 10002
+  },
+  {
+   "users": 4,
+   "speculation": "on",
+   "tpot_p50": 0.0345,
+   "tpot_p90": 0.0406,
+   "ttft_p90": 0.644,
+   "goodput_rps": 0.7094,
+   "attainment": 1.0,
+   "cache_blocks": 5054
+  },
+  {
+   "users": 64,
+   "speculation": "off",
+   "tpot_p50": 0.0943,
+   "tpot_p90": 0.1079,
+   "ttft_p90": 4.218,
+   "goodput_rps": 2.5654,
+   "attainment": 0.8924,
+   "cache_blocks": 10002
+  },
+  {
+   "users": 64,
+   "speculation": "on",
+   "tpot_p50": 0.0744,
+   "tpot_p90": 0.0984,
+   "ttft_p90": 5.955,
+   "goodput_rps": 2.3311,
+   "attainment": 0.7049,
+   "cache_blocks": 5054
+  }
+ ],
+ "synthetic": true
+}

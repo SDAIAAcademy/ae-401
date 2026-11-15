@@ -1,0 +1,41 @@
+{
+  "L4": {
+    "source": "https://www.nvidia.com/en-us/data-center/l4/",
+    "memory_gb": 24,
+    "bandwidth_gbs": 300,
+    "sheet": {
+      "BF16 tensor TFLOPS (with sparsity)": 242,
+      "FP8 tensor TFLOPS (with sparsity)": 485,
+      "INT8 tensor TOPS (with sparsity)": 485,
+      "GPU memory GB": 24,
+      "memory bandwidth GB/s": 300,
+      "max TDP W": 72
+    },
+    "fp16_dense_tflops": 121,
+    "fp8_dense_tflops": 242.5,
+    "int8_dense_tops": 242.5,
+    "tdp_w": 72,
+    "fp8": true,
+    "bf16": true,
+    "note": "The sheet shows tensor-core figures with sparsity (BF16 242, FP8 485); dense is half."
+  },
+  "T4": {
+    "source": "https://www.nvidia.com/en-us/data-center/tesla-t4/",
+    "memory_gb": 16,
+    "bandwidth_gbs": 320,
+    "sheet": {
+      "FP16 mixed precision TFLOPS": 65,
+      "INT8 TOPS": 130,
+      "GPU memory GB": 16,
+      "memory bandwidth GB/s": 320,
+      "power W": 70
+    },
+    "fp16_dense_tflops": 65,
+    "fp8_dense_tflops": null,
+    "int8_dense_tops": 130,
+    "tdp_w": 70,
+    "fp8": false,
+    "bf16": false,
+    "note": "Mixed precision FP16/FP32 65 TFLOPS, INT8 130 TOPS; no FP8 or BF16 tensor cores."
+  }
+}

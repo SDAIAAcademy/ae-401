@@ -1,0 +1,9 @@
+{
+  "requests_per_day": 40000,
+  "peak_start_s": 71880,
+  "peak_end_s": 75480,
+  "peak_requests": 7656,
+  "share_arabic": 0.548,
+  "share_documents": 0.181,
+  "note": "The evening peak is the busiest 60 minutes of the day."
+}

@@ -1,0 +1,10 @@
+{
+  "currency": "SAR",
+  "l4_hour": 3.2,
+  "node_overhead_hour": 0.9,
+  "hosted_input_per_million": 0.4,
+  "hosted_output_per_million": 1.6,
+  "pue": 1.4,
+  "host_power_w": 55,
+  "note": "Case figures (fictional): the authority's lease of one L4 accelerator per hour, the host's share, and a hosted-API quote for an 8B-class model. Not vendor prices."
+}
