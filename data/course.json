@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T16:19:23Z",
-    "version": "2027.1.0",
-    "commit": "65b5aad"
+    "at": "2026-11-24T16:50:31Z",
+    "version": "2027.2.0",
+    "commit": "3238690"
   },
   "lang": "en",
   "dir": "ltr",
@@ -15,7 +15,7 @@
   "course": {
     "id": "ae-401",
     "code": "AE-401",
-    "version": "2027.1.0",
+    "version": "2027.2.0",
     "title": "Inference Performance and Cost Engineering",
     "tagline": "Make a language model service meet its latency objectives at the lowest cost you can defend, with quality held in Arabic and English",
     "description": "Participants take the bilingual visitor assistant of a fictional national events authority, too slow at evening peaks and too costly, and make it meet its service objective at the lowest cost they can defend. They build a first-principles cost model, measure goodput curves on replayed traffic, diagnose seeded bottlenecks, then apply batching, caching, quantisation, speculative decoding, distillation, routing, disaggregated serving and autoscaling, re-running an Arabic and English task evaluation after every change.",

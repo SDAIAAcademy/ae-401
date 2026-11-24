@@ -2,9 +2,9 @@
   "v": 1,
   "engine": "1.0.0",
   "build": {
-    "at": "2026-11-15T16:19:23Z",
-    "version": "2027.1.0",
-    "commit": "65b5aad"
+    "at": "2026-11-24T16:50:31Z",
+    "version": "2027.2.0",
+    "commit": "3238690"
   },
   "lang": "en",
   "dir": "ltr",
@@ -267,7 +267,7 @@
       "n": 29,
       "session": 3,
       "title": "Four clocks per request, and the objective uses three of them",
-      "text": "What a visitor feels Four clocks per request, and the objective uses three of them TTFT From sending to the first token: queue plus prefill. TPOT Per token after the first: the reading pace. Longest stall The largest gap between two tokens: the freeze. End to end The whole answer; not in the objective.",
+      "text": "What a visitor feels Four clocks per request, and the objective uses three of them TTFT From sending to the first token: any upload, then queue plus prefill. TPOT Per token after the first: the reading pace. Longest stall The largest gap between two tokens: the freeze. End to end The whole answer; not in the objective.",
       "href": "../slides/day1.html#three-clocks"
     },
     {
@@ -294,7 +294,7 @@
       "n": 32,
       "session": 3,
       "title": "Concurrency is the number of visitors waiting for an answer at once",
-      "text": "Load Concurrency is the number of visitors waiting for an answer at once Closed loop : each user sends the next request when the last answer ends. The load is set by the number of users, not by a rate. It is easy to control and repeat, which is why curves are drawn over it. It is kinder than reality: when the engine slows, the users slow too.",
+      "text": "Load Concurrency is the number of visitors waiting for an answer at once Closed loop : each user sends the next request when the last answer ends, so the load is a number of users, not a rate. Easy to control and repeat, which is why curves are drawn over it. Kinder than reality: when the engine slows, the users slow too.",
       "href": "../slides/day1.html#closed-loop-users"
     },
     {
@@ -317,8 +317,35 @@
     },
     {
       "deck": "day1",
-      "id": "checkpoint-3",
+      "id": "photo-upload-dominates",
       "n": 35,
+      "session": 3,
+      "title": "In the photo pilot, the upload takes 86% of the time to first token",
+      "text": "Stage timings from the client's clock In the photo pilot, the upload takes 86% of the time to first token Stage of a photo question Median (s) Share Phone prepares the photo 0.00 0% Upload 3.85 86% Server decodes and resizes 0.14 3% Queue 0.11 3% Image encoding and prefill 0.45 9% Time to first token: median 4.55 s, p90 8.21 s; 1% of photo questions meet 2.0 s. Synthetic: 3.4 MB median photo, 7 Mbit/s median uplink.",
+      "href": "../slides/day1.html#photo-upload-dominates"
+    },
+    {
+      "deck": "day1",
+      "id": "resize-on-the-phone",
+      "n": 36,
+      "session": 3,
+      "title": "The model keeps 1,024 pixels, so the phone should send only those",
+      "text": "The fix, confirmed by a rerun The model keeps 1,024 pixels, so the phone should send only those The pilot model resizes every photo to 1,024 pixels on the long side; most of the 12 megapixels cross the network to be thrown away. The app resizes and recompresses before upload: 3.4 MB becomes 0.24 MB. The model receives an image of the same size, so its tokens and prefill do not change. Median or share Before After Phone prepares (s) 0.00 0.07 Upload (s) 3.85 0.36 Server resizes (s) 0.14 0.01 TTFT p90 (s) 8.21 1.26 Meet 2.0 s 1% 100%",
+      "href": "../slides/day1.html#resize-on-the-phone"
+    },
+    {
+      "deck": "day1",
+      "id": "same-table-other-decision",
+      "n": 37,
+      "session": 3,
+      "title": "Athar's guides wait too: which stage do you work on?",
+      "text": "Your turn · a parallel case Athar's guides wait too: which stage do you work on? Stage of a photo question Median (s) Share Phone prepares the photo 0.08 2% Upload 0.16 5% Server decodes and resizes 0.01 0% Queue 2.44 80% Image encoding and prefill 0.45 13% Guides ask about artefact photos at the evening peak, over venue Wi-Fi; their app already sends 0.38 MB photos. TTFT p90 5.22 s; 10% meet 2.0 s.",
+      "href": "../slides/day1.html#same-table-other-decision"
+    },
+    {
+      "deck": "day1",
+      "id": "checkpoint-3",
+      "n": 38,
       "session": 3,
       "title": "Which number goes in the report?",
       "text": "Checkpoint Which number goes in the report? A run at 16 users shows a mean TTFT of 1.7 s, a p90 TTFT of 9 s, a TPOT p90 of 95 ms, no stall over 1 s and 0.44 requests per second. Hanadi asks whether the objective is met. What do you report? Yes: the mean TTFT is under 2 s Yes: it serves 0.44 requests per second The share of requests that met all three, which the TTFT p90 says is under 90% Yes: the TPOT p90 is under 150 ms",
@@ -327,7 +354,7 @@
     {
       "deck": "day1",
       "id": "lab-1-3",
-      "n": 36,
+      "n": 39,
       "session": 3,
       "title": "The baseline at three concurrency levels",
       "text": "Lab 1.3 · 25 min The baseline at three concurrency levels Load the as-deployed Musamir through a streaming HTTP endpoint at three concurrency levels and compute goodput against the objectives. D1_3_load_baseline_three.ipynb Start the endpoint and stream one request 4 min Measure TTFT, TPOT and end-to-end time from the stream 6 min Load at 2, 8 and 24 concurrent users 6 min Goodput against the objectives 5 min Where the time went: queue, prefill, decode 4 min ✱ Stretch: Point the same load generator at a real engine on a notebook GPU",
@@ -336,7 +363,7 @@
     {
       "deck": "day1",
       "id": "s4",
-      "n": 37,
+      "n": 40,
       "session": 4,
       "title": "Curves, not single numbers",
       "text": "Session 4 Curves, not single numbers Build a goodput curve over concurrency with repeated runs Read the knee of a curve and state a capacity with its variance Judge whether a benchmark is valid 04",
@@ -345,7 +372,7 @@
     {
       "deck": "day1",
       "id": "one-run-is-an-anecdote",
-      "n": 38,
+      "n": 41,
       "session": 4,
       "title": "At 8 users, the p90 TTFT of three runs spreads by 0.7 seconds",
       "text": "Variance At 8 users, the p90 TTFT of three runs spreads by 0.7 seconds 1.96 s mean p90 TTFT of three runs ± 0.68 s standard deviation between them Near the knee, small changes in which requests arrive together decide who waits. A single run could have said 1.3 s or 2.6 s.",
@@ -354,7 +381,7 @@
     {
       "deck": "day1",
       "id": "baseline-curve",
-      "n": 39,
+      "n": 42,
       "session": 4,
       "title": "The baseline's goodput peaks at 4 users and collapses by 12",
       "text": "Lab 1.4 · task 4 The baseline's goodput peaks at 4 users and collapses by 12 Mean of three runs per point, error bars one standard deviation. Synthetic: the course simulator.",
@@ -363,7 +390,7 @@
     {
       "deck": "day1",
       "id": "the-knee",
-      "n": 40,
+      "n": 43,
       "session": 4,
       "title": "Seven points, three runs each, raw rows kept",
       "text": "Lab 1.4 · task 2 Seven points, three runs each, raw rows kept Users Goodput ± sd Throughput TTFT p90 (s) TPOT p90 (ms) 1 0.079 0.003 0.080 1.41 75 2 0.120 0.010 0.146 1.39 84 4 0.149 0.020 0.255 1.42 99 6 0.140 0.033 0.333 1.51 110 8 0.116 0.032 0.399 1.96 122 12 0.020 0.012 0.441 11.42 128 16 0.006 0.009 0.443 20.81 132",
@@ -372,7 +399,7 @@
     {
       "deck": "day1",
       "id": "benchmark-validity",
-      "n": 41,
+      "n": 44,
       "session": 4,
       "title": "A curve is evidence only if someone else can rerun it",
       "text": "Benchmark validity A curve is evidence only if someone else can rerun it The same trace, or a named sample of it, with its seed. Warm-up dropped: the first 10% of each run here. Enough requests per point to fill the engine many times. Three or more repeats, and the spread reported. The raw per-request rows kept beside the plot. The configuration and the engine version recorded. The objectives written on the plot. Closed or open loop stated.",
@@ -381,7 +408,7 @@
     {
       "deck": "day1",
       "id": "closed-loop-hides-the-queue",
-      "n": 42,
+      "n": 45,
       "session": 4,
       "title": "Replayed at real arrival times, the peak queues for minutes",
       "text": "Lab 1.4 · stretch Replayed at real arrival times, the peak queues for minutes Closed loop, 16 users 0.44 requests per second, p90 TTFT 21 s. The users waited for each other. Open loop, two minutes of the peak 0.45 requests per second served while 2.13 arrive; p90 TTFT 372 s and growing. What goes wrong. A closed-loop test at \"high concurrency\" can look survivable while real arrivals would grow the queue without bound.",
@@ -390,7 +417,7 @@
     {
       "deck": "day1",
       "id": "capacity-claim",
-      "n": 43,
+      "n": 46,
       "session": 4,
       "title": "A capacity claim names the point, its spread and the objectives",
       "text": "Lab 1.4 · task 5 A capacity claim names the point, its spread and the objectives Claim. The baseline serves at most 0.15 ± 0.02 good requests per second (mean ± sd of 3 runs) at 4 concurrent users, under TTFT ≤ 2.0 s, TPOT ≤ 150 ms and no stall over 1.0 s; beyond it goodput falls while throughput keeps rising. The evening peak brings 2.13 requests per second: fourteen times this.",
@@ -399,7 +426,7 @@
     {
       "deck": "day1",
       "id": "checkpoint-4",
-      "n": 44,
+      "n": 47,
       "session": 4,
       "title": "Is the new setting better?",
       "text": "Checkpoint Is the new setting better? At 8 users, one run with a new engine setting gives a p90 TTFT of 1.5 s against the baseline's 1.96 s mean (sd 0.68 over three runs). What do you conclude? Nothing yet: the gap is inside the baseline's spread; run three repeats The setting cuts TTFT by a quarter It is better because throughput did not drop The setting is worse: the result is noisy",
@@ -408,7 +435,7 @@
     {
       "deck": "day1",
       "id": "lab-1-4",
-      "n": 45,
+      "n": 48,
       "session": 4,
       "title": "A seven-point goodput curve",
       "text": "Lab 1.4 · 25 min A seven-point goodput curve Combine supplied runs at six concurrency levels with three repeats of your own at a seventh, plot the curve with its spread and state the capacity. D1_4_build_seven_point.ipynb Load the supplied runs and their raw rows 3 min Aggregate each point with mean and spread 6 min Add your own point with three repeats 6 min Plot goodput and p90 latencies over concurrency 5 min Find the knee and write the capacity claim 5 min ✱ Stretch: Compare closed-loop users with open-loop arrivals at the same rate",
@@ -417,7 +444,7 @@
     {
       "deck": "day1",
       "id": "day-1-recap",
-      "n": 46,
+      "n": 49,
       "session": 4,
       "title": "Predict first, measure with spread, judge by goodput",
       "text": "Day 1 · three things to keep Predict first, measure with spread, judge by goodput Two phases Prefill waits on arithmetic, decode on memory. Two lines of arithmetic predict both. The cache decides 3.6 GB of cache holds about 12 conversations of 2,000 tokens: that, not compute, limits the baseline. Curves with spread Goodput over concurrency, three runs a point, raw rows kept: 0.15 at the knee.",
@@ -426,7 +453,7 @@
     {
       "deck": "day1",
       "id": "tomorrow-inside-the-engine",
-      "n": 47,
+      "n": 50,
       "session": 4,
       "title": "Tomorrow: three broken deployments, and the settings that fix them",
       "text": "Next Tomorrow: three broken deployments, and the settings that fix them Keep your sizing sheet and your curve: Day 2 starts from them. Read the vLLM page on chunked prefill and preemption (in the sources) before the session. Think of one prompt you know whose beginning changes on every request.",

@@ -1,7 +1,7 @@
 ---
 course: "Inference Performance and Cost Engineering"
 code: "AE-401"
-version: "2027.1.0"
+version: "2027.2.0"
 scope: "course"
 language: "en"
 view: "trainee"
@@ -342,7 +342,7 @@ Predict how many sequences fit in the cache at 2,000, 4,000 and 8,000 tokens, th
 
 *What a visitor feels*
 
-- **TTFT.** From sending to the first token: queue plus prefill.
+- **TTFT.** From sending to the first token: any upload, then queue plus prefill.
 - **TPOT.** Per token after the first: the reading pace.
 - **Longest stall.** The largest gap between two tokens: the freeze.
 - **End to end.** The whole answer; not in the objective.
@@ -378,10 +378,9 @@ tpot = (times[-1] - times[0]) / (len(times) - 1) / scale
 
 *Load*
 
-- **Closed loop**: each user sends the next request when the last answer ends.
-- The load is set by the number of users, not by a rate.
-- It is easy to control and repeat, which is why curves are drawn over it.
-- It is kinder than reality: when the engine slows, the users slow too.
+- **Closed loop**: each user sends the next request when the last answer ends, so the load is a number of users, not a rate.
+- Easy to control and repeat, which is why curves are drawn over it.
+- Kinder than reality: when the engine slows, the users slow too.
 
 #### [day1#throughput-rose-goodput-fell] From 8 to 24 users, throughput rose and goodput fell to zero
 
@@ -406,6 +405,50 @@ The baseline as deployed, through the HTTP stand-in, quick-mode run.
 | 24 | 28.19 | 3.44 | 19.05 |
 
 Mean seconds per request, from the engine's own times in the simulator.
+
+#### [day1#photo-upload-dominates] In the photo pilot, the upload takes 86% of the time to first token
+
+*Stage timings from the client's clock*
+
+| Stage of a photo question | Median (s) | Share |
+| --- | --- | --- |
+| Phone prepares the photo | 0.00 | 0% |
+| Upload | 3.85 | 86% |
+| Server decodes and resizes | 0.14 | 3% |
+| Queue | 0.11 | 3% |
+| Image encoding and prefill | 0.45 | 9% |
+
+Time to first token: median 4.55 s, p90 8.21 s; 1% of photo questions meet 2.0 s. Synthetic: 3.4 MB median photo, 7 Mbit/s median uplink.
+
+#### [day1#resize-on-the-phone] The model keeps 1,024 pixels, so the phone should send only those
+
+*The fix, confirmed by a rerun*
+
+- The pilot model resizes every photo to 1,024 pixels on the long side; most of the 12 megapixels cross the network to be thrown away.
+- The app resizes and recompresses before upload: 3.4 MB becomes 0.24 MB.
+- The model receives an image of the same size, so its tokens and prefill do not change.
+
+| Median or share | Before | After |
+| --- | --- | --- |
+| Phone prepares (s) | 0.00 | 0.07 |
+| Upload (s) | 3.85 | 0.36 |
+| Server resizes (s) | 0.14 | 0.01 |
+| TTFT p90 (s) | 8.21 | 1.26 |
+| Meet 2.0 s | 1% | 100% |
+
+#### [day1#same-table-other-decision] Athar's guides wait too: which stage do you work on?
+
+*Your turn · a parallel case*
+
+| Stage of a photo question | Median (s) | Share |
+| --- | --- | --- |
+| Phone prepares the photo | 0.08 | 2% |
+| Upload | 0.16 | 5% |
+| Server decodes and resizes | 0.01 | 0% |
+| Queue | 2.44 | 80% |
+| Image encoding and prefill | 0.45 | 13% |
+
+Guides ask about artefact photos at the evening peak, over venue Wi-Fi; their app already sends 0.38 MB photos. TTFT p90 5.22 s; 10% meet 2.0 s.
 
 #### [day1#checkpoint-3] Which number goes in the report?
 

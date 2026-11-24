@@ -1,7 +1,7 @@
 ---
 course: "Inference Performance and Cost Engineering"
 code: "AE-401"
-version: "2027.1.0"
+version: "2027.2.0"
 language: "en"
 view: "trainee"
 source: "https://sdaiaacademy.github.io/ae-401/index.html"
@@ -229,4 +229,4 @@ Tune a provided under-performing deployment of the case assistant to meet its la
 
 SDAIA Academy · AI Engineering Track · Inference Performance and Cost Engineering
 
-Course version 2027.1.0 · engine 1.0.0 · built 2026-11-15 · commit 65b5aad
+Course version 2027.2.0 · engine 1.0.0 · built 2026-11-24 · commit 3238690

@@ -6,7 +6,7 @@
     "code": "AE-401",
     "title": "Inference Performance and Cost Engineering",
     "lang": "en",
-    "version": "2027.1.0"
+    "version": "2027.2.0"
   },
   "questions": [
     {
@@ -782,6 +782,37 @@
       "day": 1,
       "session": 3,
       "level": "evaluate",
+      "pool": "practice",
+      "weight": 1,
+      "timer": 30
+    },
+    {
+      "id": "q-lo3-photo-upload",
+      "type": "single",
+      "prompt": "Qamra Festival pilots photo questions: a visitor photographs a wristband and asks about entry. Client-side medians per request: upload 4.09 s, server decode and resize 0.14 s, queue 0.09 s, image encoding and prefill 0.45 s; 1% meet the 2.0 s time to first token. The model resizes every photo to 1,024 pixels on the long side. Which change comes first?",
+      "options": [
+        "Raise the sequence cap so more requests run at once",
+        "Move the resizing to a faster server",
+        "Resize the photo in the app before upload",
+        "Switch to 8-bit weights to speed up prefill"
+      ],
+      "correct": [
+        2
+      ],
+      "explanation": "The upload is 87% of the time to first token, and the model discards most of the pixels it receives; a photo sent at the size the model keeps cuts the upload without changing what the model sees.",
+      "misconceptions": [
+        "Tunes the engine when the queue is 2% of the time",
+        "Resizes after the bytes have already crossed the network",
+        "",
+        "Speeds up a stage that is 8% of the time"
+      ],
+      "lo": [
+        "LO2",
+        "LO3"
+      ],
+      "day": 1,
+      "session": 3,
+      "level": "analyze",
       "pool": "practice",
       "weight": 1,
       "timer": 30
